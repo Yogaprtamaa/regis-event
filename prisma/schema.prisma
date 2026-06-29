@@ -9,7 +9,7 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "mongodb"
   url      = env("DATABASE_URL")
 }
 
@@ -21,7 +21,7 @@ enum PaymentStatus {
 }
 
 model User {
-  id        String   @id @default(cuid())
+  id        String   @id @default(cuid()) @map("_id")
   nama      String
   email     String
   nim       String?  @unique
@@ -30,10 +30,12 @@ model User {
   jurusan   String
   angkatan  String?
   createdAt DateTime @default(now())
+
+  @@map("users")
 }
 
 model Event {
-  id           String   @id @default(uuid())
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
   nama_event   String
   deskripsi    String?
   tanggal      DateTime
@@ -46,10 +48,12 @@ model Event {
 
   createdAt    DateTime      @default(now())
   participants Participant[]
+
+  @@map("events")
 }
 
 model Participant {
-  id       Int    @id @default(autoincrement())
+  id       String   @id @default(auto()) @map("_id") @db.ObjectId
   nama     String
   email    String
   nim      String?
@@ -57,16 +61,18 @@ model Participant {
   jurusan  String?
   angkatan String?
   status   String
-  role     String @default("PESERTA") // PESERTA, DOSEN, PANITIA
+  role     String @default("PESERTA")
 
   instansi String?
   divisi String?
-  
+
   buktiPembayaran String?
   paymentStatus PaymentStatus @default(FREE)
 
-  eventId String
+  eventId String @db.ObjectId
   event   Event  @relation(fields: [eventId], references: [id])
 
   createdAt DateTime @default(now())
+
+  @@map("participants")
 }
