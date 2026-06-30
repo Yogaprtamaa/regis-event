@@ -62,6 +62,16 @@ model Participant {
   instansi String?
   divisi String?
 
+  // ── IT FEST 6.0 — pendaftaran lomba ──
+  jenisPeserta String?  // "individu" | "kelompok"
+  universitas  String?
+  fakultas     String?
+  kotaDomisili String?
+  provinsi     String?
+  anggota      Json?    // [{ nama, nim }] — seluruh anggota termasuk ketua
+  buktiFollow  String?  // URL screenshot follow IG
+  fotoKtm      Json?    // [url, ...] KTM seluruh anggota
+
   buktiPembayaran String?
   paymentStatus PaymentStatus @default(FREE)
 

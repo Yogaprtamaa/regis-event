@@ -44,6 +44,42 @@ export async function POST(req) {
     const eventId = formData.get("eventId");
     const file = formData.get("bukti_pembayaran");
 
+    // ── IT FEST 6.0 — field pendaftaran lomba ──
+    const jenisPeserta = formData.get("jenisPeserta");
+    const universitas = formData.get("universitas");
+    const fakultas = formData.get("fakultas");
+    const kotaDomisili = formData.get("kotaDomisili");
+    const provinsi = formData.get("provinsi");
+    const anggotaRaw = formData.get("anggota");
+    const buktiFollowFile = formData.get("buktiFollow");
+    const fotoKtmFiles = formData.getAll("fotoKtm");
+
+    let anggota = null;
+    try {
+      anggota = anggotaRaw ? JSON.parse(anggotaRaw) : null;
+    } catch {
+      anggota = null;
+    }
+
+    // Helper upload satu file ke Cloudinary
+    const uploadToCloudinary = async (f, prefix) => {
+      const bytes = await f.arrayBuffer();
+      const buffer = Buffer.from(bytes);
+      const result = await new Promise((resolve, reject) => {
+        cloudinary.uploader
+          .upload_stream(
+            {
+              folder: `itfest-events/${eventId}`,
+              resource_type: "auto",
+              public_id: `${prefix}-${Date.now()}-${Math.round(Math.random() * 1e4)}`,
+            },
+            (err, res) => (err ? reject(err) : resolve(res)),
+          )
+          .end(buffer);
+      });
+      return result.secure_url;
+    };
+
     /* ===== VALIDASI EVENT ID ===== */
     const uuidRegex =
       /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -134,6 +170,19 @@ export async function POST(req) {
       paymentStatus = "PENDING";
     }
 
+    /* ===== UPLOAD BUKTI FOLLOW IG & FOTO KTM ===== */
+    let buktiFollowUrl = null;
+    if (buktiFollowFile && buktiFollowFile.size > 0) {
+      buktiFollowUrl = await uploadToCloudinary(buktiFollowFile, "follow");
+    }
+
+    const fotoKtmUrls = [];
+    for (const f of fotoKtmFiles) {
+      if (f && typeof f.arrayBuffer === "function" && f.size > 0) {
+        fotoKtmUrls.push(await uploadToCloudinary(f, "ktm"));
+      }
+    }
+
     /* ===== SIMPAN KE DB ===== */
     const participant = await prisma.participant.create({
       data: {
@@ -152,6 +201,14 @@ export async function POST(req) {
         paymentStatus,
         instansi,
         divisi,
+        jenisPeserta,
+        universitas,
+        fakultas,
+        kotaDomisili,
+        provinsi,
+        anggota: anggota ?? undefined,
+        buktiFollow: buktiFollowUrl,
+        fotoKtm: fotoKtmUrls.length ? fotoKtmUrls : undefined,
       },
       include: { event: true },
     });

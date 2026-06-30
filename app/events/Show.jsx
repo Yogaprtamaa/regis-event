@@ -89,19 +89,23 @@ export default function ShowEvent({
 }) {
   const [step, setStep] = useState("detail");
   const [formData, setFormData] = useState({
-    nama: "",
+    jenisPeserta: "individu", // "individu" | "kelompok"
     email: "",
     no_wa: "",
-    role: "MAHASISWA",
-    nim: "",
-    divisi: "",
-    instansi: "",
-    angkatan: "",
-    jurusan: "",
-    bukti_pembayaran: null,
+    universitas: "",
+    fakultas: "",
+    jurusan: "", // Program Studi
+    kotaDomisili: "",
+    provinsi: "",
+    buktiFollow: null, // file (screenshot follow IG)
+    fotoKtm: [], // files (KTM seluruh anggota)
   });
+  // Anggota: ketua di index 0; maksimal 4 orang dalam 1 kelompok
+  const [members, setMembers] = useState([{ nama: "", nim: "" }]);
   const [errors, setErrors] = useState({});
   const [processing, setProcessing] = useState(false);
+
+  const MAX_MEMBERS = 4;
 
   // Guard: return early if event is not available
   if (!event) {
@@ -141,6 +145,31 @@ export default function ShowEvent({
     if (errors[key]) {
       setErrors((prev) => ({ ...prev, [key]: "" }));
     }
+  };
+
+  // ── Anggota kelompok ──
+  const updateMember = (index, key, value) => {
+    setMembers((prev) =>
+      prev.map((m, i) => (i === index ? { ...m, [key]: value } : m)),
+    );
+  };
+
+  const addMember = () => {
+    setMembers((prev) =>
+      prev.length < MAX_MEMBERS ? [...prev, { nama: "", nim: "" }] : prev,
+    );
+  };
+
+  const removeMember = (index) => {
+    setMembers((prev) =>
+      prev.length > 1 ? prev.filter((_, i) => i !== index) : prev,
+    );
+  };
+
+  // Saat ganti jenis peserta, sesuaikan jumlah anggota
+  const setJenisPeserta = (value) => {
+    handleInputChange("jenisPeserta", value);
+    if (value === "individu") setMembers((prev) => [prev[0] || { nama: "", nim: "" }]);
   };
 
   //   const handleRegister = async (e) => {
@@ -226,16 +255,56 @@ export default function ShowEvent({
 
   const handleRegister = async (e) => {
     e.preventDefault();
-    setProcessing(true);
 
+    // ── Validasi ──
+    const newErrors = {};
+    if (!formData.email) newErrors.email = "Email harus diisi";
+    if (!formData.no_wa) newErrors.no_wa = "Nomor WhatsApp harus diisi";
+    if (!formData.universitas) newErrors.universitas = "Universitas harus diisi";
+    if (!formData.fakultas) newErrors.fakultas = "Fakultas harus diisi";
+    if (!formData.jurusan) newErrors.jurusan = "Program Studi harus diisi";
+    if (!formData.kotaDomisili) newErrors.kotaDomisili = "Kota domisili harus diisi";
+    if (!formData.provinsi) newErrors.provinsi = "Provinsi harus diisi";
+
+    const activeMembers = members.filter((m) => m.nama.trim() || m.nim.trim());
+    if (activeMembers.length === 0 || !members[0].nama.trim()) {
+      newErrors.members = "Minimal nama ketua/peserta harus diisi";
+    }
+    members.forEach((m, i) => {
+      if (m.nama.trim() && !m.nim.trim()) newErrors[`nim_${i}`] = "NIM wajib diisi";
+      if (!m.nama.trim() && m.nim.trim()) newErrors[`nama_${i}`] = "Nama wajib diisi";
+    });
+
+    if (!formData.buktiFollow) newErrors.buktiFollow = "Bukti follow IG wajib diupload";
+    if (!formData.fotoKtm || formData.fotoKtm.length === 0)
+      newErrors.fotoKtm = "Foto KTM wajib diupload";
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      return;
+    }
+
+    setProcessing(true);
     try {
       const form = new FormData();
+      const cleanMembers = members.filter((m) => m.nama.trim());
 
-      Object.entries(formData).forEach(([key, value]) => {
-        form.append(key, value ?? "");
-      });
-
+      form.append("jenisPeserta", formData.jenisPeserta);
+      form.append("kategori", event.nama_event);
+      form.append("nama", cleanMembers[0].nama); // ketua
+      form.append("nim", cleanMembers[0].nim);
+      form.append("email", formData.email);
+      form.append("no_wa", formData.no_wa);
+      form.append("universitas", formData.universitas);
+      form.append("fakultas", formData.fakultas);
+      form.append("jurusan", formData.jurusan);
+      form.append("kotaDomisili", formData.kotaDomisili);
+      form.append("provinsi", formData.provinsi);
+      form.append("anggota", JSON.stringify(cleanMembers));
       form.append("eventId", event.id);
+
+      if (formData.buktiFollow) form.append("buktiFollow", formData.buktiFollow);
+      (formData.fotoKtm || []).forEach((file) => form.append("fotoKtm", file));
 
       const response = await fetch("/api/participants", {
         method: "POST",
@@ -490,7 +559,14 @@ export default function ShowEvent({
       );
 
     /* FORM */
-    if (step === "form")
+    if (step === "form") {
+      const labelCls =
+        "block text-[11px] font-black text-slate-600 uppercase tracking-wider mb-1.5";
+      const inputBase =
+        "w-full px-3.5 py-2.5 rounded-xl text-sm font-bold placeholder-slate-300 focus:outline-none transition-all b-border bg-white text-slate-900";
+      const sh = (err) => ({
+        boxShadow: err ? "3px 3px 0 #f87171" : "3px 3px 0 #1a1a1a",
+      });
       return (
         <div className="bg-white b-border b-shadow overflow-hidden rounded-[2rem] sh-slideIn">
           <div
@@ -519,78 +595,217 @@ export default function ShowEvent({
                 {errors.submit}
               </div>
             )}
-            <div className="space-y-3">
-              {getFormFields().map(
-                ({ key, label, placeholder, type, required, options }) => (
-                  <div key={key}>
-                    <label className="block text-[11px] font-black text-slate-600 uppercase tracking-wider mb-1.5">
-                      {label}
-                      {required && (
-                        <span className="text-red-500 ml-0.5">*</span>
-                      )}
-                    </label>
-                    {type === "file" ? (
-                      <input
-                        type="file"
-                        accept="image/*,application/pdf"
-                        onChange={(e) =>
-                          handleInputChange(key, e.target.files[0])
-                        }
-                        required={required}
-                        className="w-full px-3.5 py-2.5 rounded-xl text-sm font-bold bg-white b-border"
-                        style={{ boxShadow: "3px 3px 0 #1a1a1a" }}
-                      />
-                    ) : type === "select" ? (
-                      <select
-                        value={formData[key] || ""}
-                        onChange={(e) => handleInputChange(key, e.target.value)}
-                        required={required}
-                        className={`w-full px-3.5 py-2.5 rounded-xl text-sm font-bold focus:outline-none transition-all b-border ${
-                          errors[key]
-                            ? "bg-red-50 text-red-900"
-                            : formData[key] === ""
-                              ? "text-slate-400 bg-white"
-                              : "bg-white text-slate-900"
-                        }`}
-                        style={{
-                          boxShadow: errors[key]
-                            ? "3px 3px 0 #f87171"
-                            : "3px 3px 0 #1a1a1a",
-                        }}
-                      >
-                        <option value="" disabled hidden>
-                          -- Pilih {label} --
-                        </option>
+            <div className="space-y-3.5">
+              {/* 1. Jenis Peserta */}
+              <div>
+                <label className={labelCls}>
+                  Jenis Peserta<span className="text-red-500 ml-0.5">*</span>
+                </label>
+                <div className="grid grid-cols-2 gap-2">
+                  {[
+                    { v: "individu", l: "👤 Individu" },
+                    { v: "kelompok", l: "👥 Kelompok" },
+                  ].map((o) => (
+                    <button
+                      key={o.v}
+                      type="button"
+                      onClick={() => setJenisPeserta(o.v)}
+                      className="b-btn b-border py-2.5 rounded-xl text-xs font-black uppercase tracking-wide"
+                      style={{
+                        background:
+                          formData.jenisPeserta === o.v ? acc.bg : "#fff",
+                        color:
+                          formData.jenisPeserta === o.v ? "#fff" : "#475569",
+                        boxShadow: "3px 3px 0 #1a1a1a",
+                      }}
+                    >
+                      {o.l}
+                    </button>
+                  ))}
+                </div>
+                {formData.jenisPeserta === "kelompok" && (
+                  <p className="text-[10px] font-bold text-slate-400 mt-1.5">
+                    Maksimal 4 orang dalam 1 kelompok.
+                  </p>
+                )}
+              </div>
 
-                        {options.map((opt) => (
-                          <option key={opt.value} value={opt.value}>
-                            {opt.label}
-                          </option>
-                        ))}
-                      </select>
-                    ) : (
+              {/* 2. Kategori Lomba (sesuai halaman) */}
+              <div>
+                <label className={labelCls}>
+                  Kategori Lomba<span className="text-red-500 ml-0.5">*</span>
+                </label>
+                <div
+                  className="w-full px-3.5 py-2.5 rounded-xl text-sm font-black b-border flex items-center gap-2"
+                  style={{
+                    background: "#f8fafc",
+                    color: acc.bg,
+                    boxShadow: "3px 3px 0 #1a1a1a",
+                  }}
+                >
+                  🏆 {event.nama_event}
+                </div>
+              </div>
+
+              {/* 3 & 4. Nama + NIM (per anggota, maks 4) */}
+              <div>
+                <label className={labelCls}>
+                  {formData.jenisPeserta === "kelompok"
+                    ? "Data Anggota Kelompok"
+                    : "Data Peserta"}
+                  <span className="text-red-500 ml-0.5">*</span>
+                </label>
+                <div className="space-y-2.5">
+                  {members.map((m, i) => (
+                    <div
+                      key={i}
+                      className="p-3 rounded-xl b-border"
+                      style={{
+                        background: "#f8fafc",
+                        boxShadow: "3px 3px 0 #1a1a1a",
+                      }}
+                    >
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-[10px] font-black uppercase tracking-wider text-slate-500">
+                          {i === 0
+                            ? formData.jenisPeserta === "kelompok"
+                              ? "Ketua"
+                              : "Peserta"
+                            : `Anggota ${i + 1}`}
+                        </span>
+                        {formData.jenisPeserta === "kelompok" &&
+                          members.length > 1 && (
+                            <button
+                              type="button"
+                              onClick={() => removeMember(i)}
+                              className="text-[10px] font-black text-red-500 uppercase tracking-wide"
+                            >
+                              Hapus
+                            </button>
+                          )}
+                      </div>
                       <input
-                        type={type}
-                        value={formData[key]}
-                        onChange={(e) => handleInputChange(key, e.target.value)}
-                        placeholder={placeholder}
-                        required={required}
-                        className={`w-full px-3.5 py-2.5 rounded-xl text-sm font-bold placeholder-slate-300 focus:outline-none transition-all b-border ${errors[key] ? "bg-red-50 text-red-900" : "bg-white text-slate-900"}`}
-                        style={{
-                          boxShadow: errors[key]
-                            ? "3px 3px 0 #f87171"
-                            : "3px 3px 0 #1a1a1a",
-                        }}
+                        type="text"
+                        value={m.nama}
+                        onChange={(e) => updateMember(i, "nama", e.target.value)}
+                        placeholder="Nama lengkap"
+                        className={inputBase + " mb-2"}
+                        style={sh(errors[`nama_${i}`])}
                       />
-                    )}
-                    {errors[key] && (
-                      <p className="text-[11px] text-red-500 mt-1 font-black">
-                        {errors[key]}
-                      </p>
-                    )}
-                  </div>
-                ),
-              )}
+                      <input
+                        type="text"
+                        value={m.nim}
+                        onChange={(e) => updateMember(i, "nim", e.target.value)}
+                        placeholder="NIM"
+                        className={inputBase}
+                        style={sh(errors[`nim_${i}`])}
+                      />
+                    </div>
+                  ))}
+                </div>
+                {formData.jenisPeserta === "kelompok" &&
+                  members.length < MAX_MEMBERS && (
+                    <button
+                      type="button"
+                      onClick={addMember}
+                      className="b-btn b-border w-full mt-2 py-2 rounded-xl text-xs font-black text-slate-700 bg-white uppercase tracking-wide"
+                      style={{ boxShadow: "3px 3px 0 #1a1a1a" }}
+                    >
+                      + Tambah Anggota ({members.length}/{MAX_MEMBERS})
+                    </button>
+                  )}
+                {errors.members && (
+                  <p className="text-[11px] text-red-500 mt-1 font-black">
+                    {errors.members}
+                  </p>
+                )}
+              </div>
+
+              {/* 5-10. Field teks */}
+              {[
+                { key: "universitas", label: "Universitas", ph: "Nama universitas", type: "text" },
+                { key: "fakultas", label: "Fakultas", ph: "Nama fakultas", type: "text" },
+                { key: "jurusan", label: "Program Studi", ph: "Nama program studi", type: "text" },
+                { key: "kotaDomisili", label: "Kota Domisili", ph: "Kota tempat tinggal", type: "text" },
+                { key: "provinsi", label: "Provinsi", ph: "Nama provinsi", type: "text" },
+                { key: "email", label: "Email", ph: "nama@email.com", type: "email" },
+                { key: "no_wa", label: "Nomor WhatsApp", ph: "081234567890", type: "tel" },
+              ].map((f) => (
+                <div key={f.key}>
+                  <label className={labelCls}>
+                    {f.label}<span className="text-red-500 ml-0.5">*</span>
+                  </label>
+                  <input
+                    type={f.type}
+                    value={formData[f.key]}
+                    onChange={(e) => handleInputChange(f.key, e.target.value)}
+                    placeholder={f.ph}
+                    className={inputBase}
+                    style={sh(errors[f.key])}
+                  />
+                  {errors[f.key] && (
+                    <p className="text-[11px] text-red-500 mt-1 font-black">
+                      {errors[f.key]}
+                    </p>
+                  )}
+                </div>
+              ))}
+
+              {/* 11. Bukti follow IG */}
+              <div>
+                <label className={labelCls}>
+                  Bukti Follow IG @itfest &amp; @himti
+                  <span className="text-red-500 ml-0.5">*</span>
+                </label>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) =>
+                    handleInputChange("buktiFollow", e.target.files[0])
+                  }
+                  className="w-full px-3 py-2.5 rounded-xl text-xs font-bold bg-white b-border"
+                  style={sh(errors.buktiFollow)}
+                />
+                <p className="text-[10px] font-bold text-slate-400 mt-1">
+                  Screenshot follow kedua akun (1 gambar).
+                </p>
+                {errors.buktiFollow && (
+                  <p className="text-[11px] text-red-500 mt-1 font-black">
+                    {errors.buktiFollow}
+                  </p>
+                )}
+              </div>
+
+              {/* 12. Foto KTM */}
+              <div>
+                <label className={labelCls}>
+                  Foto KTM (Seluruh Anggota)
+                  <span className="text-red-500 ml-0.5">*</span>
+                </label>
+                <input
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  onChange={(e) =>
+                    handleInputChange("fotoKtm", Array.from(e.target.files))
+                  }
+                  className="w-full px-3 py-2.5 rounded-xl text-xs font-bold bg-white b-border"
+                  style={sh(errors.fotoKtm)}
+                />
+                <p className="text-[10px] font-bold text-slate-400 mt-1">
+                  Bisa pilih beberapa file sekaligus (1 KTM per anggota).
+                </p>
+                {formData.fotoKtm?.length > 0 && (
+                  <p className="text-[10px] font-black text-slate-600 mt-1">
+                    {formData.fotoKtm.length} file dipilih
+                  </p>
+                )}
+                {errors.fotoKtm && (
+                  <p className="text-[11px] text-red-500 mt-1 font-black">
+                    {errors.fotoKtm}
+                  </p>
+                )}
+              </div>
             </div>
             <div className="mt-4 space-y-2">
               <button
@@ -622,6 +837,7 @@ export default function ShowEvent({
           </form>
         </div>
       );
+    }
 
     /* DETAIL */
     return (
