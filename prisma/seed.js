@@ -3,236 +3,150 @@ const { PrismaClient } = pkg;
 
 const prisma = new PrismaClient();
 
-async function main() {
-  console.log("🌱 Starting database seed...\n");
+/*
+ * IT FEST 6.0 — HIMTI & Prodi Teknik Informatika Universitas Paramadina
+ * Tema: "Human-Centered AI: Transforming the World with Integrity"
+ * Periode acara: 27 Juli – 14 Oktober 2026
+ * Lokasi: Paramadina University, Cipayung, Jakarta
+ *
+ * "Event" pada sistem ini = kategori lomba yang dibuka pendaftarannya.
+ * Pendaftaran lomba: 27 Juli – 14 Agustus 2026 (semua kategori).
+ */
 
-  // Clear existing data
+const LOKASI = "Universitas Paramadina, Cipayung, Jakarta";
+
+async function main() {
+  console.log("🌱 Menyemai data IT FEST 6.0...\n");
+
+  // Bersihkan data lama
   await prisma.participant.deleteMany();
   await prisma.event.deleteMany();
   await prisma.user.deleteMany();
+  console.log("🗑️  Data lama dibersihkan\n");
 
-  console.log("🗑️  Cleared existing data\n");
+  // ── Lomba (Events) ──────────────────────────────────────────────
+  console.log("🏆 Membuat kategori lomba...");
 
-  // Create Events
-  console.log("📅 Creating events...");
-  const event1 = await prisma.event.create({
+  const hackathon = await prisma.event.create({
     data: {
-      nama_event: "Workshop Next.js Advanced",
-      deskripsi: "Pembelajaran mendalam tentang Next.js 15 dengan App Router, Server Components, dan Optimization",
-      tanggal: new Date("2026-03-15"),
-      jam_mulai: "14:00",
+      nama_event: "Hackathon",
+      deskripsi:
+        "Ajang kolaborasi & inovasi pemrograman. Peserta menyelesaikan tantangan teknologi dalam waktu terbatas untuk mengasah problem-solving dan kerja tim. Untuk mahasiswa. Pendaftaran: 27 Juli – 14 Agustus 2026.",
+      tanggal: new Date("2026-07-27"),
+      jam_mulai: "08:00",
       jam_berakhir: "17:00",
-      lokasi: "Ruang Lab A - Gedung IT HIMTI",
-      kapasitas: 50,
+      lokasi: LOKASI,
+      kapasitas: 30,
+      isPaidEvent: false,
     },
   });
 
-  const event2 = await prisma.event.create({
+  const iot = await prisma.event.create({
     data: {
-      nama_event: "Bootcamp React Fundamentals",
-      deskripsi: "Memulai perjalanan React dari dasar hingga advanced dengan hooks dan state management",
-      tanggal: new Date("2026-03-22"),
-      jam_mulai: "10:00",
-      jam_berakhir: "13:00",
-      lokasi: "Aula Utama - Gedung IT HIMTI",
-      kapasitas: 100,
-    },
-  });
-
-  const event3 = await prisma.event.create({
-    data: {
-      nama_event: "Web Development Masterclass",
-      deskripsi: "Full-stack web development dengan modern tools dan best practices",
-      tanggal: new Date("2026-03-29"),
-      jam_mulai: "13:00",
-      jam_berakhir: "16:00",
-      lokasi: "Ruang Lab B - Gedung IT HIMTI",
+      nama_event: "Internet of Things (IoT)",
+      deskripsi:
+        "Kompetisi pengembangan perangkat IoT dan aplikasi terkait, mengaplikasikan pengetahuan teknis ke proyek nyata yang bermanfaat untuk masyarakat. Untuk mahasiswa & siswa SMA/SMK sederajat. Pendaftaran: 27 Juli – 14 Agustus 2026.",
+      tanggal: new Date("2026-07-27"),
+      jam_mulai: "08:00",
+      jam_berakhir: "17:00",
+      lokasi: LOKASI,
       kapasitas: 40,
+      isPaidEvent: false,
     },
   });
 
-  console.log("✅ Created 3 events\n");
-
-  // Create Users
-  console.log("👤 Creating users...");
-  const user1 = await prisma.user.create({
+  const gameMaking = await prisma.event.create({
     data: {
-      nama: "Ilham Saputra",
-      email: "ilham@himti.com",
-      nim: "12345001",
-      wa: "085712345001",
+      nama_event: "Game Making",
+      deskripsi:
+        "Ditujukan bagi mahasiswa yang memiliki minat dan bakat dalam pengembangan game digital. Kompetisi ini memberikan platform untuk menunjukkan kreativitas dan keterampilan pemrograman dalam menciptakan permainan yang inovatif dan menarik. Pendaftaran: 27 Juli – 14 Agustus 2026.",
+      tanggal: new Date("2026-07-27"),
+      jam_mulai: "08:00",
+      jam_berakhir: "17:00",
+      lokasi: LOKASI,
+      kapasitas: 40,
+      isPaidEvent: false,
+    },
+  });
+
+  const kti = await prisma.event.create({
+    data: {
+      nama_event: "Karya Tulis Ilmiah (KTI)",
+      deskripsi:
+        "Platform riset bagi mahasiswa yang berminat di bidang teknologi informasi, mengembangkan keterampilan akademis dan menyampaikan solusi inovatif untuk masalah aktual di masyarakat. Untuk mahasiswa. Pendaftaran: 27 Juli – 14 Agustus 2026.",
+      tanggal: new Date("2026-07-27"),
+      jam_mulai: "08:00",
+      jam_berakhir: "17:00",
+      lokasi: LOKASI,
+      kapasitas: 50,
+      isPaidEvent: false,
+    },
+  });
+
+  console.log("✅ 4 kategori lomba dibuat\n");
+
+  // ── Panitia (Users) ─────────────────────────────────────────────
+  console.log("👤 Membuat akun panitia...");
+  await prisma.user.create({
+    data: {
+      nama: "Ayu (Narahubung)",
+      email: "itfestparamadina@gmail.com",
+      nim: "ITF-ADMIN-01",
+      wa: "081992855778",
       status: "active",
       jurusan: "Teknik Informatika",
       angkatan: "2023",
     },
   });
-
-  const user2 = await prisma.user.create({
+  await prisma.user.create({
     data: {
-      nama: "Rina Ayu Pratiwi",
-      email: "rina@himti.com",
-      nim: "12345002",
-      wa: "085712345002",
-      status: "active",
-      jurusan: "Sistem Informasi",
-      angkatan: "2023",
-    },
-  });
-
-  const user3 = await prisma.user.create({
-    data: {
-      nama: "Budi Santoso",
-      email: "budi@himti.com",
-      nim: "12345003",
-      wa: "085712345003",
+      nama: "Panitia IT FEST 6.0",
+      email: "panitia@itfest.paramadina.ac.id",
+      nim: "ITF-ADMIN-02",
+      wa: "081200000000",
       status: "active",
       jurusan: "Teknik Informatika",
-      angkatan: "2024",
+      angkatan: "2022",
     },
   });
+  console.log("✅ Akun panitia dibuat\n");
 
-  const user4 = await prisma.user.create({
-    data: {
-      nama: "Siti Nurhaliza",
-      email: "siti@himti.com",
-      nim: "12345004",
-      wa: "085712345004",
-      status: "active",
-      jurusan: "Sistem Informasi",
-      angkatan: "2024",
-    },
-  });
+  // ── Peserta contoh (Participants) ───────────────────────────────
+  console.log("📝 Membuat peserta contoh...");
 
-  const user5 = await prisma.user.create({
-    data: {
-      nama: "Ahmad Wijaya",
-      email: "ahmad@himti.com",
-      nim: "12345005",
-      wa: "085712345005",
-      status: "active",
-      jurusan: "Teknik Informatika",
-      angkatan: "2023",
-    },
-  });
+  const peserta = [
+    // Hackathon
+    { nama: "Raka Pradana",   email: "raka@student.paramadina.ac.id",  nim: "2210511001", no_wa: "081234500001", jurusan: "Teknik Informatika", angkatan: "2022", status: "terdaftar", role: "PESERTA", eventId: hackathon.id },
+    { nama: "Dinda Maharani", email: "dinda@student.paramadina.ac.id", nim: "2210511002", no_wa: "081234500002", jurusan: "Teknik Informatika", angkatan: "2022", status: "terdaftar", role: "PESERTA", eventId: hackathon.id },
+    { nama: "Fauzan Akbar",   email: "fauzan@student.paramadina.ac.id",nim: "2210511003", no_wa: "081234500003", jurusan: "Sistem Informasi",   angkatan: "2023", status: "terdaftar", role: "PESERTA", eventId: hackathon.id },
 
-  console.log("✅ Created 5 users\n");
+    // IoT (boleh mahasiswa & SMA/SMK)
+    { nama: "Bagas Saputra",  email: "bagas@student.paramadina.ac.id", nim: "2210511010", no_wa: "081234500010", jurusan: "Teknik Informatika", angkatan: "2023", status: "terdaftar", role: "PESERTA", eventId: iot.id },
+    { nama: "Nadia Putri",    email: "nadia.smk@gmail.com",            nim: null,          no_wa: "081234500011", instansi: "SMKN 1 Jakarta",   status: "terdaftar", role: "PESERTA", eventId: iot.id },
 
-  // Create Participants
-  console.log("📝 Creating participants...");
+    // Game Making
+    { nama: "Yoga Pratama",   email: "yoga@student.paramadina.ac.id",  nim: "2210511020", no_wa: "081234500020", jurusan: "Teknik Informatika", angkatan: "2022", status: "terdaftar", role: "PESERTA", eventId: gameMaking.id },
+    { nama: "Salsa Anindya",  email: "salsa@student.paramadina.ac.id", nim: "2210511021", no_wa: "081234500021", jurusan: "Teknik Informatika", angkatan: "2024", status: "terdaftar", role: "PESERTA", eventId: gameMaking.id },
 
-  // Event 1 Participants
-  const p1 = await prisma.participant.create({
-    data: {
-      nama: "Ilham Saputra",
-      email: "ilham@himti.com",
-      nim: "12345001",
-      no_wa: "085712345001",
-      jurusan: "Teknik Informatika",
-      angkatan: "2023",
-      status: "hadir",
-      role: "PESERTA",
-      eventId: event1.id,
-    },
-  });
+    // KTI
+    { nama: "Aditya Nugroho", email: "aditya@student.paramadina.ac.id",nim: "2210511030", no_wa: "081234500030", jurusan: "Sistem Informasi",   angkatan: "2022", status: "terdaftar", role: "PESERTA", eventId: kti.id },
+  ];
 
-  const p2 = await prisma.participant.create({
-    data: {
-      nama: "Budi Santoso",
-      email: "budi@himti.com",
-      nim: "12345003",
-      no_wa: "085712345003",
-      jurusan: "Teknik Informatika",
-      angkatan: "2024",
-      status: "hadir",
-      role: "PESERTA",
-      eventId: event1.id,
-    },
-  });
+  for (const p of peserta) {
+    await prisma.participant.create({ data: p });
+  }
+  console.log(`✅ ${peserta.length} peserta contoh dibuat\n`);
 
-  const p3 = await prisma.participant.create({
-    data: {
-      nama: "Ahmad Wijaya",
-      email: "ahmad@himti.com",
-      nim: "12345005",
-      no_wa: "085712345005",
-      jurusan: "Teknik Informatika",
-      angkatan: "2023",
-      status: "terdaftar",
-      role: "PANITIA",
-      eventId: event1.id,
-    },
-  });
-
-  // Event 2 Participants
-  const p4 = await prisma.participant.create({
-    data: {
-      nama: "Rina Ayu Pratiwi",
-      email: "rina@himti.com",
-      nim: "12345002",
-      no_wa: "085712345002",
-      jurusan: "Sistem Informasi",
-      angkatan: "2023",
-      status: "terdaftar",
-      role: "DOSEN",
-      eventId: event2.id,
-    },
-  });
-
-  const p5 = await prisma.participant.create({
-    data: {
-      nama: "Siti Nurhaliza",
-      email: "siti@himti.com",
-      nim: "12345004",
-      no_wa: "085712345004",
-      jurusan: "Sistem Informasi",
-      angkatan: "2024",
-      status: "hadir",
-      role: "PESERTA",
-      eventId: event2.id,
-    },
-  });
-
-  const p6 = await prisma.participant.create({
-    data: {
-      nama: "Ilham Saputra",
-      email: "ilham@himti.com",
-      nim: "12345001",
-      no_wa: "085712345001",
-      jurusan: "Teknik Informatika",
-      angkatan: "2023",
-      status: "terdaftar",
-      role: "PESERTA",
-      eventId: event2.id,
-    },
-  });
-
-  // Event 3 Participants
-  const p7 = await prisma.participant.create({
-    data: {
-      nama: "Budi Santoso",
-      email: "budi@himti.com",
-      nim: "12345003",
-      no_wa: "085712345003",
-      jurusan: "Teknik Informatika",
-      angkatan: "2024",
-      status: "hadir",
-      role: "PANITIA",
-      eventId: event3.id,
-    },
-  });
-
-  console.log("✅ Created 7 participants\n");
-
-  console.log("📊 Database Seed Summary:");
-  console.log("  ✓ 3 Events");
-  console.log("  ✓ 5 Users");
-  console.log("  ✓ 7 Participants\n");
-  console.log("🎉 Database seed completed successfully!");
+  console.log("📊 Ringkasan Seed IT FEST 6.0:");
+  console.log("  ✓ 4 Kategori Lomba (Hackathon, IoT, Game Making, KTI)");
+  console.log("  ✓ 2 Akun Panitia");
+  console.log(`  ✓ ${peserta.length} Peserta contoh\n`);
+  console.log("🎉 Seed selesai! Ride the Wave of Creativity 🌊");
 }
 
 main()
   .catch((e) => {
-    console.error("❌ Error during seed:", e);
+    console.error("❌ Error saat seed:", e);
     process.exit(1);
   })
   .finally(() => {

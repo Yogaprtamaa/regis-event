@@ -12,8 +12,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata = {
-  title: "Events HIMTI - Event Management System",
-  description: "Sistem manajemen event untuk HIMTI - Himpunan Mahasiswa Teknologi Informasi",
+  title: "IT FEST 6.0 — Human-Centered AI: Transforming the World with Integrity",
+  description:
+    "Festival teknologi oleh HIMTI & Prodi Teknik Informatika Universitas Paramadina. Hackathon, IoT, Game Making, KTI, Talkshow, Expo, dan Fun Game — 27 Juli hingga 14 Oktober 2026.",
 };
 
 export default function RootLayout({ children }) {

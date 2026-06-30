@@ -4,9 +4,12 @@ import { useState, useEffect } from 'react';
 import { MapPinIcon, UsersIcon, MagnifyingGlassIcon, PlusIcon, FunnelIcon, BoltIcon, CalendarIcon, ChevronLeftIcon, ChevronRightIcon, ArrowRightIcon } from '@heroicons/react/24/outline';
 
 const CSS = `
-    @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@600;700&family=Plus+Jakarta+Sans:wght@700;800&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@600;700&family=Pacifico&family=Plus+Jakarta+Sans:wght@500;700;800&display=swap');
     body { background-color: #FEFEFE; font-family: 'Plus Jakarta Sans', sans-serif; }
     .font-fredoka { font-family: 'Fredoka', sans-serif; }
+    .font-pacifico { font-family: 'Pacifico', cursive; }
+    .footer-grid-it { display: grid; grid-template-columns: 1.4fr 1fr 1fr; gap: 48px; }
+    @media (max-width: 768px) { .footer-grid-it { grid-template-columns: 1fr; gap: 32px; text-align: left; } }
 
     .b-border    { border: 4px solid #000; }
     .b-border-2  { border: 2px solid #000; }
@@ -55,15 +58,15 @@ const CSS = `
 `;
 
 const CARD_ACCENT = [
-    { btn: '#2AAF15', bar: '#33CC00', cover: 'from-green-400 to-green-700' },
-    { btn: '#003300', bar: '#2AAF15', cover: 'from-emerald-400 to-green-800' },
-    { btn: '#33CC00', bar: '#2AAF15', cover: 'from-lime-400 to-green-600'   },
-    { btn: '#2AAF15', bar: '#33CC00', cover: 'from-green-500 to-emerald-700' },
-    { btn: '#003300', bar: '#33CC00', cover: 'from-teal-400 to-green-800'   },
+    { btn: '#EB3C6B', bar: '#EB3C6B', cover: 'from-pink-400 to-rose-600'   },
+    { btn: '#31AECE', bar: '#31AECE', cover: 'from-cyan-400 to-sky-600'    },
+    { btn: '#F6890C', bar: '#F6890C', cover: 'from-orange-400 to-amber-600' },
+    { btn: '#B5D948', bar: '#B5D948', cover: 'from-lime-400 to-green-600'  },
+    { btn: '#FED245', bar: '#FED245', cover: 'from-yellow-300 to-amber-500' },
 ];
 
 const STATUS_CFG = {
-    PUBLISHED: { color: '#4ade80', textColor: '#052e16', label: 'Open'   },
+    PUBLISHED: { color: '#B5D948', textColor: '#082E4B', label: 'Open'   },
     DRAFT:     { color: '#fef08a', textColor: '#713f12', label: 'Draft'  },
     CLOSED:    { color: '#fca5a5', textColor: '#7f1d1d', label: 'Closed' },
 };
@@ -104,7 +107,7 @@ function HeroCarousel({ events }) {
 
             <div className="flex items-end justify-between mb-8 sm:mb-12">
                 <h3 className="font-fredoka text-[1.75rem] sm:text-[2rem] font-bold leading-none text-slate-900">
-                    Segera Hadir<span style={{ color: '#2AAF15' }}>.</span>
+                    Segera Hadir<span style={{ color: '#EB3C6B' }}>.</span>
                 </h3>
                 {total > 1 && (
                     <div className="flex gap-2 sm:gap-3">
@@ -121,7 +124,7 @@ function HeroCarousel({ events }) {
             </div>
 
             <div className="relative card-3d-scene hero-card-wrap">
-                <div className="card-layer-yellow absolute inset-0 bg-green-500 b-border rounded-[2rem] sm:rounded-[2.5rem]"
+                <div className="card-layer-yellow absolute inset-0 bg-pink-500 b-border rounded-[2rem] sm:rounded-[2.5rem]"
                     style={{ transform: 'translateX(16px) translateY(16px) rotate(3deg)' }} />
                 <div className="absolute inset-0 bg-black b-border rounded-[2rem] sm:rounded-[2.5rem]"
                     style={{ transform: 'translateX(8px) translateY(8px)' }} />
@@ -131,7 +134,7 @@ function HeroCarousel({ events }) {
                         {item.poster
                             ? <img src={`/storage/${item.poster}`} alt={item.title}
                                 className="object-cover w-full h-full transition-transform duration-700 group-hover:scale-110" />
-                            : <div className={`w-full h-full bg-gradient-to-br from-green-400 to-green-700 flex items-end pb-5 pl-6`}>
+                            : <div className={`w-full h-full bg-gradient-to-br from-pink-400 to-rose-600 flex items-end pb-5 pl-6`}>
                                 <span className="font-bold leading-none select-none font-fredoka text-white/20"
                                     style={{ fontSize: '7.5rem' }}>
                                     {item.title.charAt(0)}
@@ -166,8 +169,8 @@ function HeroCarousel({ events }) {
 
                         <Link href={`/events/${item.id}`}
                             className="b-btn block w-full text-center text-white py-3 sm:py-4 rounded-xl sm:rounded-[1.5rem] b-border font-black text-xs sm:text-sm uppercase tracking-[0.15em]"
-                            style={{ background: '#2AAF15', boxShadow: '4px 4px 0 #000' }}>
-                            Bergabung sekarang !!
+                            style={{ background: '#EB3C6B', boxShadow: '4px 4px 0 #000' }}>
+                            Daftar Sekarang !!
                         </Link>
                     </div>
                 </div>
@@ -182,7 +185,7 @@ function HeroCarousel({ events }) {
                         <div className="h-full rounded-full"
                             style={{
                                 width: `${((cur + 1) / total) * 100}%`,
-                                background: '#2AAF15',
+                                background: '#EB3C6B',
                                 borderRight: '3px solid #000',
                                 transition: 'width 0.55s cubic-bezier(.22,1,.36,1)',
                             }} />
@@ -245,7 +248,7 @@ function EventCard({ event, idx, showAdminActions = false }) {
             </div>
 
             <div className="flex flex-col flex-1 gap-4 p-5 sm:gap-5 sm:p-7">
-                <h3 className="font-fredoka text-[1.4rem] sm:text-[1.6rem] font-bold leading-snug text-slate-900 line-clamp-2 group-hover:text-green-600 transition-colors">
+                <h3 className="font-fredoka text-[1.4rem] sm:text-[1.6rem] font-bold leading-snug text-slate-900 line-clamp-2 group-hover:text-pink-600 transition-colors">
                     {event.title}
                 </h3>
 
@@ -255,7 +258,7 @@ function EventCard({ event, idx, showAdminActions = false }) {
                             <UsersIcon className="w-3.5 h-3.5" strokeWidth={3} />
                             {filled} / {event.quota} peserta
                         </span>
-                        <span className={isFull ? 'text-red-500' : pct >= 80 ? 'text-amber-500' : 'text-emerald-600'}>
+                        <span className={isFull ? 'text-red-500' : pct >= 80 ? 'text-amber-500' : 'text-cyan-600'}>
                             {isFull ? 'Penuh!' : `${pct}%`}
                         </span>
                     </div>
@@ -294,7 +297,7 @@ function Ticker({ events }) {
     if (events.length === 0) return null;
     return (
         <div className="py-3 overflow-hidden sm:py-4 ticker-wrap"
-            style={{ background: '#33CC00', borderTop: '4px solid #000', borderBottom: '4px solid #000' }}>
+            style={{ background: '#FED245', borderTop: '4px solid #000', borderBottom: '4px solid #000' }}>
             <div className="ticker-inner">
                 {items.map((e, i) => (
                     <span key={i} className="inline-flex items-center gap-3 px-4 text-xs font-black tracking-wider text-black uppercase sm:px-6 sm:text-sm">
@@ -336,7 +339,7 @@ export default function EventsIndex({ auth, events, filters }) {
 
     if (!isAuthenticated) return (
         <>
-            <Head title="HIMTI Events" />
+            <Head title="IT FEST 6.0 — Pendaftaran Lomba" />
             <style>{CSS}</style>
             <div className="min-h-screen overflow-x-hidden" style={{ background: '#FEFEFE' }}>
                 <div className="fixed inset-0 bg-dots" />
@@ -344,13 +347,16 @@ export default function EventsIndex({ auth, events, filters }) {
                 <header className="sticky top-0 z-50 px-4 pt-4 pb-3 sm:px-6">
                     <nav className="flex items-center justify-between px-4 mx-auto bg-white sm:px-5 max-w-7xl b-border rounded-2xl sm:px-7"
                         style={{ height: '60px', boxShadow: '6px 6px 0 #000' }}>
-                        <Link href="/events" className="flex items-center gap-2.5">
-                            <div className="flex items-center justify-center w-8 h-8 bg-green-500 sm:w-10 sm:h-10 b-border rounded-xl b-btn"
-                                style={{ boxShadow: '3px 3px 0 #000' }}>
-                                <BoltIcon className="w-4 h-4 text-black sm:w-5 sm:h-5" strokeWidth={3} />
+                        <Link href="/" className="flex items-center gap-2.5">
+                            <div className="flex items-center justify-center w-9 h-9 overflow-hidden sm:w-10 sm:h-10 b-border rounded-xl b-btn"
+                                style={{ background: '#082E4B', boxShadow: '3px 3px 0 #000' }}>
+                                <img src="/itfest-logo.png" alt="IT FEST 6.0" className="object-contain w-6 h-6 sm:w-7 sm:h-7" />
                             </div>
-                            <span className="font-fredoka text-[1.25rem] sm:text-[1.5rem] font-bold tracking-tight text-black">HIMTI Events</span>
+                            <span className="font-fredoka text-[1.25rem] sm:text-[1.5rem] font-bold tracking-tight text-black">IT FEST 6.0</span>
                         </Link>
+                        <a href="/" className="hidden sm:inline-flex items-center gap-1.5 text-xs font-black tracking-wider uppercase text-slate-500 hover:text-slate-900 transition-colors">
+                            ← Beranda
+                        </a>
                     </nav>
                 </header>
 
@@ -359,16 +365,16 @@ export default function EventsIndex({ auth, events, filters }) {
                     <div className="c-heroIn mt-8 sm:mt-12 bg-white b-border b-shadow rounded-[2rem] sm:rounded-[3.5rem] overflow-hidden relative">
                         <div className="absolute top-0 right-0 p-10 opacity-[0.04] select-none pointer-events-none overflow-hidden"
                             style={{ right: '-2rem', top: '-1rem' }}>
-                            <p className="font-bold leading-none text-black font-fredoka text-[10rem] md:text-[20rem]">HIMTI</p>
+                            <p className="font-bold leading-none text-black font-fredoka text-[10rem] md:text-[20rem]">FEST</p>
                         </div>
 
                         <div className="grid grid-cols-1 gap-0 lg:grid-cols-12" style={{ minHeight: 'auto' }}>
                         <div className="relative flex flex-col justify-center p-6 text-white border-b-4 border-black sm:p-8 lg:p-10 lg:col-span-7 lg:border-b-0 lg:border-r-4"
-                            style={{ background: '#2AAF15' }}>
+                            style={{ background: '#EB3C6B' }}>
 
-                            <div className="absolute hidden bg-green-300 c-float top-12 right-12 lg:right-24 w-18 h-18 b-border rounded-2xl sm:flex"
+                            <div className="absolute hidden bg-yellow-300 c-float top-12 right-12 lg:right-24 w-18 h-18 b-border rounded-2xl sm:flex"
                                 style={{ width: '72px', height: '72px', boxShadow: '6px 6px 0 #000' }}></div>
-                            <div className="absolute hidden bg-green-700 rounded-full c-floatB bottom-16 right-12 lg:right-16 b-border sm:flex"
+                            <div className="absolute hidden bg-cyan-600 rounded-full c-floatB bottom-16 right-12 lg:right-16 b-border sm:flex"
                                 style={{ width: '60px', height: '60px', boxShadow: '6px 6px 0 #000', animationDelay: '2s' }}></div>
 
                             <div className="relative z-10 flex flex-col items-center w-full max-w-2xl mx-auto space-y-6 text-center lg:mx-0 lg:max-w-xl lg:items-start lg:text-left">
@@ -379,7 +385,7 @@ export default function EventsIndex({ auth, events, filters }) {
                                         backdropFilter: 'blur(10px)',
                                         border: '2px solid rgba(255,255,255,0.3)',
                                     }}>
-                                    Mari kita ciptakan kenangan bersama!!!
+                                    🌊 Pendaftaran Lomba Dibuka!
                                 </div>
 
                                 <div className="flex flex-col w-full gap-1">
@@ -389,21 +395,21 @@ export default function EventsIndex({ auth, events, filters }) {
                                             textShadow: '4px 4px 0 #000',
                                             WebkitTextStroke: '1px #000',
                                         }}>
-                                        Sistem Event
+                                        Daftar Lomba
                                     </h1>
-                                    <h1 className="font-fredoka font-bold text-green-200 leading-[1.1]"
+                                    <h1 className="font-fredoka font-bold text-yellow-200 leading-[1.1]"
                                         style={{
                                             fontSize: 'clamp(2.5rem, 9vw, 4.5rem)',
                                             textShadow: '4px 4px 0 #000',
                                             WebkitTextStroke: '2px #000',
                                         }}>
-                                        Terintegrasi HIMTI.
+                                        IT FEST 6.0
                                     </h1>
                                 </div>
 
                                 <p className="w-full max-w-md text-xs font-bold leading-relaxed sm:text-sm md:text-base text-white/90">
-                                    Platform ini mempermudah kita untuk mengetahui event yang{' '}
-                                    <span className="font-black text-green-200">diselenggarakan oleh HIMTI.</span>
+                                    Hackathon, IoT, Game Making & KTI untuk mahasiswa, serta Talkshow, Expo & Fun Game untuk{' '}
+                                    <span className="font-black text-yellow-200">siswa SMA/SMK.</span>
                                 </p>
 
                                 <a href="#events"
@@ -417,18 +423,18 @@ export default function EventsIndex({ auth, events, filters }) {
                                     }}
                                     onMouseEnter={e => { e.currentTarget.style.transform='translate(2px,2px)'; e.currentTarget.style.boxShadow='0px 0px 0 #000'; }}
                                     onMouseLeave={e => { e.currentTarget.style.transform=''; e.currentTarget.style.boxShadow='4px 4px 0 #000'; }}>
-                                    JELAJAHI EVENTS
+                                    LIHAT LOMBA
                                     <ArrowRightIcon className="w-4 h-4 transition-transform group-hover:translate-x-1" strokeWidth={3} />
                                 </a>
 
                                 <div className="flex flex-col items-center w-full gap-3 pt-2 sm:flex-row sm:gap-4 lg:justify-start">
                                     <div className="flex order-2 -space-x-2 sm:order-1">
-                                        {['#fecaca', '#bfdbfe', '#bbf7d0'].map((bg, i) => (
+                                        {['#FED245', '#31AECE', '#B5D948'].map((bg, i) => (
                                             <div key={i} className="w-8 h-8 bg-white rounded-full sm:w-9 sm:h-9 b-border-2"
                                                 style={{ background: bg, boxShadow: '2px 2px 0 rgba(0,0,0,0.2)' }} />
                                         ))}
                                     </div>
-                                    <span className="order-1 text-xs font-black text-white sm:text-sm sm:order-2">+2k peserta HIMTI!</span>
+                                    <span className="order-1 text-xs font-black text-white sm:text-sm sm:order-2">Mahasiswa & SMA/SMK!</span>
                                 </div>
 
                                 <div className="flex flex-wrap items-center justify-center w-full gap-2 pt-2 sm:gap-3 sm:pt-3 lg:justify-start">
@@ -437,7 +443,7 @@ export default function EventsIndex({ auth, events, filters }) {
                                             style={{ lineHeight: 1 }}>
                                             {String((events||[]).length).padStart(2,'0')}
                                         </p>
-                                        <p className="text-[8px] sm:text-[9px] font-black uppercase tracking-tight text-white/70 mt-1">Total Events</p>
+                                        <p className="text-[8px] sm:text-[9px] font-black uppercase tracking-tight text-white/70 mt-1">Total Lomba</p>
                                     </div>
                                     <div className="bg-white/20 backdrop-blur-sm b-border-2 px-3 py-2 sm:px-4 sm:py-2.5 rounded-xl sm:rounded-2xl text-center flex-1 min-w-[90px] max-w-[120px] lg:max-w-none">
                                         <p className="font-bold text-white font-fredoka tabular-nums text-xl sm:text-[1.8rem]"
@@ -449,9 +455,9 @@ export default function EventsIndex({ auth, events, filters }) {
                                     <div className="bg-white/20 backdrop-blur-sm b-border-2 px-3 py-2 sm:px-4 sm:py-2.5 rounded-xl sm:rounded-2xl text-center flex-1 min-w-[90px] max-w-[120px] lg:max-w-none">
                                         <p className="font-bold text-white font-fredoka text-xl sm:text-[1.8rem]"
                                             style={{ lineHeight: 1 }}>
-                                            100%
+                                            2026
                                         </p>
-                                        <p className="text-[8px] sm:text-[9px] font-black uppercase tracking-tight text-white/70 mt-1">Terjangkau</p>
+                                        <p className="text-[8px] sm:text-[9px] font-black uppercase tracking-tight text-white/70 mt-1">Tahun Ini</p>
                                     </div>
                                 </div>
                             </div>
@@ -470,21 +476,21 @@ export default function EventsIndex({ auth, events, filters }) {
                     <div id="events" className="flex flex-col justify-between gap-5 mb-8 md:flex-row md:items-end md:mb-12">
                         <div className="text-center md:text-left">
                             <div className="flex items-center justify-center gap-3 mb-2 md:justify-start sm:mb-3">
-                                <span className="text-3xl font-bold sm:text-4xl font-fredoka text-slate-900">Daftar Event</span>
+                                <span className="text-3xl font-bold sm:text-4xl font-fredoka text-slate-900">Daftar Lomba</span>
                                 <span className="px-3 py-1 text-xs font-black text-white sm:text-sm b-border-2 rounded-xl"
-                                    style={{ background: '#2AAF15', boxShadow: '3px 3px 0 #000' }}>
+                                    style={{ background: '#EB3C6B', boxShadow: '3px 3px 0 #000' }}>
                                     {filteredEvents.length}
                                 </span>
                             </div>
                             <p className="text-xs font-bold sm:text-sm text-slate-400">
-                                {publishedCount} Kegiatan tersedia—Siapapun dapat bergabung tanpa dipungut biaya!
+                                {publishedCount} lomba tersedia—pilih kategorimu & daftar sebelum kuota penuh!
                             </p>
                         </div>
                         <div className="relative">
                             <MagnifyingGlassIcon className="absolute w-5 h-5 -translate-y-1/2 left-4 top-1/2 text-slate-400" strokeWidth={2.5} />
                             <input type="text" value={search} onChange={e => setSearch(e.target.value)}
-                                placeholder="Cari event atau lokasi..."
-                                className="w-full md:w-72 pl-11 pr-5 py-3 sm:py-3.5 bg-white b-border rounded-xl sm:rounded-2xl text-sm font-bold text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-green-500"
+                                placeholder="Cari lomba atau lokasi..."
+                                className="w-full md:w-72 pl-11 pr-5 py-3 sm:py-3.5 bg-white b-border rounded-xl sm:rounded-2xl text-sm font-bold text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-pink-500"
                                 style={{ boxShadow: '4px 4px 0 #000' }} />
                         </div>
                     </div>
@@ -499,56 +505,78 @@ export default function EventsIndex({ auth, events, filters }) {
                               <div className="flex items-center justify-center w-16 h-16 mb-4 text-4xl bg-white sm:w-20 sm:h-20 sm:mb-5 rounded-2xl sm:rounded-3xl b-border"
                                   style={{ boxShadow: '6px 6px 0 #000' }}></div>
                               <h3 className="mb-1 text-xl font-bold sm:text-2xl font-fredoka text-slate-800">
-                                  {search ? 'Pencarian Tidak Ditemukan' : 'Belum Terdapat Event'}
+                                  {search ? 'Pencarian Tidak Ditemukan' : 'Pendaftaran Segera Dibuka'}
                               </h3>
                               <p className="text-xs font-bold sm:text-sm text-slate-400">
-                                  {search ? 'Coba dengan kata kunci yang berbeda.' : 'Event berikutnya sedang dalam tahap persiapan—tetap pantau untuk update terbaru!'}
+                                  {search ? 'Coba dengan kata kunci yang berbeda.' : 'Lomba IT FEST 6.0 sedang disiapkan—pantau terus untuk info pembukaan pendaftaran!'}
                               </p>
                           </div>}
                 </main>
 
-                <footer className="py-10 mt-12 bg-white sm:mt-16 sm:py-14" style={{ borderTop: '4px solid #000' }}>
-                    <div className="flex flex-col items-center gap-4 px-6 mx-auto text-center sm:gap-5 max-w-7xl">
-                        <div className="flex items-center gap-2.5">
-                            <div className="flex items-center justify-center w-8 h-8 bg-green-500 sm:w-10 sm:h-10 b-border rounded-xl"
-                                style={{ boxShadow: '3px 3px 0 #000' }}>
-                                <BoltIcon className="w-4 h-4 text-black sm:w-5 sm:h-5" strokeWidth={3} />
-                            </div>
-                            <span className="text-xl font-bold tracking-tight sm:text-2xl font-fredoka text-black">HIMTI Events</span>
-                        </div>
-                        <p className="max-w-xs text-xs font-bold sm:text-sm text-slate-400">
-                            Platform terpadu kegiatan HIMTI.
-                        </p>
-                        <div className="flex flex-wrap justify-center gap-2 sm:gap-3">
-                            {['Bukber HIMTI', 'IT FEST', 'KOBIT ACADEMY', 'REFORMATICS', 'IP ROUTING'].map(tag => (
-                                <span key={tag}
-                                    className="b-border-2 px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-lg sm:rounded-xl text-[10px] sm:text-xs font-black text-slate-600 bg-slate-50"
-                                    style={{ boxShadow: '2px 2px 0 #000' }}>
-                                    {tag}
+                <footer className="mt-12 sm:mt-16" style={{ background: '#082E4B', borderTop: '3px solid #000' }}>
+                    {/* Yellow accent strip */}
+                    <div className="ticker-wrap" style={{ background: '#FED245', borderTop: '3px solid #000', borderBottom: '3px solid #000', padding: '10px 0' }}>
+                        <div className="ticker-inner">
+                            {[...Array(14)].map((_, i) => (
+                                <span key={i} className="font-fredoka" style={{ display: 'inline-flex', alignItems: 'center', gap: 10, padding: '0 18px', color: '#082E4B', fontSize: 13, fontWeight: 700, whiteSpace: 'nowrap' }}>
+                                    🌊 IT FEST 6.0 <span style={{ opacity: .25 }}>·</span>
                                 </span>
                             ))}
                         </div>
-                        <div className="flex items-center gap-4 mt-2">
-                            <a href="https://www.instagram.com/himtiparamadina/" target="_blank" rel="noopener noreferrer"
-                                className="flex items-center justify-center w-9 h-9 transition-colors bg-white rounded-full cursor-pointer text-pink-600 sm:w-10 sm:h-10 b-border-2 hover:bg-pink-100"
-                                style={{ boxShadow: '2px 2px 0 #000' }}
-                                title="Instagram HIMTI">
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
-                                    <path d="M12 2c2.717 0 3.056.01 4.122.06 1.065.05 1.79.217 2.428.465.66.254 1.216.598 1.772 1.153a4.908 4.908 0 0 1 1.153 1.772c.247.637.415 1.363.465 2.428.047 1.066.06 1.405.06 4.122 0 2.717-.01 3.056-.06 4.122-.05 1.065-.218 1.79-.465 2.428a4.883 4.883 0 0 1-1.153 1.772 4.915 4.915 0 0 1-1.772 1.153c-.637.247-1.363.415-2.428.465-1.066.047-1.405.06-4.122.06-2.717 0-3.056-.01-4.122-.06-1.065-.05-1.79-.218-2.428-.465a4.89 4.89 0 0 1-1.772-1.153 4.904 4.904 0 0 1-1.153-1.772c-.248-.637-.415-1.363-.465-2.428C2.013 15.056 2 14.717 2 12c0-2.717.01-3.056.06-4.122.05-1.066.217-1.79.465-2.428a4.88 4.88 0 0 1 1.153-1.772A4.897 4.897 0 0 1 5.45 2.525c.638-.248 1.362-.415 2.428-.465C8.944 2.013 9.283 2 12 2zm0 5a5 5 0 1 0 0 10 5 5 0 0 0 0-10zm6.5-.25a1.25 1.25 0 1 0-2.5 0 1.25 1.25 0 0 0 2.5 0zM12 9a3 3 0 1 1 0 6 3 3 0 0 1 0-6z"/>
-                                </svg>
-                            </a>
-                            <a href="https://www.tiktok.com/@himti.paramadina" target="_blank" rel="noopener noreferrer"
-                                className="flex items-center justify-center w-9 h-9 transition-colors bg-white rounded-full cursor-pointer text-black sm:w-10 sm:h-10 b-border-2 hover:bg-gray-100"
-                                style={{ boxShadow: '2px 2px 0 #000' }}
-                                title="TikTok HIMTI">
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
-                                    <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z"/>
-                                </svg>
-                            </a>
+                    </div>
+
+                    <div className="px-6 mx-auto max-w-7xl" style={{ padding: '52px 24px 0' }}>
+                        <div className="footer-grid-it" style={{ paddingBottom: 48 }}>
+
+                            {/* Brand */}
+                            <div>
+                                <div className="flex items-center gap-3" style={{ marginBottom: 18 }}>
+                                    <div className="flex" style={{ borderRadius: 12, background: '#fff', padding: 5, border: '2px solid rgba(255,255,255,.2)' }}>
+                                        <img src="/itfest-logo.png" alt="IT FEST 6.0" style={{ width: 40, height: 40, objectFit: 'contain' }} />
+                                    </div>
+                                    <div>
+                                        <div className="font-fredoka" style={{ color: '#fff', fontSize: 19, fontWeight: 700, lineHeight: 1.1 }}>IT FEST 6.0</div>
+                                        <div className="font-pacifico" style={{ color: '#B5D948', fontSize: 11 }}>Ride the Wave of Creativity</div>
+                                    </div>
+                                </div>
+                                <p style={{ color: 'rgba(255,255,255,.35)', fontSize: 13.5, lineHeight: 1.8, maxWidth: 230, fontWeight: 500 }}>
+                                    Festival teknologi HIMTI &amp; Prodi TI Universitas Paramadina.
+                                </p>
+                            </div>
+
+                            {/* Contact */}
+                            <div>
+                                <div className="font-fredoka" style={{ color: 'rgba(255,255,255,.35)', fontSize: 10.5, fontWeight: 700, letterSpacing: '.14em', textTransform: 'uppercase', marginBottom: 16 }}>Kontak Panitia</div>
+                                {[{ e: '📍', t: 'Paramadina University, Cipayung, Jakarta' }, { e: '📞', t: 'Ayu — 0819-9285-5778' }, { e: '📧', t: 'itfestparamadina@gmail.com' }].map((item, i) => (
+                                    <div key={i} style={{ display: 'flex', gap: 9, marginBottom: 12, color: 'rgba(255,255,255,.55)', fontSize: 13, fontWeight: 500, alignItems: 'flex-start', lineHeight: 1.5 }}>
+                                        <span style={{ flexShrink: 0 }}>{item.e}</span><span>{item.t}</span>
+                                    </div>
+                                ))}
+                            </div>
+
+                            {/* Social */}
+                            <div>
+                                <div className="font-fredoka" style={{ color: 'rgba(255,255,255,.35)', fontSize: 10.5, fontWeight: 700, letterSpacing: '.14em', textTransform: 'uppercase', marginBottom: 16 }}>Ikuti IT FEST</div>
+                                <div style={{ display: 'flex', gap: 10 }}>
+                                    {[
+                                        { label: 'Instagram', href: 'https://www.instagram.com/himtiparamadina/', icon: <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18"><path d="M12 2c2.717 0 3.056.01 4.122.06 1.065.05 1.79.217 2.428.465.66.254 1.216.598 1.772 1.153a4.908 4.908 0 0 1 1.153 1.772c.247.637.415 1.363.465 2.428.047 1.066.06 1.405.06 4.122 0 2.717-.01 3.056-.06 4.122-.05 1.065-.218 1.79-.465 2.428a4.883 4.883 0 0 1-1.153 1.772 4.915 4.915 0 0 1-1.772 1.153c-.637.247-1.363.415-2.428.465-1.066.047-1.405.06-4.122.06-2.717 0-3.056-.01-4.122-.06-1.065-.05-1.79-.218-2.428-.465a4.89 4.89 0 0 1-1.772-1.153 4.904 4.904 0 0 1-1.153-1.772c-.248-.637-.415-1.363-.465-2.428C2.013 15.056 2 14.717 2 12c0-2.717.01-3.056.06-4.122.05-1.066.217-1.79.465-2.428a4.88 4.88 0 0 1 1.153-1.772A4.897 4.897 0 0 1 5.45 2.525c.638-.248 1.362-.415 2.428-.465C8.944 2.013 9.283 2 12 2zm0 5a5 5 0 1 0 0 10 5 5 0 0 0 0-10zm6.5-.25a1.25 1.25 0 1 0-2.5 0 1.25 1.25 0 0 0 2.5 0zM12 9a3 3 0 1 1 0 6 3 3 0 0 1 0-6z" /></svg> },
+                                        { label: 'TikTok', href: 'https://www.tiktok.com/@himti.paramadina', icon: <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z" /></svg> },
+                                    ].map((s, i) => (
+                                        <a key={i} href={s.href} target="_blank" rel="noopener noreferrer" aria-label={s.label}
+                                            className="flex items-center justify-center"
+                                            style={{ width: 40, height: 40, borderRadius: 10, background: 'rgba(255,255,255,.08)', color: 'rgba(255,255,255,.6)', border: '1.5px solid rgba(255,255,255,.12)', transition: 'background .15s, color .15s' }}
+                                            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,.16)'; e.currentTarget.style.color = '#fff'; }}
+                                            onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,.08)'; e.currentTarget.style.color = 'rgba(255,255,255,.6)'; }}>
+                                            {s.icon}
+                                        </a>
+                                    ))}
+                                </div>
+                            </div>
                         </div>
-                        <p className="text-[9px] sm:text-[11px] font-black uppercase tracking-widest text-slate-300 border-t-2 border-slate-100 pt-5 w-full mt-2 sm:mt-0">
-                             PENDAFTARAN HIMTI EVENTS
-                        </p>
+                    </div>
+
+                    <div style={{ borderTop: '1px solid rgba(255,255,255,.07)', textAlign: 'center', padding: '16px 24px', color: 'rgba(255,255,255,.18)', fontSize: 11, fontWeight: 600, letterSpacing: '.06em' }}>
+                        © 2026 IT FEST 6.0 · HIMTI &amp; Prodi Teknik Informatika Universitas Paramadina
                     </div>
                 </footer>
             </div>
@@ -567,13 +595,13 @@ export default function EventsIndex({ auth, events, filters }) {
                     {isAdmin && (
                         <Link href="/events/create"
                             className="b-btn b-border inline-flex items-center justify-center gap-2 text-white px-5 py-2.5 rounded-2xl font-black text-sm uppercase tracking-widest w-full sm:w-auto mt-2 sm:mt-0"
-                            style={{ background: '#2AAF15', boxShadow: '4px 4px 0 #000' }}>
+                            style={{ background: '#EB3C6B', boxShadow: '4px 4px 0 #000' }}>
                             <PlusIcon className="w-4 h-4" strokeWidth={3} /> Buat Event
                         </Link>
                     )}
                 </div>
             }>
-            <Head title="HIMTI Events" />
+            <Head title="IT FEST 6.0 — Kelola Lomba" />
             <style>{CSS}</style>
             <div style={{ background: '#FEFEFE' }}>
                 <div className="fixed inset-0 bg-dots" />
@@ -584,7 +612,7 @@ export default function EventsIndex({ auth, events, filters }) {
                         <div className="grid grid-cols-1 gap-8 lg:gap-12 lg:grid-cols-2 lg:items-center">
                             <div className="flex flex-col justify-center order-2 lg:order-1">
                                 <div className="inline-flex items-center gap-2 w-fit mb-4 sm:mb-5">
-                                    <div className="bg-green-500 b-border px-3 py-1.5 sm:px-4 sm:py-2 rounded-full text-xs sm:text-sm font-black uppercase"
+                                    <div className="bg-pink-500 b-border px-3 py-1.5 sm:px-4 sm:py-2 rounded-full text-xs sm:text-sm font-black uppercase"
                                         style={{ boxShadow: '3px 3px 0 #000' }}>
                                         KAMPUS LIFE IS FUN!
                                     </div>
@@ -595,7 +623,7 @@ export default function EventsIndex({ auth, events, filters }) {
                                         Pengembangan<br />
                                         <span className="relative">
                                             Kompetensi
-                                            <span className="absolute bottom-0 left-0 w-full h-3 bg-green-300" style={{ zIndex: -1 }} />
+                                            <span className="absolute bottom-0 left-0 w-full h-3 bg-yellow-300" style={{ zIndex: -1 }} />
                                         </span>
                                         <br />
                                         Mahasiswa Informatika.
@@ -679,7 +707,7 @@ export default function EventsIndex({ auth, events, filters }) {
                                 <MagnifyingGlassIcon className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" strokeWidth={2.5} />
                                 <input type="text" value={search} onChange={e => setSearch(e.target.value)}
                                     placeholder="Cari event..."
-                                    className="w-full pl-10 pr-4 py-2.5 b-border rounded-xl text-sm font-bold placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-green-500 bg-slate-50" />
+                                    className="w-full pl-10 pr-4 py-2.5 b-border rounded-xl text-sm font-bold placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-pink-500 bg-slate-50" />
                             </div>
                             {isAdmin && (
                                 <div className="flex flex-wrap items-center justify-center gap-2 sm:justify-start">
@@ -688,7 +716,7 @@ export default function EventsIndex({ auth, events, filters }) {
                                         <button key={key} onClick={() => handleFilterChange(key)}
                                             className={`b-btn b-border-2 flex-1 sm:flex-none px-3 py-1.5 rounded-xl text-[10px] sm:text-[11px] font-black uppercase tracking-wider ${statusFilter === key ? 'text-white' : 'bg-white text-slate-600'}`}
                                             style={{
-                                                background: statusFilter === key ? '#2AAF15' : '',
+                                                background: statusFilter === key ? '#EB3C6B' : '',
                                                 boxShadow: '3px 3px 0 #000',
                                             }}>
                                             {label}
@@ -721,7 +749,7 @@ export default function EventsIndex({ auth, events, filters }) {
                               {isAdmin && !search && (
                                   <Link href="/events/create"
                                       className="inline-flex items-center gap-2 px-5 py-2.5 sm:px-6 sm:py-3 text-xs sm:text-sm font-black tracking-widest text-white uppercase b-btn b-border rounded-xl sm:rounded-2xl"
-                                      style={{ background: '#2AAF15', boxShadow: '4px 4px 0 #000' }}>
+                                      style={{ background: '#EB3C6B', boxShadow: '4px 4px 0 #000' }}>
                                       <PlusIcon className="w-4 h-4" strokeWidth={3} /> Buat Event
                                   </Link>
                               )}

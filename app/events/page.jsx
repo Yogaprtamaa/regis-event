@@ -63,24 +63,28 @@ export default function EventsPage() {
             style={{ boxShadow: "6px 6px 0 #1a1a1a" }}
           >
             <div className="flex gap-1.5">
-              {[0, 0.15, 0.3].map((d, i) => (
+              {[
+                { d: 0, c: "#EB3C6B" },
+                { d: 0.15, c: "#FED245" },
+                { d: 0.3, c: "#31AECE" },
+              ].map((dot, i) => (
                 <div
                   key={i}
                   className="w-3 h-3 rounded-full"
                   style={{
-                    background: "#2AAF15",
+                    background: dot.c,
                     animation: "bounce1 1.2s infinite ease-in-out",
-                    animationDelay: `${d}s`,
+                    animationDelay: `${dot.d}s`,
                   }}
                 />
               ))}
             </div>
           </div>
           <p className="font-fredoka text-xl font-bold text-slate-900">
-            Memuat Events<span style={{ color: "#2AAF15" }}>...</span>
+            Memuat Lomba<span style={{ color: "#EB3C6B" }}>...</span>
           </p>
           <p className="text-xs font-black text-slate-400 uppercase tracking-widest mt-1">
-            Mohon tunggu sebentar
+            IT FEST 6.0 — Mohon tunggu sebentar
           </p>
         </div>
       </div>

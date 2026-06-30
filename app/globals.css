@@ -1,11 +1,20 @@
 @import "tailwindcss";
 
+/* ── Base tokens ──────────────────────────────────────────── */
 :root {
   --background: #fefefe;
   --foreground: #003300;
   --primary: #2aaf15;
   --primary-light: #33cc00;
   --primary-dark: #003300;
+
+  /* IT FEST palette (HSL for DataGridHero) */
+  --green:  150 100% 50%;
+  --pink:   349  77% 56%;   /* coral  #EB3C6B */
+  --cyan:   196  60% 49%;   /* blue   #31AECE */
+  --yellow:  45 100% 63%;   /* yellow #FED245 */
+  --orange:  34 100% 50%;   /* orange #F6890C */
+  --lime:    76  62% 56%;   /* lime   #B5D948 */
 }
 
 @theme inline {
@@ -18,15 +27,77 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #003300;
-    --foreground: #33cc00;
-  }
-}
-
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+}
+
+/* ── DataGridHero ─────────────────────────────────────────── */
+.dgh-root {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+}
+
+.dgh-grid {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  /* glow layer */
+  --mouse-x: 50%;
+  --mouse-y: 50%;
+}
+
+/* Mouse-follow radial glow */
+.dgh-grid::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  background: radial-gradient(
+    460px circle at var(--mouse-x) var(--mouse-y),
+    rgba(254, 210, 69, calc(var(--mouse-glow-opacity, 0) * 0.16)) 0%,
+    rgba(235, 60, 107, calc(var(--mouse-glow-opacity, 0) * 0.07)) 38%,
+    transparent 70%
+  );
+  transition: background .12s ease-out;
+}
+
+.dgh-cell {
+  border-radius: 2px;
+  opacity: var(--opacity-min, 0.04);
+  will-change: opacity, transform;
+}
+
+.dgh-content {
+  position: relative;
+  z-index: 2;
+}
+
+/* background cells: simple fade ping-pong */
+@keyframes dgh-pulse {
+  from { opacity: var(--opacity-min); }
+  to   { opacity: var(--opacity-max); }
+}
+
+/* letter cells: traveling shimmer — fades in, pops slightly, fades out */
+@keyframes dgh-wave {
+  0%, 100% { opacity: var(--opacity-min); transform: scale(1); }
+  50%      { opacity: var(--opacity-max); transform: scale(1.22); }
+}
+
+/* letter cells: build-in reveal — empty → text appears → holds → disappears, loops */
+@keyframes dgh-reveal {
+  0%   { opacity: 0;                  transform: scale(.55); }
+  12%  { opacity: var(--opacity-max); transform: scale(1.12); }  /* pop in */
+  20%  { opacity: var(--opacity-max); transform: scale(1); }
+  60%  { opacity: var(--opacity-max); transform: scale(1); }     /* hold visible */
+  78%  { opacity: 0;                  transform: scale(.55); }   /* fade out */
+  100% { opacity: 0;                  transform: scale(.55); }   /* stay empty before next loop */
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dgh-cell { animation: none !important; opacity: var(--opacity-max, .4) !important; transform: none !important; }
 }
