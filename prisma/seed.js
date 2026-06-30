@@ -45,7 +45,7 @@ async function main() {
     data: {
       nama_event: "Internet of Things (IoT)",
       deskripsi:
-        "Kompetisi pengembangan perangkat IoT dan aplikasi terkait, mengaplikasikan pengetahuan teknis ke proyek nyata yang bermanfaat untuk masyarakat. Untuk mahasiswa & siswa SMA/SMK sederajat. Pendaftaran: 27 Juli – 14 Agustus 2026.",
+        "Kompetisi pengembangan perangkat IoT dan aplikasi terkait, mengaplikasikan pengetahuan teknis ke proyek nyata yang bermanfaat untuk masyarakat. Khusus untuk mahasiswa. Pendaftaran: 27 Juli – 14 Agustus 2026.",
       tanggal: new Date("2026-07-27"),
       jam_mulai: "08:00",
       jam_berakhir: "17:00",
@@ -120,9 +120,9 @@ async function main() {
     { nama: "Dinda Maharani", email: "dinda@student.paramadina.ac.id", nim: "2210511002", no_wa: "081234500002", jurusan: "Teknik Informatika", angkatan: "2022", status: "terdaftar", role: "PESERTA", eventId: hackathon.id },
     { nama: "Fauzan Akbar",   email: "fauzan@student.paramadina.ac.id",nim: "2210511003", no_wa: "081234500003", jurusan: "Sistem Informasi",   angkatan: "2023", status: "terdaftar", role: "PESERTA", eventId: hackathon.id },
 
-    // IoT (boleh mahasiswa & SMA/SMK)
+    // IoT (khusus mahasiswa)
     { nama: "Bagas Saputra",  email: "bagas@student.paramadina.ac.id", nim: "2210511010", no_wa: "081234500010", jurusan: "Teknik Informatika", angkatan: "2023", status: "terdaftar", role: "PESERTA", eventId: iot.id },
-    { nama: "Nadia Putri",    email: "nadia.smk@gmail.com",            nim: null,          no_wa: "081234500011", instansi: "SMKN 1 Jakarta",   status: "terdaftar", role: "PESERTA", eventId: iot.id },
+    { nama: "Nadia Putri",    email: "nadia@student.paramadina.ac.id", nim: "2210511011", no_wa: "081234500011", jurusan: "Sistem Informasi",   angkatan: "2023", status: "terdaftar", role: "PESERTA", eventId: iot.id },
 
     // Game Making
     { nama: "Yoga Pratama",   email: "yoga@student.paramadina.ac.id",  nim: "2210511020", no_wa: "081234500020", jurusan: "Teknik Informatika", angkatan: "2022", status: "terdaftar", role: "PESERTA", eventId: gameMaking.id },
@@ -141,7 +141,7 @@ async function main() {
   console.log("  ✓ 4 Kategori Lomba (Hackathon, IoT, Game Making, KTI)");
   console.log("  ✓ 2 Akun Panitia");
   console.log(`  ✓ ${peserta.length} Peserta contoh\n`);
-  console.log("🎉 Seed selesai! Ride the Wave of Creativity 🌊");
+  console.log("🎉 Seed IT FEST 6.0 selesai! 🌊");
 }
 
 main()

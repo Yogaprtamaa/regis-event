@@ -2,6 +2,9 @@ import AuthenticatedLayout from '../Layouts/AuthenticatedLayout';
 import { Head, Link, router } from '../utils/inertia-compat';
 import { useState, useEffect } from 'react';
 import { MapPinIcon, UsersIcon, MagnifyingGlassIcon, PlusIcon, FunnelIcon, BoltIcon, CalendarIcon, ChevronLeftIcon, ChevronRightIcon, ArrowRightIcon } from '@heroicons/react/24/outline';
+import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Empty, EmptyHeader, EmptyTitle, EmptyDescription, EmptyMedia } from '@/components/ui/empty';
 
 const CSS = `
     @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@600;700&family=Pacifico&family=Plus+Jakarta+Sans:wght@500;700;800&display=swap');
@@ -211,24 +214,32 @@ function EventCard({ event, idx, showAdminActions = false }) {
         <div className="c-up event-card group bg-white rounded-[2rem] b-border b-shadow-md flex flex-col overflow-hidden"
             style={{ animationDelay: `${idx * 60}ms`, animationFillMode: 'both' }}>
 
-            <div className="relative flex-shrink-0 h-56 overflow-hidden sm:h-64">
+            {/* Colored accent strip — signature neobrutalist detail */}
+            <div className="flex-shrink-0 h-[6px]" style={{ background: acc.btn }} />
+
+            <div className="relative flex-shrink-0 h-52 overflow-hidden sm:h-60">
                 {event.poster
                     ? <img src={`/storage/${event.poster}`} alt={event.title}
                         className="object-cover w-full h-full transition-transform duration-700 group-hover:scale-110" />
-                    : <div className={`w-full h-full bg-gradient-to-br ${acc.cover} flex items-end pb-4 pl-5`}>
+                    : <div className={`w-full h-full bg-gradient-to-br ${acc.cover} relative flex items-end pb-4 pl-5`}>
+                        {/* Decorative ambient circles */}
+                        <div className="absolute top-5 right-5 w-10 h-10 rounded-full opacity-20 border-2 border-white" />
+                        <div className="absolute top-9 right-9 w-5 h-5 rounded-full opacity-15 bg-white" />
+                        <div className="absolute top-3 right-16 w-6 h-6 rounded-sm opacity-10 bg-white rotate-12" />
                         <span className="font-bold leading-none select-none font-fredoka text-white/20"
                             style={{ fontSize: '7rem' }}>
                             {event.title.charAt(0)}
                         </span>
                       </div>
                 }
-                <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
 
                 <div className="absolute top-3.5 left-3.5 right-3.5 flex items-start justify-between">
-                    <span className="b-border-2 text-[10px] font-black px-3 py-1.5 rounded-full uppercase tracking-wider"
+                    <Badge
+                        className="!border-2 !border-black !rounded-full !h-auto !py-1.5 !px-3 !text-[10px] !font-black !uppercase !tracking-wider !whitespace-nowrap"
                         style={{ background: status.color, color: status.textColor, boxShadow: '2px 2px 0 #000' }}>
                         {status.label}
-                    </span>
+                    </Badge>
                     <div className="bg-white b-border-2 rounded-2xl px-3 py-2 text-center min-w-[46px]"
                         style={{ boxShadow: '2px 2px 0 #000' }}>
                         <p className="text-base font-black leading-none text-slate-900">{d.getDate()}</p>
@@ -248,25 +259,26 @@ function EventCard({ event, idx, showAdminActions = false }) {
             </div>
 
             <div className="flex flex-col flex-1 gap-4 p-5 sm:gap-5 sm:p-7">
-                <h3 className="font-fredoka text-[1.4rem] sm:text-[1.6rem] font-bold leading-snug text-slate-900 line-clamp-2 group-hover:text-pink-600 transition-colors">
+                <h3 className="font-fredoka text-[1.5rem] sm:text-[1.7rem] font-bold leading-snug text-slate-900 line-clamp-2 group-hover:text-pink-600 transition-colors">
                     {event.title}
                 </h3>
 
-                <div className="space-y-3 sm:space-y-4">
+                <div className="space-y-2.5 sm:space-y-3">
                     <div className="flex items-center justify-between text-[10px] sm:text-[11px] font-black uppercase tracking-wide">
                         <span className="flex items-center gap-1.5 text-slate-500">
                             <UsersIcon className="w-3.5 h-3.5" strokeWidth={3} />
                             {filled} / {event.quota} peserta
                         </span>
-                        <span className={isFull ? 'text-red-500' : pct >= 80 ? 'text-amber-500' : 'text-cyan-600'}>
+                        <span className={`font-black text-[11px] ${isFull ? 'text-red-500' : pct >= 80 ? 'text-amber-500' : 'text-cyan-600'}`}>
                             {isFull ? 'Penuh!' : `${pct}%`}
                         </span>
                     </div>
-                    <div className="relative w-full h-3 overflow-hidden rounded-full bg-slate-100 b-border-2">
-                        <div className="absolute inset-y-0 left-0 rounded-full c-bar"
+                    {/* Progress bar — neobrutalist */}
+                    <div className="relative w-full h-3 overflow-hidden rounded-full bg-slate-100 border-2 border-black">
+                        <div className="absolute inset-y-0 left-0 rounded-full c-bar transition-none"
                             style={{
                                 width: `${pct}%`,
-                                borderRight: '3px solid rgba(0,0,0,0.5)',
+                                borderRight: pct > 0 ? '3px solid rgba(0,0,0,0.35)' : 'none',
                                 background: isFull ? '#f87171' : pct >= 80 ? '#fbbf24' : acc.bar,
                             }} />
                     </div>
@@ -372,10 +384,18 @@ export default function EventsIndex({ auth, events, filters }) {
                         <div className="relative flex flex-col justify-center p-6 text-white border-b-4 border-black sm:p-8 lg:p-10 lg:col-span-7 lg:border-b-0 lg:border-r-4"
                             style={{ background: '#EB3C6B' }}>
 
-                            <div className="absolute hidden bg-yellow-300 c-float top-12 right-12 lg:right-24 w-18 h-18 b-border rounded-2xl sm:flex"
-                                style={{ width: '72px', height: '72px', boxShadow: '6px 6px 0 #000' }}></div>
-                            <div className="absolute hidden bg-cyan-600 rounded-full c-floatB bottom-16 right-12 lg:right-16 b-border sm:flex"
-                                style={{ width: '60px', height: '60px', boxShadow: '6px 6px 0 #000', animationDelay: '2s' }}></div>
+                            {/* Floating SVG star — neobrutalist sticker */}
+                            <div className="absolute hidden sm:block c-float" style={{ top: '2.5rem', right: '4rem', filter: 'drop-shadow(5px 5px 0 #000)' }} aria-hidden="true">
+                                <svg width="68" height="68" viewBox="0 0 100 100">
+                                    <polygon points="50,5 61,35 95,35 68,57 79,91 50,70 21,91 32,57 5,35 39,35" fill="#FED245" stroke="#000" strokeWidth="4"/>
+                                </svg>
+                            </div>
+                            {/* Floating SVG diamond */}
+                            <div className="absolute hidden sm:block c-floatB" style={{ bottom: '3.5rem', right: '2.5rem', animationDelay: '2.5s', filter: 'drop-shadow(4px 4px 0 #000)' }} aria-hidden="true">
+                                <svg width="56" height="56" viewBox="0 0 100 100">
+                                    <rect x="22" y="22" width="56" height="56" rx="10" fill="#B5D948" stroke="#000" strokeWidth="4.5" transform="rotate(45 50 50)"/>
+                                </svg>
+                            </div>
 
                             <div className="relative z-10 flex flex-col items-center w-full max-w-2xl mx-auto space-y-6 text-center lg:mx-0 lg:max-w-xl lg:items-start lg:text-left">
                                 
@@ -408,8 +428,8 @@ export default function EventsIndex({ auth, events, filters }) {
                                 </div>
 
                                 <p className="w-full max-w-md text-xs font-bold leading-relaxed sm:text-sm md:text-base text-white/90">
-                                    Hackathon, IoT, Game Making & KTI untuk mahasiswa, serta Talkshow, Expo & Fun Game untuk{' '}
-                                    <span className="font-black text-yellow-200">siswa SMA/SMK.</span>
+                                    Hackathon, IoT, Game Making & KTI —{' '}
+                                    <span className="font-black text-yellow-200">perlombaan khusus untuk mahasiswa.</span>
                                 </p>
 
                                 <a href="#events"
@@ -434,7 +454,7 @@ export default function EventsIndex({ auth, events, filters }) {
                                                 style={{ background: bg, boxShadow: '2px 2px 0 rgba(0,0,0,0.2)' }} />
                                         ))}
                                     </div>
-                                    <span className="order-1 text-xs font-black text-white sm:text-sm sm:order-2">Mahasiswa & SMA/SMK!</span>
+                                    <span className="order-1 text-xs font-black text-white sm:text-sm sm:order-2">Khusus Mahasiswa!</span>
                                 </div>
 
                                 <div className="flex flex-wrap items-center justify-center w-full gap-2 pt-2 sm:gap-3 sm:pt-3 lg:justify-start">
@@ -463,8 +483,11 @@ export default function EventsIndex({ auth, events, filters }) {
                             </div>
                         </div>
 
-                            <div className="flex flex-col items-center justify-center p-6 pb-10 sm:p-8 sm:pb-12 lg:p-10 lg:col-span-5 bg-slate-50 md:p-14">
-                                <HeroCarousel events={events || []} />
+                            <div className="flex flex-col items-center justify-center p-6 pb-10 sm:p-8 sm:pb-12 lg:p-10 lg:col-span-5 md:p-14 relative overflow-hidden" style={{ background: '#F8F9FB' }}>
+                                <div className="absolute inset-0 bg-dots" />
+                                <div className="relative z-10 w-full">
+                                    <HeroCarousel events={events || []} />
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -476,6 +499,9 @@ export default function EventsIndex({ auth, events, filters }) {
                     <div id="events" className="flex flex-col justify-between gap-5 mb-8 md:flex-row md:items-end md:mb-12">
                         <div className="text-center md:text-left">
                             <div className="flex items-center justify-center gap-3 mb-2 md:justify-start sm:mb-3">
+                                <svg width="24" height="24" viewBox="0 0 100 100" className="flex-shrink-0 hidden sm:block" aria-hidden="true">
+                                    <polygon points="50,5 61,35 95,35 68,57 79,91 50,70 21,91 32,57 5,35 39,35" fill="#FED245" stroke="#000" strokeWidth="5"/>
+                                </svg>
                                 <span className="text-3xl font-bold sm:text-4xl font-fredoka text-slate-900">Daftar Lomba</span>
                                 <span className="px-3 py-1 text-xs font-black text-white sm:text-sm b-border-2 rounded-xl"
                                     style={{ background: '#EB3C6B', boxShadow: '3px 3px 0 #000' }}>
@@ -487,11 +513,15 @@ export default function EventsIndex({ auth, events, filters }) {
                             </p>
                         </div>
                         <div className="relative">
-                            <MagnifyingGlassIcon className="absolute w-5 h-5 -translate-y-1/2 left-4 top-1/2 text-slate-400" strokeWidth={2.5} />
-                            <input type="text" value={search} onChange={e => setSearch(e.target.value)}
+                            <MagnifyingGlassIcon className="absolute w-5 h-5 -translate-y-1/2 left-3.5 top-1/2 text-slate-400 z-10 pointer-events-none" strokeWidth={2.5} />
+                            <Input
+                                type="text"
+                                value={search}
+                                onChange={e => setSearch(e.target.value)}
                                 placeholder="Cari lomba atau lokasi..."
-                                className="w-full md:w-72 pl-11 pr-5 py-3 sm:py-3.5 bg-white b-border rounded-xl sm:rounded-2xl text-sm font-bold text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-pink-500"
-                                style={{ boxShadow: '4px 4px 0 #000' }} />
+                                className="w-full md:w-72 !pl-10 !pr-5 !py-3 sm:!py-3.5 !h-auto bg-white !border-2 !border-black !rounded-xl sm:!rounded-2xl !text-sm !font-bold text-slate-700 !placeholder-slate-400 focus:!ring-2 focus:!ring-pink-500 focus:!border-pink-500"
+                                style={{ boxShadow: '4px 4px 0 #000' }}
+                            />
                         </div>
                     </div>
 
@@ -501,26 +531,37 @@ export default function EventsIndex({ auth, events, filters }) {
                                   <EventCard key={event.id} event={event} idx={idx} />
                               ))}
                           </div>
-                        : <div className="flex flex-col items-center justify-center py-16 text-center sm:py-28">
-                              <div className="flex items-center justify-center w-16 h-16 mb-4 text-4xl bg-white sm:w-20 sm:h-20 sm:mb-5 rounded-2xl sm:rounded-3xl b-border"
-                                  style={{ boxShadow: '6px 6px 0 #000' }}></div>
-                              <h3 className="mb-1 text-xl font-bold sm:text-2xl font-fredoka text-slate-800">
-                                  {search ? 'Pencarian Tidak Ditemukan' : 'Pendaftaran Segera Dibuka'}
-                              </h3>
-                              <p className="text-xs font-bold sm:text-sm text-slate-400">
-                                  {search ? 'Coba dengan kata kunci yang berbeda.' : 'Lomba IT FEST 6.0 sedang disiapkan—pantau terus untuk info pembukaan pendaftaran!'}
-                              </p>
-                          </div>}
+                        : <Empty className="py-16 sm:py-28 bg-white b-border rounded-[2rem]" style={{ boxShadow: '6px 6px 0 #000' }}>
+                              <EmptyHeader>
+                                  <EmptyMedia>
+                                      <div className="w-16 h-16 sm:w-20 sm:h-20 flex items-center justify-center rounded-2xl sm:rounded-3xl b-border text-3xl sm:text-4xl"
+                                          style={{ background: '#FDF5E4', boxShadow: '4px 4px 0 #000' }}>
+                                          {search ? '🔍' : '🏆'}
+                                      </div>
+                                  </EmptyMedia>
+                                  <EmptyTitle className="font-fredoka text-xl sm:text-2xl font-bold text-slate-800">
+                                      {search ? 'Pencarian Tidak Ditemukan' : 'Pendaftaran Segera Dibuka'}
+                                  </EmptyTitle>
+                                  <EmptyDescription className="text-xs sm:text-sm font-bold text-slate-400">
+                                      {search ? 'Coba dengan kata kunci yang berbeda.' : 'Lomba IT FEST 6.0 sedang disiapkan—pantau terus untuk info pembukaan pendaftaran!'}
+                                  </EmptyDescription>
+                              </EmptyHeader>
+                          </Empty>}
                 </main>
 
                 <footer className="mt-12 sm:mt-16" style={{ background: '#082E4B', borderTop: '3px solid #000' }}>
                     {/* Yellow accent strip */}
-                    <div className="ticker-wrap" style={{ background: '#FED245', borderTop: '3px solid #000', borderBottom: '3px solid #000', padding: '10px 0' }}>
-                        <div className="ticker-inner">
-                            {[...Array(14)].map((_, i) => (
-                                <span key={i} className="font-fredoka" style={{ display: 'inline-flex', alignItems: 'center', gap: 10, padding: '0 18px', color: '#082E4B', fontSize: 13, fontWeight: 700, whiteSpace: 'nowrap' }}>
-                                    🌊 IT FEST 6.0 <span style={{ opacity: .25 }}>·</span>
-                                </span>
+                    <div className="ticker-wrap" style={{ background: '#FED245', borderTop: '3px solid #000', borderBottom: '3px solid #000', padding: '6px 0' }}>
+                        <div className="ticker-inner" style={{ animationDuration: '30s' }}>
+                            {[0, 1].map((g) => (
+                                <div key={g} style={{ display: 'inline-flex' }} aria-hidden={g === 1}>
+                                    {[...Array(12)].map((_, i) => (
+                                        <span key={i} style={{ display: 'inline-flex', alignItems: 'center', gap: 22, padding: '0 22px', whiteSpace: 'nowrap' }}>
+                                            <img src="/itfest-logo.png" alt="IT FEST 6.0" style={{ width: 76, height: 76, objectFit: 'contain' }} />
+                                            <span style={{ color: '#082E4B', opacity: .3, fontSize: 22, fontWeight: 800 }}>•</span>
+                                        </span>
+                                    ))}
+                                </div>
                             ))}
                         </div>
                     </div>
@@ -536,11 +577,11 @@ export default function EventsIndex({ auth, events, filters }) {
                                     </div>
                                     <div>
                                         <div className="font-fredoka" style={{ color: '#fff', fontSize: 19, fontWeight: 700, lineHeight: 1.1 }}>IT FEST 6.0</div>
-                                        <div className="font-pacifico" style={{ color: '#B5D948', fontSize: 11 }}>Ride the Wave of Creativity</div>
+                                        <div style={{ color: '#B5D948', fontSize: 10, fontWeight: 800, letterSpacing: '.1em', textTransform: 'uppercase', marginTop: 2 }}>Festival Teknologi 2026</div>
                                     </div>
                                 </div>
-                                <p style={{ color: 'rgba(255,255,255,.35)', fontSize: 13.5, lineHeight: 1.8, maxWidth: 230, fontWeight: 500 }}>
-                                    Festival teknologi HIMTI &amp; Prodi TI Universitas Paramadina.
+                                <p style={{ color: 'rgba(255,255,255,.45)', fontSize: 13.5, lineHeight: 1.85, maxWidth: 250, fontWeight: 500 }}>
+                                    Diselenggarakan oleh <strong style={{ color: '#fff', fontWeight: 700 }}>Himpunan Mahasiswa Teknik Informatika</strong> dan <strong style={{ color: '#fff', fontWeight: 700 }}>Prodi Teknik Informatika</strong> Universitas Paramadina.
                                 </p>
                             </div>
 
@@ -559,8 +600,8 @@ export default function EventsIndex({ auth, events, filters }) {
                                 <div className="font-fredoka" style={{ color: 'rgba(255,255,255,.35)', fontSize: 10.5, fontWeight: 700, letterSpacing: '.14em', textTransform: 'uppercase', marginBottom: 16 }}>Ikuti IT FEST</div>
                                 <div style={{ display: 'flex', gap: 10 }}>
                                     {[
-                                        { label: 'Instagram', href: 'https://www.instagram.com/himtiparamadina/', icon: <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18"><path d="M12 2c2.717 0 3.056.01 4.122.06 1.065.05 1.79.217 2.428.465.66.254 1.216.598 1.772 1.153a4.908 4.908 0 0 1 1.153 1.772c.247.637.415 1.363.465 2.428.047 1.066.06 1.405.06 4.122 0 2.717-.01 3.056-.06 4.122-.05 1.065-.218 1.79-.465 2.428a4.883 4.883 0 0 1-1.153 1.772 4.915 4.915 0 0 1-1.772 1.153c-.637.247-1.363.415-2.428.465-1.066.047-1.405.06-4.122.06-2.717 0-3.056-.01-4.122-.06-1.065-.05-1.79-.218-2.428-.465a4.89 4.89 0 0 1-1.772-1.153 4.904 4.904 0 0 1-1.153-1.772c-.248-.637-.415-1.363-.465-2.428C2.013 15.056 2 14.717 2 12c0-2.717.01-3.056.06-4.122.05-1.066.217-1.79.465-2.428a4.88 4.88 0 0 1 1.153-1.772A4.897 4.897 0 0 1 5.45 2.525c.638-.248 1.362-.415 2.428-.465C8.944 2.013 9.283 2 12 2zm0 5a5 5 0 1 0 0 10 5 5 0 0 0 0-10zm6.5-.25a1.25 1.25 0 1 0-2.5 0 1.25 1.25 0 0 0 2.5 0zM12 9a3 3 0 1 1 0 6 3 3 0 0 1 0-6z" /></svg> },
-                                        { label: 'TikTok', href: 'https://www.tiktok.com/@himti.paramadina', icon: <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z" /></svg> },
+                                        { label: 'Instagram', href: 'https://www.instagram.com/itfest.paramadina', icon: <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18"><path d="M12 2c2.717 0 3.056.01 4.122.06 1.065.05 1.79.217 2.428.465.66.254 1.216.598 1.772 1.153a4.908 4.908 0 0 1 1.153 1.772c.247.637.415 1.363.465 2.428.047 1.066.06 1.405.06 4.122 0 2.717-.01 3.056-.06 4.122-.05 1.065-.218 1.79-.465 2.428a4.883 4.883 0 0 1-1.153 1.772 4.915 4.915 0 0 1-1.772 1.153c-.637.247-1.363.415-2.428.465-1.066.047-1.405.06-4.122.06-2.717 0-3.056-.01-4.122-.06-1.065-.05-1.79-.218-2.428-.465a4.89 4.89 0 0 1-1.772-1.153 4.904 4.904 0 0 1-1.153-1.772c-.248-.637-.415-1.363-.465-2.428C2.013 15.056 2 14.717 2 12c0-2.717.01-3.056.06-4.122.05-1.066.217-1.79.465-2.428a4.88 4.88 0 0 1 1.153-1.772A4.897 4.897 0 0 1 5.45 2.525c.638-.248 1.362-.415 2.428-.465C8.944 2.013 9.283 2 12 2zm0 5a5 5 0 1 0 0 10 5 5 0 0 0 0-10zm6.5-.25a1.25 1.25 0 1 0-2.5 0 1.25 1.25 0 0 0 2.5 0zM12 9a3 3 0 1 1 0 6 3 3 0 0 1 0-6z" /></svg> },
+                                        { label: 'TikTok', href: 'https://www.tiktok.com/@itfestparamadina', icon: <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z" /></svg> },
                                     ].map((s, i) => (
                                         <a key={i} href={s.href} target="_blank" rel="noopener noreferrer" aria-label={s.label}
                                             className="flex items-center justify-center"
@@ -576,7 +617,7 @@ export default function EventsIndex({ auth, events, filters }) {
                     </div>
 
                     <div style={{ borderTop: '1px solid rgba(255,255,255,.07)', textAlign: 'center', padding: '16px 24px', color: 'rgba(255,255,255,.18)', fontSize: 11, fontWeight: 600, letterSpacing: '.06em' }}>
-                        © 2026 IT FEST 6.0 · HIMTI &amp; Prodi Teknik Informatika Universitas Paramadina
+                        © 2026 IT FEST 6.0 · Himpunan Mahasiswa Teknik Informatika &amp; Prodi Teknik Informatika Universitas Paramadina
                     </div>
                 </footer>
             </div>
@@ -685,9 +726,12 @@ export default function EventsIndex({ auth, events, filters }) {
                                 </div>
                             </div>
 
-                            <div className="flex flex-col items-center justify-center order-1 p-6 pb-10 sm:p-8 sm:pb-12 lg:p-10 lg:order-2 bg-slate-50 rounded-3xl b-border"
-                                style={{ boxShadow: '8px 8px 0 #000' }}>
-                                <HeroCarousel events={events || []} />
+                            <div className="flex flex-col items-center justify-center order-1 p-6 pb-10 sm:p-8 sm:pb-12 lg:p-10 lg:order-2 rounded-3xl b-border relative overflow-hidden"
+                                style={{ boxShadow: '8px 8px 0 #000', background: '#F8F9FB' }}>
+                                <div className="absolute inset-0 bg-dots rounded-3xl" />
+                                <div className="relative z-10 w-full">
+                                    <HeroCarousel events={events || []} />
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -704,10 +748,10 @@ export default function EventsIndex({ auth, events, filters }) {
                         <div className="flex flex-col gap-3 p-4 bg-white b-border rounded-2xl sm:flex-row"
                             style={{ boxShadow: '5px 5px 0 #000' }}>
                             <div className="relative flex-1">
-                                <MagnifyingGlassIcon className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" strokeWidth={2.5} />
-                                <input type="text" value={search} onChange={e => setSearch(e.target.value)}
+                                <MagnifyingGlassIcon className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 z-10 pointer-events-none" strokeWidth={2.5} />
+                                <Input type="text" value={search} onChange={e => setSearch(e.target.value)}
                                     placeholder="Cari event..."
-                                    className="w-full pl-10 pr-4 py-2.5 b-border rounded-xl text-sm font-bold placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-pink-500 bg-slate-50" />
+                                    className="w-full !pl-10 !pr-4 !py-2.5 !h-auto !border-2 !border-black !rounded-xl !text-sm !font-bold !placeholder-slate-400 focus:!ring-2 focus:!ring-pink-500 !bg-slate-50" />
                             </div>
                             {isAdmin && (
                                 <div className="flex flex-wrap items-center justify-center gap-2 sm:justify-start">
@@ -736,16 +780,22 @@ export default function EventsIndex({ auth, events, filters }) {
                                   <EventCard key={event.id} event={event} idx={idx} showAdminActions={isAdmin} />
                               ))}
                           </div>
-                        : <div className="bg-white b-border rounded-[1.5rem] sm:rounded-[2rem] py-16 sm:py-24 text-center mx-2 sm:mx-0"
+                        : <Empty className="bg-white b-border rounded-[1.5rem] sm:rounded-[2rem] py-16 sm:py-24 mx-2 sm:mx-0"
                                 style={{ boxShadow: '5px 5px 0 #000' }}>
-                              <div className="flex items-center justify-center w-12 h-12 mx-auto mb-4 text-2xl sm:w-16 sm:h-16 sm:text-3xl rounded-xl sm:rounded-2xl bg-slate-100 b-border"
-                                  style={{ boxShadow: '4px 4px 0 #000' }}></div>
-                              <h3 className="mb-1 text-xl font-bold sm:mb-2 sm:text-2xl font-fredoka text-slate-800">
-                                  {search ? 'Nggak Ketemu...' : 'Belum Ada Event'}
-                              </h3>
-                              <p className="mb-5 text-xs font-bold sm:mb-6 sm:text-sm text-slate-400">
-                                  {search ? 'Silakan coba dengan kata kunci yang berbeda.' : 'Mulai buat kegiatan pertama Anda!'}
-                              </p>
+                              <EmptyHeader>
+                                  <EmptyMedia>
+                                      <div className="flex items-center justify-center w-12 h-12 sm:w-16 sm:h-16 text-2xl sm:text-3xl rounded-xl sm:rounded-2xl bg-slate-100 b-border"
+                                          style={{ boxShadow: '4px 4px 0 #000' }}>
+                                          {search ? '🔍' : '📋'}
+                                      </div>
+                                  </EmptyMedia>
+                                  <EmptyTitle className="font-fredoka text-xl sm:text-2xl font-bold text-slate-800">
+                                      {search ? 'Nggak Ketemu...' : 'Belum Ada Event'}
+                                  </EmptyTitle>
+                                  <EmptyDescription className="text-xs sm:text-sm font-bold text-slate-400">
+                                      {search ? 'Silakan coba dengan kata kunci yang berbeda.' : 'Mulai buat kegiatan pertama Anda!'}
+                                  </EmptyDescription>
+                              </EmptyHeader>
                               {isAdmin && !search && (
                                   <Link href="/events/create"
                                       className="inline-flex items-center gap-2 px-5 py-2.5 sm:px-6 sm:py-3 text-xs sm:text-sm font-black tracking-widest text-white uppercase b-btn b-border rounded-xl sm:rounded-2xl"
@@ -753,7 +803,7 @@ export default function EventsIndex({ auth, events, filters }) {
                                       <PlusIcon className="w-4 h-4" strokeWidth={3} /> Buat Event
                                   </Link>
                               )}
-                          </div>}
+                          </Empty>}
                     </div>
                 </div>
             </div>

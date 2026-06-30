@@ -14,45 +14,15 @@ import { CheckBadgeIcon } from "@heroicons/react/24/solid";
 import { useState } from "react";
 
 const ACCENTS = [
-  {
-    bg: "#2AAF15",
-    btn: "#2AAF15",
-    bar: "#33CC00",
-    tag: "#33CC00",
-    tagText: "#000",
-  },
-  {
-    bg: "#003300",
-    btn: "#003300",
-    bar: "#2AAF15",
-    tag: "#2AAF15",
-    tagText: "#000",
-  },
-  {
-    bg: "#33CC00",
-    btn: "#33CC00",
-    bar: "#003300",
-    tag: "#003300",
-    tagText: "#fff",
-  },
-  {
-    bg: "#2AAF15",
-    btn: "#003300",
-    bar: "#33CC00",
-    tag: "#33CC00",
-    tagText: "#000",
-  },
-  {
-    bg: "#003300",
-    btn: "#2AAF15",
-    bar: "#33CC00",
-    tag: "#33CC00",
-    tagText: "#000",
-  },
+  { bg: "#EB3C6B", btn: "#EB3C6B", bar: "#FED245", tag: "rgba(0,0,0,0.18)", tagText: "#fff" },
+  { bg: "#31AECE", btn: "#31AECE", bar: "#FED245", tag: "rgba(0,0,0,0.18)", tagText: "#fff" },
+  { bg: "#F6890C", btn: "#F6890C", bar: "#FED245", tag: "rgba(0,0,0,0.18)", tagText: "#fff" },
+  { bg: "#082E4B", btn: "#EB3C6B", bar: "#FED245", tag: "#FED245", tagText: "#082E4B" },
+  { bg: "#EB3C6B", btn: "#082E4B", bar: "#FED245", tag: "rgba(0,0,0,0.18)", tagText: "#fff" },
 ];
 
 const STATUS_CFG = {
-  PUBLISHED: { color: "#4ade80", textColor: "#000", label: "Open Now" },
+  PUBLISHED: { color: "#B5D948", textColor: "#082E4B", label: "Open Now" },
   DRAFT: { color: "#e2e8f0", textColor: "#000", label: "Draft" },
   CLOSED: { color: "#f87171", textColor: "#fff", label: "Closed" },
 };
@@ -541,9 +511,9 @@ export default function ShowEvent({
                 {event.lokasi}
               </p>
             </div>
-            <div className="flex items-center gap-2.5 bg-green-50 b-border rounded-2xl px-4 py-3">
-              <span></span>
-              <p className="text-xs font-black text-green-700">
+            <div className="flex items-center gap-2.5 b-border rounded-2xl px-4 py-3" style={{ background: "#fff7e6" }}>
+              <span>📧</span>
+              <p className="text-xs font-black" style={{ color: "#EB3C6B" }}>
                 Konfirmasi dikirim ke email kamu
               </p>
             </div>
@@ -945,17 +915,18 @@ export default function ShowEvent({
           {!isAdmin && canRegister && (
             <button
               onClick={() => setStep("form")}
-              className="b-btn b-border w-full py-4 rounded-2xl font-black text-sm text-white flex items-center justify-center gap-2 uppercase tracking-widest"
-              style={{ background: acc.btn }}
+              className="b-btn b-border w-full py-4 rounded-2xl font-black text-sm text-white flex items-center justify-center gap-2.5 uppercase tracking-widest"
+              style={{ background: acc.btn, boxShadow: "5px 5px 0 #000" }}
             >
+              <BoltIcon className="w-4 h-4" strokeWidth={3} />
               Bergabunglah Sekarang!
             </button>
           )}
           {!isAdmin && !canRegister && (
             <div className="w-full py-4 b-border text-sm font-black text-center rounded-2xl bg-slate-100 text-slate-400 cursor-not-allowed">
               {remainingQuota === 0
-                ? " Pendaftaran Penuh"
-                : " Pendaftaran Ditutup"}
+                ? "🚫 Pendaftaran Penuh"
+                : "🔒 Pendaftaran Ditutup"}
             </div>
           )}
           {isAdmin && (
@@ -1033,7 +1004,7 @@ export default function ShowEvent({
             <div className="flex flex-wrap gap-2">
               {[
                 {
-                  icon: "",
+                  Icon: CalendarIcon,
                   text: eventDate.toLocaleDateString("id-ID", {
                     weekday: "long",
                     day: "numeric",
@@ -1041,14 +1012,14 @@ export default function ShowEvent({
                     year: "numeric",
                   }),
                 },
-                { icon: "", text: event.lokasi },
-                { icon: "", text: `${filled}/${event.kapasitas} pendaftar` },
-              ].map(({ icon, text }) => (
+                { Icon: MapPinIcon, text: event.lokasi },
+                { Icon: UsersIcon, text: `${filled}/${event.kapasitas} pendaftar` },
+              ].map(({ Icon, text }) => (
                 <span
                   key={text}
-                  className="inline-flex items-center gap-2 bg-black/20 text-white text-[12px] font-black px-3.5 py-1.5 rounded-2xl backdrop-blur-sm"
+                  className="inline-flex items-center gap-2 bg-black/20 text-white text-[12px] font-black px-3.5 py-1.5 rounded-2xl backdrop-blur-sm border border-white/20"
                 >
-                  {icon} {text}
+                  <Icon className="w-3.5 h-3.5 flex-shrink-0" strokeWidth={2.5} /> {text}
                 </span>
               ))}
             </div>
@@ -1272,13 +1243,13 @@ export default function ShowEvent({
           >
             <Link href="/events" className="flex items-center gap-2.5">
               <div
-                className="w-10 h-10 bg-green-500 b-border rounded-xl flex items-center justify-center"
-                style={{ boxShadow: "3px 3px 0 #1a1a1a" }}
+                className="w-10 h-10 b-border rounded-xl flex items-center justify-center overflow-hidden"
+                style={{ background: "#082E4B", boxShadow: "3px 3px 0 #1a1a1a" }}
               >
-                <BoltIcon className="w-5 h-5 text-black" strokeWidth={3} />
+                <img src="/itfest-logo.png" alt="IT FEST 6.0" className="object-contain w-7 h-7" />
               </div>
               <span className="font-fredoka text-2xl font-bold tracking-tight text-black">
-                HIMTI Events
+                IT FEST 6.0
               </span>
             </Link>
           </div>
@@ -1288,26 +1259,27 @@ export default function ShowEvent({
           <div className="max-w-7xl mx-auto px-6 flex flex-col items-center text-center">
             <div className="flex items-center gap-2.5 mb-3">
               <div
-                className="w-10 h-10 bg-green-500 b-border rounded-xl flex items-center justify-center"
-                style={{ boxShadow: "3px 3px 0 #1a1a1a" }}
+                className="w-10 h-10 b-border rounded-xl flex items-center justify-center overflow-hidden"
+                style={{ background: "#082E4B", boxShadow: "3px 3px 0 #1a1a1a" }}
               >
-                <BoltIcon className="w-5 h-5 text-black" strokeWidth={3} />
+                <img src="/itfest-logo.png" alt="IT FEST 6.0" className="object-contain w-7 h-7" />
               </div>
               <span className="font-fredoka text-2xl font-bold tracking-tight text-black">
-                HIMTI Events
+                IT FEST 6.0
               </span>
             </div>
-            <p className="text-slate-400 font-bold text-sm mb-4">
-              Platform terpadu kegiatan HIMTI.
+            <p className="text-slate-400 font-bold text-sm mb-4 max-w-md">
+              Diselenggarakan oleh Himpunan Mahasiswa Teknik Informatika dan
+              Prodi Teknik Informatika Universitas Paramadina.
             </p>
             <div className="flex items-center gap-4 mb-4">
               <a
-                href="https://www.instagram.com/himtiparamadina/"
+                href="https://www.instagram.com/itfest.paramadina"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center justify-center w-10 h-10 transition-colors bg-white rounded-full cursor-pointer text-pink-600 b-border-2 hover:bg-pink-100"
                 style={{ boxShadow: "2px 2px 0 #1a1a1a" }}
-                title="Instagram HIMTI"
+                title="Instagram IT FEST"
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -1319,12 +1291,12 @@ export default function ShowEvent({
                 </svg>
               </a>
               <a
-                href="https://www.tiktok.com/@himti.paramadina"
+                href="https://www.tiktok.com/@itfestparamadina"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center justify-center w-10 h-10 transition-colors bg-white rounded-full cursor-pointer text-black b-border-2 hover:bg-gray-100"
                 style={{ boxShadow: "2px 2px 0 #1a1a1a" }}
-                title="TikTok HIMTI"
+                title="TikTok IT FEST"
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -1337,7 +1309,8 @@ export default function ShowEvent({
               </a>
             </div>
             <p className="text-slate-900 font-black text-xs uppercase tracking-widest">
-              &copy; 2026 HIMTI Events. Satu Platform, Ribuan Kesempatan!
+              &copy; 2026 IT FEST 6.0 · Himpunan Mahasiswa Teknik Informatika
+              &amp; Prodi Teknik Informatika Universitas Paramadina
             </p>
           </div>
         </footer>
