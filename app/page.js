@@ -244,11 +244,17 @@ const CSS = `
 `;
 
 /* ── Data ─────────────────────────────────────────────────────────────── */
+const FORM_URLS = {
+  talkshow: "https://forms.gle/YOUR_TALKSHOW_FORM_ID_HERE",
+  expo: "https://forms.gle/YOUR_EXPO_FORM_ID_HERE",
+  fungame: "https://forms.gle/YOUR_FUNGAME_FORM_ID_HERE",
+};
+
 const ACARA = [
   { emoji: "🏆", label: "Lomba", sub: "27 Jul – 14 Agt", color: C.coral, tc: "#fff" },
-  { emoji: "🎤", label: "Talkshow", sub: "13–14 Okt", color: C.blue, tc: "#fff" },
-  { emoji: "🚀", label: "Expo", sub: "13–14 Okt", color: C.lime, tc: C.navy },
-  { emoji: "🎮", label: "Fun Game", sub: "13–14 Okt", color: C.orange, tc: "#fff" },
+  { emoji: "🎤", label: "Talkshow", sub: "13–14 Okt", color: C.blue, tc: "#fff", href: FORM_URLS.talkshow },
+  { emoji: "🚀", label: "Expo", sub: "13–14 Okt", color: C.lime, tc: C.navy, href: FORM_URLS.expo },
+  { emoji: "🎮", label: "Fun Game", sub: "13–14 Okt", color: C.orange, tc: "#fff", href: FORM_URLS.fungame },
   { emoji: "🛍️", label: "Bazzar", sub: "Coming Soon", color: C.yellow, tc: C.navy },
 ];
 
@@ -262,8 +268,8 @@ const LOMBA = [
 const TIMELINE = [
   { emoji: "📝", label: "Pendaftaran & Pelaksanaan Lomba", date: "27 Jul – 12 Okt 2026", note: "Hackathon, IoT, Game Making & KTI", color: C.coral },
   { emoji: "🏁", label: "Final Day (Online)", date: "12 Oktober 2026", note: "Babak final seluruh kategori lomba", color: C.orange },
-  { emoji: "🎤", label: "Talkshow & Expo", date: "13–14 Oktober 2026", note: "Pendaftaran via Google Form", color: C.blue },
-  { emoji: "🎮", label: "Fun Game", date: "13–14 Oktober 2026", note: "Pendaftaran via Google Form", color: C.lime },
+  { emoji: "🎤", label: "Talkshow & Expo", date: "13–14 Oktober 2026", note: "Pendaftaran via Google Form", color: C.blue, href: FORM_URLS.talkshow },
+  { emoji: "🎮", label: "Fun Game", date: "13–14 Oktober 2026", note: "Pendaftaran via Google Form", color: C.lime, href: FORM_URLS.fungame },
   { emoji: "🛍️", label: "Tenant Bazzar", date: "Coming Soon", note: "Bazar produk, kuliner & merchandise", color: C.yellow },
 ];
 
@@ -648,18 +654,35 @@ function Acara() {
         <div className="acara-grid">
           {ACARA.map((a, i) => (
             <div key={i} data-reveal style={{ "--reveal-delay": `${i * 70}ms` }}>
-              <div className="r-card" style={{ padding: "24px 12px 20px", textAlign: "center", position: "relative", overflow: "hidden" }}>
-                <div aria-hidden="true" className="fd" style={{ position: "absolute", bottom: -16, right: -2, fontSize: 70, fontWeight: 500, color: `${a.color}1a`, lineHeight: 1, userSelect: "none", pointerEvents: "none" }}>{i + 1}</div>
-                <div style={{ position: "relative" }}>
-                  <div style={{ width: 50, height: 50, borderRadius: 13, background: a.color, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22, margin: "0 auto 12px", border: "2px solid #000", boxShadow: "3px 3px 0 #000" }}>
-                    {a.emoji}
+              {a.href ? (
+                <a href={a.href} target="_blank" rel="noopener noreferrer" className="r-card" style={{ padding: "24px 12px 20px", textAlign: "center", position: "relative", overflow: "hidden", textDecoration: "none", display: "block", transition: "transform .15s ease, box-shadow .15s ease" }}
+                  onMouseEnter={e => { e.currentTarget.style.transform = "translate(-2px,-3px)"; e.currentTarget.style.boxShadow = `8px 8px 0 ${a.color}`; }}
+                  onMouseLeave={e => { e.currentTarget.style.transform = "translate(0,0)"; e.currentTarget.style.boxShadow = `6px 6px 0 ${a.color}`; }}>
+                  <div aria-hidden="true" className="fd" style={{ position: "absolute", bottom: -16, right: -2, fontSize: 70, fontWeight: 500, color: `${a.color}1a`, lineHeight: 1, userSelect: "none", pointerEvents: "none" }}>{i + 1}</div>
+                  <div style={{ position: "relative" }}>
+                    <div style={{ width: 50, height: 50, borderRadius: 13, background: a.color, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22, margin: "0 auto 12px", border: "2px solid #000", boxShadow: "3px 3px 0 #000" }}>
+                      {a.emoji}
+                    </div>
+                    <div className="fd" style={{ color: C.navy, fontSize: 15, fontWeight: 600, marginBottom: 10, lineHeight: 1.2 }}>{a.label}</div>
+                    <div className="fb" style={{ fontSize: 10, fontWeight: 700, padding: "4px 10px", borderRadius: 99, display: "inline-block", background: a.color, color: a.tc, border: "1.5px solid #000", boxShadow: "2px 2px 0 #000", letterSpacing: ".04em", textTransform: "uppercase" }}>
+                      {a.sub}
+                    </div>
                   </div>
-                  <div className="fd" style={{ color: C.navy, fontSize: 15, fontWeight: 600, marginBottom: 10, lineHeight: 1.2 }}>{a.label}</div>
-                  <div className="fb" style={{ fontSize: 10, fontWeight: 700, padding: "4px 10px", borderRadius: 99, display: "inline-block", background: a.color, color: a.tc, border: "1.5px solid #000", boxShadow: "2px 2px 0 #000", letterSpacing: ".04em", textTransform: "uppercase" }}>
-                    {a.sub}
+                </a>
+              ) : (
+                <div className="r-card" style={{ padding: "24px 12px 20px", textAlign: "center", position: "relative", overflow: "hidden" }}>
+                  <div aria-hidden="true" className="fd" style={{ position: "absolute", bottom: -16, right: -2, fontSize: 70, fontWeight: 500, color: `${a.color}1a`, lineHeight: 1, userSelect: "none", pointerEvents: "none" }}>{i + 1}</div>
+                  <div style={{ position: "relative" }}>
+                    <div style={{ width: 50, height: 50, borderRadius: 13, background: a.color, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22, margin: "0 auto 12px", border: "2px solid #000", boxShadow: "3px 3px 0 #000" }}>
+                      {a.emoji}
+                    </div>
+                    <div className="fd" style={{ color: C.navy, fontSize: 15, fontWeight: 600, marginBottom: 10, lineHeight: 1.2 }}>{a.label}</div>
+                    <div className="fb" style={{ fontSize: 10, fontWeight: 700, padding: "4px 10px", borderRadius: 99, display: "inline-block", background: a.color, color: a.tc, border: "1.5px solid #000", boxShadow: "2px 2px 0 #000", letterSpacing: ".04em", textTransform: "uppercase" }}>
+                      {a.sub}
+                    </div>
                   </div>
                 </div>
-              </div>
+              )}
             </div>
           ))}
         </div>
@@ -774,21 +797,30 @@ function Timeline() {
           <span className="tl-spine" aria-hidden="true" />
           {TIMELINE.map((item, i) => {
             const side = i % 2 === 0 ? "left" : "right";
+            const CardContent = () => (
+              <div className="tl-card" style={{ borderTop: `4px solid ${item.color}` }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 11, marginBottom: 9 }}>
+                  <span style={{ width: 40, height: 40, flexShrink: 0, borderRadius: 11, background: item.color, display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: 18, border: "2px solid #000", boxShadow: "2px 2px 0 #000" }}>
+                    {item.emoji}
+                  </span>
+                  <h3 className="fd" style={{ color: C.navy, fontSize: 15.5, fontWeight: 600, lineHeight: 1.2 }}>{item.label}</h3>
+                </div>
+                <p className="fb" style={{ color: C.muted, fontSize: 12.5, fontWeight: 400, lineHeight: 1.65, marginBottom: 12 }}>{item.note}</p>
+                <span className="fb" style={{ fontSize: 11, fontWeight: 700, padding: "4px 12px", borderRadius: 99, display: "inline-block", background: item.color, color: tc(item.color), border: "1.5px solid #000", boxShadow: "2px 2px 0 #000", letterSpacing: ".03em" }}>
+                  📅 {item.date}
+                </span>
+              </div>
+            );
             return (
               <div key={i} className={`tl-row tl-${side}`} data-reveal style={{ "--reveal-delay": `${i * 80}ms` }}>
                 <div className="tl-card-wrap">
-                  <div className="tl-card" style={{ borderTop: `4px solid ${item.color}` }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 11, marginBottom: 9 }}>
-                      <span style={{ width: 40, height: 40, flexShrink: 0, borderRadius: 11, background: item.color, display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: 18, border: "2px solid #000", boxShadow: "2px 2px 0 #000" }}>
-                        {item.emoji}
-                      </span>
-                      <h3 className="fd" style={{ color: C.navy, fontSize: 15.5, fontWeight: 600, lineHeight: 1.2 }}>{item.label}</h3>
-                    </div>
-                    <p className="fb" style={{ color: C.muted, fontSize: 12.5, fontWeight: 400, lineHeight: 1.65, marginBottom: 12 }}>{item.note}</p>
-                    <span className="fb" style={{ fontSize: 11, fontWeight: 700, padding: "4px 12px", borderRadius: 99, display: "inline-block", background: item.color, color: tc(item.color), border: "1.5px solid #000", boxShadow: "2px 2px 0 #000", letterSpacing: ".03em" }}>
-                      📅 {item.date}
-                    </span>
-                  </div>
+                  {item.href ? (
+                    <a href={item.href} target="_blank" rel="noopener noreferrer" style={{ textDecoration: "none", display: "block" }}>
+                      <CardContent />
+                    </a>
+                  ) : (
+                    <CardContent />
+                  )}
                 </div>
                 <span className="tl-node" style={{ background: item.color }} aria-hidden="true">
                   <span className="fd" style={{ color: tc(item.color), fontSize: 16, fontWeight: 700, lineHeight: 1 }}>{i + 1}</span>

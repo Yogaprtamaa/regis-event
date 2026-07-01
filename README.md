@@ -44,11 +44,11 @@ The page auto-updates as you edit the file.
 
 * Next.js Route Handlers
 * Prisma ORM
-* Neon PostgreSQL
+* Supabase PostgreSQL
 
 ---
 
-## ⚙️ Backend Setup (Prisma + Neon)
+## ⚙️ Backend Setup (Prisma + Supabase)
 
 Install dependencies:
 
@@ -62,10 +62,10 @@ Initialize Prisma:
 npx prisma init
 ```
 
-Configure `.env`:
+Configure `.env` (use the Supabase "Transaction pooler" connection string, with `?pgbouncer=true` appended so Prisma skips prepared statements over PgBouncer):
 
 ```env
-DATABASE_URL="your-neon-postgresql-url"
+DATABASE_URL="postgresql://postgres.<project-ref>:<password>@aws-<region>.pooler.supabase.com:6543/postgres?pgbouncer=true"
 ```
 
 Push schema and generate client:

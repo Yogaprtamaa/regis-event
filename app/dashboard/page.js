@@ -38,35 +38,52 @@ export default function Dashboard() {
   const [exportingId, setExportingId] = useState(null);
 
   useEffect(() => {
-    // Check if already authenticated in session
-    const authenticated = sessionStorage.getItem("dashboard_authenticated");
-    if (authenticated === "true") {
-      setIsAuthenticated(true);
-      fetchDashboardData();
-    } else {
-      setShowPasswordModal(true);
-      setLoading(false);
+    // Check server-side session (httpOnly cookie, tidak bisa dibaca dari JS)
+    async function checkSession() {
+      try {
+        const res = await fetch("/api/admin/session");
+        const data = await res.json();
+        if (data.authenticated) {
+          setIsAuthenticated(true);
+          fetchDashboardData();
+        } else {
+          setShowPasswordModal(true);
+        }
+      } catch {
+        setShowPasswordModal(true);
+      } finally {
+        setLoading(false);
+      }
     }
+    checkSession();
   }, []);
 
-  const handlePasswordSubmit = (e) => {
+  const handlePasswordSubmit = async (e) => {
     e.preventDefault();
-    const correctPassword = "ristekhimtikece";
+    try {
+      const res = await fetch("/api/admin/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password: passwordInput }),
+      });
 
-    if (passwordInput === correctPassword) {
-      sessionStorage.setItem("dashboard_authenticated", "true");
+      if (!res.ok) {
+        setPasswordError("Password salah! Silakan coba lagi.");
+        setPasswordInput("");
+        return;
+      }
+
       setIsAuthenticated(true);
       setShowPasswordModal(false);
       setPasswordError("");
       fetchDashboardData();
-    } else {
-      setPasswordError("Password salah! Silakan coba lagi.");
-      setPasswordInput("");
+    } catch {
+      setPasswordError("Gagal menghubungi server. Coba lagi.");
     }
   };
 
-  const handleLogout = () => {
-    sessionStorage.removeItem("dashboard_authenticated");
+  const handleLogout = async () => {
+    await fetch("/api/admin/logout", { method: "POST" });
     setIsAuthenticated(false);
     setShowPasswordModal(true);
     setPasswordInput("");
