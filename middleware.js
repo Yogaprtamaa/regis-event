@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
-import { verifySessionToken } from "@/lib/auth";
+import { updateSession } from "@/lib/supabase/middleware";
 
-const PROTECTED_PAGES = ["/participants", "/events/create"];
+const PROTECTED_PAGES = ["/dashboard", "/participants", "/events/create"];
 
 function isProtectedEditPage(pathname) {
   return /^\/events\/[^/]+\/edit$/.test(pathname);
@@ -28,15 +28,14 @@ export async function middleware(req) {
   const isPage = PROTECTED_PAGES.includes(pathname) || isProtectedEditPage(pathname);
   const isApi = isProtectedApi(pathname, method);
 
+  const { res, user } = await updateSession(req);
+
   if (!isPage && !isApi) {
-    return NextResponse.next();
+    return res;
   }
 
-  const token = req.cookies.get("admin_session")?.value;
-  const authenticated = await verifySessionToken(token);
-
-  if (authenticated) {
-    return NextResponse.next();
+  if (user) {
+    return res;
   }
 
   if (isApi) {
@@ -44,12 +43,14 @@ export async function middleware(req) {
   }
 
   const url = req.nextUrl.clone();
-  url.pathname = "/dashboard";
+  url.pathname = "/login";
+  url.searchParams.set("redirect", pathname);
   return NextResponse.redirect(url);
 }
 
 export const config = {
   matcher: [
+    "/dashboard",
     "/participants/:path*",
     "/events/create",
     "/events/:id/edit",

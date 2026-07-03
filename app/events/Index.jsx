@@ -1,16 +1,22 @@
 import AuthenticatedLayout from '../Layouts/AuthenticatedLayout';
 import { Head, Link, router } from '../utils/inertia-compat';
 import { useState, useEffect } from 'react';
-import { MapPinIcon, UsersIcon, MagnifyingGlassIcon, PlusIcon, FunnelIcon, BoltIcon, CalendarIcon, ChevronLeftIcon, ChevronRightIcon, ArrowRightIcon } from '@heroicons/react/24/outline';
+import { MapPinIcon, UsersIcon, MagnifyingGlassIcon, PlusIcon, FunnelIcon, BoltIcon, CalendarIcon, ChevronLeftIcon, ChevronRightIcon, ArrowRightIcon, PhoneIcon, EnvelopeIcon, TrophyIcon } from '@heroicons/react/24/outline';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Empty, EmptyHeader, EmptyTitle, EmptyDescription, EmptyMedia } from '@/components/ui/empty';
 
 const CSS = `
-    @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@600;700&family=Pacifico&family=Plus+Jakarta+Sans:wght@500;700;800&display=swap');
-    body { background-color: #FEFEFE; font-family: 'Plus Jakarta Sans', sans-serif; }
+    @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@600;700&family=Plus+Jakarta+Sans:wght@500;700;800&display=swap');
+    body {
+        background-color: #FDF5E4;
+        background-image:
+            repeating-linear-gradient(0deg,  transparent 0, transparent 27px, rgba(8,46,75,.07) 27px, rgba(8,46,75,.07) 28px),
+            repeating-linear-gradient(90deg, transparent 0, transparent 27px, rgba(8,46,75,.07) 27px, rgba(8,46,75,.07) 28px);
+        background-size: 28px 28px;
+        font-family: 'Plus Jakarta Sans', sans-serif;
+    }
     .font-fredoka { font-family: 'Fredoka', sans-serif; }
-    .font-pacifico { font-family: 'Pacifico', cursive; }
     .footer-grid-it { display: grid; grid-template-columns: 1.4fr 1fr 1fr; gap: 48px; }
     @media (max-width: 768px) { .footer-grid-it { grid-template-columns: 1fr; gap: 32px; text-align: left; } }
 
@@ -173,7 +179,7 @@ function HeroCarousel({ events }) {
                         <Link href={`/events/${item.id}`}
                             className="b-btn block w-full text-center text-white py-3 sm:py-4 rounded-xl sm:rounded-[1.5rem] b-border font-black text-xs sm:text-sm uppercase tracking-[0.15em]"
                             style={{ background: '#EB3C6B', boxShadow: '4px 4px 0 #000' }}>
-                            Daftar Sekarang !!
+                            Daftar Sekarang
                         </Link>
                     </div>
                 </div>
@@ -353,8 +359,7 @@ export default function EventsIndex({ auth, events, filters }) {
         <>
             <Head title="IT FEST 6.0 — Pendaftaran Lomba" />
             <style>{CSS}</style>
-            <div className="min-h-screen overflow-x-hidden" style={{ background: '#FEFEFE' }}>
-                <div className="fixed inset-0 bg-dots" />
+            <div className="min-h-screen overflow-x-hidden">
 
                 <header className="sticky top-0 z-50 px-4 pt-4 pb-3 sm:px-6">
                     <nav className="flex items-center justify-between px-4 mx-auto bg-white sm:px-5 max-w-7xl b-border rounded-2xl sm:px-7"
@@ -405,7 +410,7 @@ export default function EventsIndex({ auth, events, filters }) {
                                         backdropFilter: 'blur(10px)',
                                         border: '2px solid rgba(255,255,255,0.3)',
                                     }}>
-                                    🌊 Pendaftaran Lomba Dibuka!
+                                    Pendaftaran Lomba Dibuka!
                                 </div>
 
                                 <div className="flex flex-col w-full gap-1">
@@ -534,9 +539,11 @@ export default function EventsIndex({ auth, events, filters }) {
                         : <Empty className="py-16 sm:py-28 bg-white b-border rounded-[2rem]" style={{ boxShadow: '6px 6px 0 #000' }}>
                               <EmptyHeader>
                                   <EmptyMedia>
-                                      <div className="w-16 h-16 sm:w-20 sm:h-20 flex items-center justify-center rounded-2xl sm:rounded-3xl b-border text-3xl sm:text-4xl"
-                                          style={{ background: '#FDF5E4', boxShadow: '4px 4px 0 #000' }}>
-                                          {search ? '🔍' : '🏆'}
+                                      <div className="w-16 h-16 sm:w-20 sm:h-20 flex items-center justify-center rounded-2xl sm:rounded-3xl b-border"
+                                          style={{ background: '#FED245', boxShadow: '4px 4px 0 #000' }}>
+                                          {search
+                                              ? <MagnifyingGlassIcon className="w-8 h-8 sm:w-10 sm:h-10 text-black" strokeWidth={2.2} />
+                                              : <TrophyIcon className="w-8 h-8 sm:w-10 sm:h-10 text-black" strokeWidth={2.2} />}
                                       </div>
                                   </EmptyMedia>
                                   <EmptyTitle className="font-fredoka text-xl sm:text-2xl font-bold text-slate-800">
@@ -588,9 +595,9 @@ export default function EventsIndex({ auth, events, filters }) {
                             {/* Contact */}
                             <div>
                                 <div className="font-fredoka" style={{ color: 'rgba(255,255,255,.35)', fontSize: 10.5, fontWeight: 700, letterSpacing: '.14em', textTransform: 'uppercase', marginBottom: 16 }}>Kontak Panitia</div>
-                                {[{ e: '📍', t: 'Paramadina University, Cipayung, Jakarta' }, { e: '📞', t: 'Ayu — 0819-9285-5778' }, { e: '📧', t: 'itfestparamadina@gmail.com' }].map((item, i) => (
+                                {[{ I: MapPinIcon, t: 'Paramadina University, Cipayung, Jakarta' }, { I: PhoneIcon, t: 'Ayu — 0819-9285-5778' }, { I: EnvelopeIcon, t: 'itfestparamadina@gmail.com' }].map((item, i) => (
                                     <div key={i} style={{ display: 'flex', gap: 9, marginBottom: 12, color: 'rgba(255,255,255,.55)', fontSize: 13, fontWeight: 500, alignItems: 'flex-start', lineHeight: 1.5 }}>
-                                        <span style={{ flexShrink: 0 }}>{item.e}</span><span>{item.t}</span>
+                                        <item.I width={15} height={15} strokeWidth={2} style={{ flexShrink: 0, marginTop: 2 }} /><span>{item.t}</span>
                                     </div>
                                 ))}
                             </div>
@@ -784,9 +791,11 @@ export default function EventsIndex({ auth, events, filters }) {
                                 style={{ boxShadow: '5px 5px 0 #000' }}>
                               <EmptyHeader>
                                   <EmptyMedia>
-                                      <div className="flex items-center justify-center w-12 h-12 sm:w-16 sm:h-16 text-2xl sm:text-3xl rounded-xl sm:rounded-2xl bg-slate-100 b-border"
+                                      <div className="flex items-center justify-center w-12 h-12 sm:w-16 sm:h-16 rounded-xl sm:rounded-2xl bg-slate-100 b-border"
                                           style={{ boxShadow: '4px 4px 0 #000' }}>
-                                          {search ? '🔍' : '📋'}
+                                          {search
+                                              ? <MagnifyingGlassIcon className="w-6 h-6 sm:w-8 sm:h-8 text-slate-700" strokeWidth={2.2} />
+                                              : <CalendarIcon className="w-6 h-6 sm:w-8 sm:h-8 text-slate-700" strokeWidth={2.2} />}
                                       </div>
                                   </EmptyMedia>
                                   <EmptyTitle className="font-fredoka text-xl sm:text-2xl font-bold text-slate-800">

@@ -14,6 +14,13 @@ import { useRouter } from "next/navigation";
 
 const CSS = `
   @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Plus+Jakarta+Sans:wght@700;800&display=swap');
+  body {
+    background-color: #FDF5E4;
+    background-image:
+      repeating-linear-gradient(0deg,  transparent 0, transparent 27px, rgba(8,46,75,.07) 27px, rgba(8,46,75,.07) 28px),
+      repeating-linear-gradient(90deg, transparent 0, transparent 27px, rgba(8,46,75,.07) 27px, rgba(8,46,75,.07) 28px);
+    background-size: 28px 28px;
+  }
   .font-fredoka { font-family: 'Fredoka', sans-serif; }
   .b-border    { border: 3px solid #1a1a1a; }
   .b-border-2  { border: 2px solid #1a1a1a; }
@@ -202,14 +209,13 @@ export default function CreateEventPage() {
   const pct = Math.round((completedFields / 7) * 100);
 
   return (
-    <div className="min-h-screen" style={{ background: "#FEFEFE" }}>
+    <div className="min-h-screen">
       <style>{CSS}</style>
-      <div className="fixed inset-0 bg-dots" />
 
       {/* Hero header */}
       <div
         className="relative overflow-hidden"
-        style={{ background: "#2AAF15" }}
+        style={{ background: "#EB3C6B", borderBottom: "3px solid #1a1a1a" }}
       >
         {/* Big letter watermark */}
         <div
@@ -284,7 +290,7 @@ export default function CreateEventPage() {
                 className="mb-6 p-4 bg-red-100 b-border rounded-2xl flex items-start gap-3"
                 style={{ boxShadow: "3px 3px 0 #f87171" }}
               >
-                <span className="text-lg">⚠️</span>
+                <BoltIcon className="w-5 h-5 flex-shrink-0 text-red-500" strokeWidth={2.5} />
                 <div>
                   <p className="text-[11px] font-black text-red-400 uppercase tracking-widest">
                     Error
@@ -392,7 +398,7 @@ export default function CreateEventPage() {
                 disabled={loading}
                 className="b-btn b-border w-full py-4 rounded-2xl font-black text-sm text-white flex items-center justify-center gap-2 disabled:opacity-50 uppercase tracking-widest"
                 style={{
-                  background: "#2AAF15",
+                  background: "#EB3C6B",
                   boxShadow: "4px 4px 0 #1a1a1a",
                 }}
               >

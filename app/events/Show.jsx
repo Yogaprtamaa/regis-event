@@ -9,6 +9,8 @@ import {
   ClockIcon,
   ArrowLeftIcon,
   BoltIcon,
+  TrophyIcon,
+  EnvelopeIcon,
 } from "@heroicons/react/24/outline";
 import { CheckBadgeIcon } from "@heroicons/react/24/solid";
 import { useState } from "react";
@@ -29,7 +31,13 @@ const STATUS_CFG = {
 
 const CSS = `
     @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&display=swap');
-    body { background-color: #FEFEFE; }
+    body {
+        background-color: #FDF5E4;
+        background-image:
+            repeating-linear-gradient(0deg,  transparent 0, transparent 27px, rgba(8,46,75,.07) 27px, rgba(8,46,75,.07) 28px),
+            repeating-linear-gradient(90deg, transparent 0, transparent 27px, rgba(8,46,75,.07) 27px, rgba(8,46,75,.07) 28px);
+        background-size: 28px 28px;
+    }
     .font-fredoka { font-family: 'Fredoka', sans-serif; }
     .b-border    { border: 3px solid #1a1a1a; }
     .b-shadow    { box-shadow: 8px 8px 0px #1a1a1a; }
@@ -459,11 +467,11 @@ export default function ShowEvent({
           <div className="relative h-0">
             <div
               className="absolute -left-3.5 -top-3.5 w-7 h-7 rounded-full b-border"
-              style={{ background: "#FEFEFE" }}
+              style={{ background: "#FDF5E4" }}
             />
             <div
               className="absolute -right-3.5 -top-3.5 w-7 h-7 rounded-full b-border"
-              style={{ background: "#FEFEFE" }}
+              style={{ background: "#FDF5E4" }}
             />
           </div>
 
@@ -512,7 +520,7 @@ export default function ShowEvent({
               </p>
             </div>
             <div className="flex items-center gap-2.5 b-border rounded-2xl px-4 py-3" style={{ background: "#fff7e6" }}>
-              <span>📧</span>
+              <EnvelopeIcon className="w-4 h-4 flex-shrink-0" strokeWidth={2.5} style={{ color: "#EB3C6B" }} />
               <p className="text-xs font-black" style={{ color: "#EB3C6B" }}>
                 Konfirmasi dikirim ke email kamu
               </p>
@@ -613,7 +621,7 @@ export default function ShowEvent({
                     boxShadow: "3px 3px 0 #1a1a1a",
                   }}
                 >
-                  🏆 {event.nama_event}
+                  <TrophyIcon className="w-4 h-4 flex-shrink-0" strokeWidth={2.5} /> {event.nama_event}
                 </div>
               </div>
 
@@ -948,9 +956,8 @@ export default function ShowEvent({
   };
 
   const pageBody = (
-    <div className="min-h-screen" style={{ background: "#FEFEFE" }}>
+    <div className="min-h-screen">
       <style>{CSS}</style>
-      <div className="fixed inset-0 bg-dots" />
 
       {/* Hero */}
       <div
@@ -1138,13 +1145,13 @@ export default function ShowEvent({
                 {/* Lokasi - Full Width */}
                 <div className="flex items-start gap-3 p-3.5 b-border rounded-2xl bg-slate-50">
                   <div
-                    className="w-10 h-10 flex items-center justify-center flex-shrink-0 b-border rounded-xl text-xl"
+                    className="w-10 h-10 flex items-center justify-center flex-shrink-0 b-border rounded-xl"
                     style={{
                       background: acc.tag,
                       boxShadow: "2px 2px 0 #1a1a1a",
                     }}
                   >
-                    📍
+                    <MapPinIcon className="w-5 h-5 text-black" strokeWidth={2.2} />
                   </div>
                   <div className="min-w-0 flex-1">
                     <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">

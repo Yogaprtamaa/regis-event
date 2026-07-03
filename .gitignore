@@ -42,3 +42,10 @@ yarn-error.log*
 next-env.d.ts
 
 /app/generated/prisma
+
+# claude code plugin/skill cache
+.agents/
+.claude/skills/
+skills-lock.json
+__pycache__/
+*.pyc

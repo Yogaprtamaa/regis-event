@@ -7,6 +7,13 @@ import { useState, useEffect } from "react";
 
 const CSS = `
   @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Plus+Jakarta+Sans:wght@700;800&display=swap');
+  body {
+    background-color: #FDF5E4;
+    background-image:
+      repeating-linear-gradient(0deg,  transparent 0, transparent 27px, rgba(8,46,75,.07) 27px, rgba(8,46,75,.07) 28px),
+      repeating-linear-gradient(90deg, transparent 0, transparent 27px, rgba(8,46,75,.07) 27px, rgba(8,46,75,.07) 28px);
+    background-size: 28px 28px;
+  }
   .font-fredoka { font-family: 'Fredoka', sans-serif; }
   .b-border    { border: 3px solid #1a1a1a; }
   .b-border-2  { border: 2px solid #1a1a1a; }
@@ -36,7 +43,7 @@ const FORM_FIELDS = [
   { key: "jam_berakhir", label: "Jam Berakhir", placeholder: "", type: "time", icon: ClockIcon, required: true, fullWidth: true },
   { key: "lokasi", label: "Lokasi", placeholder: "Auditorium Kampus", type: "text", icon: MapPinIcon, required: true, fullWidth: true },
   { key: "kapasitas", label: "Kuota Peserta", placeholder: "50", type: "number", icon: UsersIcon, required: true },
-  { key: "status", label: "Status", placeholder: "", type: "select", icon: null, required: false, options: [{ value: "DRAFT", label: "📝 Draft" }, { value: "PUBLISHED", label: "🚀 Published" }, { value: "CLOSED", label: "🔒 Closed" }] },
+  { key: "status", label: "Status", placeholder: "", type: "select", icon: null, required: false, options: [{ value: "DRAFT", label: "Draft" }, { value: "PUBLISHED", label: "Published" }, { value: "CLOSED", label: "Closed" }] },
 ];
 
 export default function EditEventPage() {
@@ -85,18 +92,17 @@ export default function EditEventPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ background: '#FEFEFE' }}>
+      <div className="min-h-screen flex items-center justify-center">
         <style>{CSS}</style>
-        <div className="fixed inset-0 bg-dots" />
         <div className="relative z-10 text-center">
           <div className="w-20 h-20 bg-white b-border rounded-2xl flex items-center justify-center mx-auto mb-5" style={{ boxShadow: '6px 6px 0 #1a1a1a' }}>
             <div className="flex gap-1.5">
               {[0, 0.15, 0.3].map((d, i) => (
-                <div key={i} className="w-3 h-3 rounded-full" style={{ background: '#2AAF15', animation: 'bounce1 1.2s infinite ease-in-out', animationDelay: `${d}s` }} />
+                <div key={i} className="w-3 h-3 rounded-full" style={{ background: '#EB3C6B', animation: 'bounce1 1.2s infinite ease-in-out', animationDelay: `${d}s` }} />
               ))}
             </div>
           </div>
-          <p className="font-fredoka text-xl font-bold text-slate-900">Memuat Event<span style={{ color: '#2AAF15' }}>...</span></p>
+          <p className="font-fredoka text-xl font-bold text-slate-900">Memuat Event<span style={{ color: '#EB3C6B' }}>...</span></p>
           <p className="text-xs font-black text-slate-400 uppercase tracking-widest mt-1">Mohon tunggu sebentar</p>
         </div>
       </div>
@@ -105,12 +111,11 @@ export default function EditEventPage() {
 
   if (error && !formData.nama_event) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ background: '#FEFEFE' }}>
+      <div className="min-h-screen flex items-center justify-center">
         <style>{CSS}</style>
-        <div className="fixed inset-0 bg-dots" />
         <div className="relative z-10 text-center">
           <div className="w-20 h-20 bg-white b-border rounded-2xl flex items-center justify-center mx-auto mb-5" style={{ boxShadow: '6px 6px 0 #1a1a1a' }}>
-            <span className="text-3xl">🔍</span>
+            <PencilSquareIcon className="w-9 h-9 text-slate-400" strokeWidth={2} />
           </div>
           <h1 className="font-fredoka text-2xl font-bold text-slate-900">Event Tidak Ditemukan</h1>
           <p className="text-sm font-bold text-slate-400 mt-2 mb-6">Event yang kamu cari tidak tersedia atau sudah dihapus.</p>
@@ -175,12 +180,11 @@ export default function EditEventPage() {
   const pct = Math.round((completedFields / 7) * 100);
 
   return (
-    <div className="min-h-screen" style={{ background: "#FEFEFE" }}>
+    <div className="min-h-screen">
       <style>{CSS}</style>
-      <div className="fixed inset-0 bg-dots" />
 
       {/* Hero header */}
-      <div className="relative overflow-hidden" style={{ background: "#003300" }}>
+      <div className="relative overflow-hidden" style={{ background: "#31AECE", borderBottom: "3px solid #1a1a1a" }}>
         {/* Big letter watermark */}
         <div className="font-fredoka absolute right-4 -bottom-6 font-bold text-white/10 leading-none select-none pointer-events-none"
           style={{ fontSize: "clamp(8rem, 22vw, 16rem)" }}>
@@ -205,7 +209,7 @@ export default function EditEventPage() {
               <p className="text-white/60 text-[10px] font-black uppercase tracking-widest mb-1">Edit Formulir</p>
               <h1 className="font-fredoka text-3xl sm:text-4xl font-bold text-white"
                 style={{ textShadow: "3px 3px 0 rgba(0,0,0,0.15)" }}>
-                Edit Event<span style={{ color: "#33CC00" }}>.</span>
+                Edit Event<span style={{ color: "#FED245" }}>.</span>
               </h1>
             </div>
           </div>
@@ -216,7 +220,7 @@ export default function EditEventPage() {
               <div className="h-full rounded-full c-bar"
                 style={{
                   width: `${pct}%`,
-                  background: "#33CC00",
+                  background: "#FED245",
                   borderRight: pct > 0 && pct < 100 ? "3px solid #1a1a1a" : "none",
                   transition: "width 0.55s cubic-bezier(.22,1,.36,1)",
                 }} />
@@ -237,7 +241,7 @@ export default function EditEventPage() {
             {error && (
               <div className="mb-6 p-4 bg-red-100 b-border rounded-2xl flex items-start gap-3"
                 style={{ boxShadow: "3px 3px 0 #f87171" }}>
-                <span className="text-lg">⚠️</span>
+                <PencilSquareIcon className="w-5 h-5 flex-shrink-0 text-red-500" strokeWidth={2.5} />
                 <div>
                   <p className="text-[11px] font-black text-red-400 uppercase tracking-widest">Error</p>
                   <p className="text-sm font-bold text-red-700 mt-0.5">{error}</p>
@@ -286,7 +290,7 @@ export default function EditEventPage() {
                 type="submit"
                 disabled={saving}
                 className="b-btn b-border w-full py-4 rounded-2xl font-black text-sm text-white flex items-center justify-center gap-2 disabled:opacity-50 uppercase tracking-widest"
-                style={{ background: "#2AAF15", boxShadow: "4px 4px 0 #1a1a1a" }}>
+                style={{ background: "#31AECE", boxShadow: "4px 4px 0 #1a1a1a" }}>
                 {saving ? (
                   <>
                     <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />

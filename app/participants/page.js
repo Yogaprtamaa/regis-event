@@ -2,14 +2,30 @@
 import { useState, useEffect } from "react";
 import {
   MagnifyingGlassIcon,
-  ArrowDownTrayIcon,
   CheckIcon,
   UsersIcon,
   FunnelIcon,
   CalendarIcon,
+  EyeIcon,
+  ArrowDownTrayIcon,
 } from "@heroicons/react/24/outline";
 import Popup from "reactjs-popup";
 import "reactjs-popup/dist/index.css";
+import RetroAdminStyles, { C } from "@/app/components/RetroAdminStyles";
+
+const ROLE_LABEL = {
+  DOSEN: "Dosen",
+  PANITIA: "Panitia",
+  MAHASISWA: "Mahasiswa",
+  PENGURUS_HIMTI: "Pengurus HIMTI",
+};
+
+const ROLE_BG = {
+  DOSEN: C.blue,
+  PANITIA: C.yellow,
+  MAHASISWA: C.orange,
+  PENGURUS_HIMTI: C.coral,
+};
 
 export default function ParticipantsPage() {
   const [participants, setParticipants] = useState([]);
@@ -21,7 +37,6 @@ export default function ParticipantsPage() {
   const [loading, setLoading] = useState(true);
   const [events, setEvents] = useState([]);
   const [updatingId, setUpdatingId] = useState(null);
-  const [selectedImage, setSelectedImage] = useState(null);
 
   useEffect(() => {
     fetchData();
@@ -73,14 +88,15 @@ export default function ParticipantsPage() {
 
     // Filter by search
     if (search) {
+      const q = search.toLowerCase();
       filtered = filtered.filter(
         (p) =>
-          p.nama.toLowerCase().includes(search.toLowerCase()) ||
-          p.email.toLowerCase().includes(search.toLowerCase()) ||
-          p.nim.includes(search) ||
-          p.jurusan.toLowerCase().includes(search.toLowerCase()),
-        p.divisi?.toLowerCase().includes(search.toLowerCase()) ||
-          p.instansi?.toLowerCase().includes(search.toLowerCase()),
+          p.nama.toLowerCase().includes(q) ||
+          p.email.toLowerCase().includes(q) ||
+          (p.nim || "").includes(search) ||
+          (p.jurusan || "").toLowerCase().includes(q) ||
+          (p.divisi || "").toLowerCase().includes(q) ||
+          (p.instansi || "").toLowerCase().includes(q),
       );
     }
 
@@ -199,33 +215,33 @@ export default function ParticipantsPage() {
     }
   }
 
-  const getPaymentColor = (status) => {
+  const paymentBg = (status) => {
     switch ((status || "FREE").toUpperCase()) {
       case "APPROVED":
-        return "bg-green-100 text-green-800 border-green-300";
+        return C.lime;
       case "PENDING":
-        return "bg-yellow-100 text-yellow-800 border-yellow-300";
+        return C.yellow;
       case "REJECTED":
-        return "bg-red-100 text-red-800 border-red-300";
+        return C.coral;
       case "FREE":
       default:
-        return "bg-blue-100 text-blue-800 border-blue-300";
+        return C.blue;
     }
   };
 
-  const getStatusColor = (status) => {
+  const statusBg = (status) => {
     switch (status.toLowerCase()) {
       case "attended":
       case "hadir":
-        return "bg-green-100 text-green-800 border-green-300";
+        return C.lime;
       case "registered":
       case "terdaftar":
-        return "bg-green-100 text-green-800 border-green-300";
+        return C.yellow;
       case "cancelled":
       case "batal":
-        return "bg-red-100 text-red-800 border-red-300";
+        return C.coral;
       default:
-        return "bg-gray-100 text-gray-800 border-gray-300";
+        return "#e2e8f0";
     }
   };
 
@@ -243,105 +259,105 @@ export default function ParticipantsPage() {
         p.status === "REGISTERED" ||
         p.status === "registered",
     ).length,
-    approved: participants.filter((p) => p.paymentStatus === "APPROVED").length,
-    pending: participants.filter((p) => p.paymentStatus === "PENDING").length,
   };
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="adm-bg flex items-center justify-center">
+        <RetroAdminStyles />
         <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-green-600"></div>
-          <p className="mt-4 text-gray-600">Loading participants...</p>
+          <div
+            className="a-spin inline-flex items-center justify-center w-16 h-16 rounded-2xl border-[3px] border-black"
+            style={{ background: C.blue, boxShadow: "4px 4px 0 #000", animationDuration: "3s" }}
+          >
+            <UsersIcon className="w-8 h-8 text-white" strokeWidth={2.2} />
+          </div>
+          <p className="fd text-xl font-semibold mt-5" style={{ color: C.navy }}>
+            Ngambil guest list...
+          </p>
         </div>
       </div>
     );
   }
 
+  const statCards = [
+    { label: "Total Peserta", value: stats.total, Icon: UsersIcon, sh: "sh-coral", bg: C.coral, rotate: "-0.8deg" },
+    { label: "Hadir", value: stats.attended, Icon: CheckIcon, sh: "sh-lime", bg: C.lime, rotate: "0.7deg" },
+    { label: "Terdaftar", value: stats.registered, Icon: CalendarIcon, sh: "sh-blue", bg: C.blue, rotate: "-0.5deg" },
+  ];
+
+  const inputCls = "adm-input";
+
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="adm-bg">
+      <RetroAdminStyles />
+
       {/* Header */}
-      <div className="bg-white shadow-sm border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <h1 className="text-3xl font-bold text-gray-900">
+      <div className="max-w-[96rem] mx-auto px-4 sm:px-6 lg:px-8 pt-8">
+        <div className="pop-in adm-card sh-navy px-6 py-6 sm:px-8">
+          <span className="adm-tag" style={{ background: C.coral, color: "#fff" }}>
+            Guest List
+          </span>
+          <h1 className="fd text-4xl font-bold mt-3" style={{ color: C.navy, lineHeight: 0.95 }}>
             Manajemen Peserta
           </h1>
-          <p className="mt-1 text-sm text-gray-500">
-            Kelola dan pantau semua peserta event
+          <p className="fb text-sm font-semibold mt-2" style={{ color: C.muted }}>
+            Kelola kehadiran, pembayaran, dan data semua peserta.
           </p>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Stats Cards */}
+      <div className="max-w-[96rem] mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Stats */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">
-                  Total Peserta
-                </p>
-                <p className="text-3xl font-bold text-gray-900 mt-2">
-                  {stats.total}
-                </p>
-              </div>
-              <div className="p-3 bg-green-100 rounded-lg">
-                <UsersIcon className="h-8 w-8 text-green-600" />
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Hadir</p>
-                <p className="text-3xl font-bold text-green-600 mt-2">
-                  {stats.attended}
-                </p>
-              </div>
-              <div className="p-3 bg-green-100 rounded-lg">
-                <CheckIcon className="h-8 w-8 text-green-600" />
+          {statCards.map((s, i) => (
+            <div
+              key={s.label}
+              className={`pop-in adm-card adm-lift ${s.sh} p-6`}
+              style={{ "--d": `${100 + i * 90}ms`, "--r": s.rotate, transform: `rotate(${s.rotate})` }}
+            >
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="fb text-[11px] font-extrabold uppercase tracking-[.14em]" style={{ color: C.muted }}>
+                    {s.label}
+                  </p>
+                  <p className="fd text-5xl font-bold mt-1" style={{ color: C.navy }}>
+                    {s.value}
+                  </p>
+                </div>
+                <div
+                  className="flex items-center justify-center w-14 h-14 rounded-2xl border-[3px] border-black"
+                  style={{ background: s.bg, boxShadow: "3px 3px 0 #000" }}
+                >
+                  <s.Icon className="h-7 w-7 text-white" strokeWidth={2.2} />
+                </div>
               </div>
             </div>
-          </div>
-
-          <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Terdaftar</p>
-                <p className="text-3xl font-bold text-green-600 mt-2">
-                  {stats.registered}
-                </p>
-              </div>
-              <div className="p-3 bg-purple-100 rounded-lg">
-                <CalendarIcon className="h-8 w-8 text-purple-600" />
-              </div>
-            </div>
-          </div>
+          ))}
         </div>
 
-        {/* Filters and Search */}
-        <div className="bg-white rounded-xl shadow-sm p-6 mb-6 border border-gray-100">
+        {/* Filters */}
+        <div className="pop-in adm-card sh-yellow p-5 sm:p-6 mb-8" style={{ "--d": "280ms" }}>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            {/* Search */}
             <div className="relative">
-              <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+              <MagnifyingGlassIcon className="absolute left-3.5 top-1/2 -translate-y-1/2 h-5 w-5 pointer-events-none" style={{ color: C.muted }} strokeWidth={2.5} />
               <input
                 type="text"
-                placeholder="Cari nama, email, NIM, jurusan..."
+                placeholder="Cari nama, email, NIM..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                className={inputCls}
+                style={{ paddingLeft: "2.6rem" }}
               />
             </div>
 
-            {/* Status Filter */}
             <div className="relative">
-              <FunnelIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+              <FunnelIcon className="absolute left-3.5 top-1/2 -translate-y-1/2 h-5 w-5 pointer-events-none z-10" style={{ color: C.muted }} strokeWidth={2.5} />
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent appearance-none"
+                className={inputCls}
+                style={{ paddingLeft: "2.6rem", appearance: "none" }}
               >
                 <option value="all">Semua Status</option>
                 <option value="terdaftar">Terdaftar</option>
@@ -350,28 +366,26 @@ export default function ParticipantsPage() {
               </select>
             </div>
 
-            {/* Payment Filter */}
-            <div>
-              <select
-                value={paymentFilter}
-                onChange={(e) => setPaymentFilter(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
-              >
-                <option value="all">Semua Pembayaran</option>
-                <option value="FREE">Free</option>
-                <option value="PENDING">Pending</option>
-                <option value="APPROVED">Approved</option>
-                <option value="REJECTED">Rejected</option>
-              </select>
-            </div>
+            <select
+              value={paymentFilter}
+              onChange={(e) => setPaymentFilter(e.target.value)}
+              className={inputCls}
+              style={{ appearance: "none" }}
+            >
+              <option value="all">Semua Pembayaran</option>
+              <option value="FREE">Free</option>
+              <option value="PENDING">Pending</option>
+              <option value="APPROVED">Approved</option>
+              <option value="REJECTED">Rejected</option>
+            </select>
 
-            {/* Event Filter */}
             <div className="relative">
-              <CalendarIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+              <CalendarIcon className="absolute left-3.5 top-1/2 -translate-y-1/2 h-5 w-5 pointer-events-none z-10" style={{ color: C.muted }} strokeWidth={2.5} />
               <select
                 value={eventFilter}
                 onChange={(e) => setEventFilter(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent appearance-none"
+                className={inputCls}
+                style={{ paddingLeft: "2.6rem", appearance: "none" }}
               >
                 <option value="all">Semua Event</option>
                 {events.map((event) => (
@@ -383,202 +397,150 @@ export default function ParticipantsPage() {
             </div>
           </div>
 
-          <div className="mt-4 flex justify-between items-center text-sm text-gray-600">
-            <span>
-              Menampilkan <strong>{filteredParticipants.length}</strong> dari{" "}
-              <strong>{participants.length}</strong> peserta
-            </span>
-          </div>
+          <p className="fb mt-4 text-sm font-bold" style={{ color: C.navy }}>
+            Menampilkan {filteredParticipants.length} dari {participants.length} peserta
+          </p>
         </div>
 
-        {/* Participants Table */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        {/* Table */}
+        <div className="pop-in adm-card sh-navy overflow-hidden" style={{ "--d": "380ms" }}>
           <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Peserta
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    NIM
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Event
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Detail Peserta
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Instansi
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Status
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Role
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Kontak
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Status Pembayaran
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Bukti
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Aksi
-                  </th>
+            <table className="min-w-full">
+              <thead>
+                <tr style={{ background: C.navy }}>
+                  {["Peserta", "NIM", "Event", "Detail", "Instansi", "Status", "Role", "Kontak", "Pembayaran", "Bukti", "Aksi"].map((h) => (
+                    <th
+                      key={h}
+                      className="fb px-5 py-4 text-left text-[10px] font-extrabold text-white uppercase tracking-[.14em] whitespace-nowrap"
+                    >
+                      {h}
+                    </th>
+                  ))}
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
+              <tbody>
                 {filteredParticipants.length === 0 ? (
                   <tr>
-                    <td colSpan="8" className="px-6 py-12 text-center">
-                      <UsersIcon className="mx-auto h-12 w-12 text-gray-400" />
-                      <p className="mt-2 text-sm text-gray-500">
-                        Tidak ada peserta ditemukan
+                    <td colSpan="11" className="px-6 py-14 text-center">
+                      <UsersIcon className="mx-auto h-12 w-12" style={{ color: C.muted }} />
+                      <p className="fb mt-3 text-sm font-semibold" style={{ color: C.muted }}>
+                        Tidak ada peserta ditemukan.
                       </p>
                     </td>
                   </tr>
                 ) : (
-                  filteredParticipants.map((participant) => (
+                  filteredParticipants.map((participant, idx) => (
                     <tr
                       key={participant.id}
-                      className="hover:bg-gray-50 transition"
+                      className="hover:bg-[#FDF5E4] transition"
+                      style={{ borderTop: idx === 0 ? "none" : "2px dashed rgba(8,46,75,.2)" }}
                     >
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      <td className="px-5 py-4 whitespace-nowrap">
                         <div className="flex items-center">
-                          <div className="flex-shrink-0 h-10 w-10 rounded-full bg-gradient-to-br from-green-400 to-green-700 flex items-center justify-center text-white font-semibold">
+                          <div
+                            className="fd flex-shrink-0 h-10 w-10 rounded-full border-[2.5px] border-black flex items-center justify-center font-semibold text-white"
+                            style={{
+                              background: [C.coral, C.blue, C.orange, C.lime, C.navy][idx % 5],
+                              boxShadow: "2px 2px 0 #000",
+                            }}
+                          >
                             {participant.nama.charAt(0).toUpperCase()}
                           </div>
-                          <div className="ml-4">
-                            <div className="text-sm font-medium text-gray-900">
+                          <div className="ml-3">
+                            <div className="fb text-sm font-extrabold" style={{ color: C.navy }}>
                               {participant.nama}
                             </div>
-                            <div className="text-sm text-gray-500">
+                            <div className="fb text-xs font-semibold" style={{ color: C.muted }}>
                               {participant.email}
                             </div>
                           </div>
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <td className="fb px-5 py-4 whitespace-nowrap text-sm font-bold" style={{ color: C.navy }}>
                         {participant.nim || "-"}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <td className="fb px-5 py-4 whitespace-nowrap text-sm font-bold" style={{ color: C.navy }}>
                         {participant.event?.nama_event || "-"}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        {participant.jurusan ||
-                        participant.angkatan ||
-                        participant.divisi ? (
+                      <td className="fb px-5 py-4 whitespace-nowrap text-xs font-semibold" style={{ color: C.muted }}>
+                        {participant.jurusan || participant.angkatan || participant.divisi ? (
                           <>
-                            {participant.jurusan && (
-                              <div className="text-sm text-gray-600">
-                                Jurusan: {participant.jurusan}
-                              </div>
-                            )}
-                            {participant.angkatan && (
-                              <div className="text-sm text-gray-600">
-                                Angkatan: {participant.angkatan}
-                              </div>
-                            )}
-                            {participant.divisi && (
-                              <div className="text-sm text-gray-600">
-                                Divisi: {participant.divisi}
-                              </div>
-                            )}
+                            {participant.jurusan && <div>Jurusan: {participant.jurusan}</div>}
+                            {participant.angkatan && <div>Angkatan: {participant.angkatan}</div>}
+                            {participant.divisi && <div>Divisi: {participant.divisi}</div>}
                           </>
                         ) : (
-                          <div className="text-sm text-gray-400">-</div>
+                          "-"
                         )}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <td className="fb px-5 py-4 whitespace-nowrap text-sm font-bold" style={{ color: C.navy }}>
                         {participant.instansi || "-"}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      <td className="px-5 py-4 whitespace-nowrap">
                         <span
-                          className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full border ${getStatusColor(participant.status)}`}
+                          className="fb px-3 py-1 inline-flex text-[10px] font-extrabold uppercase tracking-wide rounded-full border-2 border-black"
+                          style={{ background: statusBg(participant.status), color: C.navy }}
                         >
                           {participant.status}
                         </span>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      <td className="px-5 py-4 whitespace-nowrap">
                         <span
-                          className={`px-3 py-1 inline-flex text-xs leading-5 font-bold rounded-full ${
-                            participant.role === "DOSEN"
-                              ? "bg-purple-100 text-purple-700 border border-purple-300"
-                              : participant.role === "PANITIA"
-                                ? "bg-blue-100 text-blue-700 border border-blue-300"
-                                : participant.role === "MAHASISWA"
-                                  ? "bg-indigo-100 text-indigo-700 border border-indigo-300"
-                                  : participant.role === "PENGURUS_HIMTI"
-                                    ? "bg-red-100 text-red-700 border border-red-300"
-                                    : "bg-green-100 text-green-700 border border-green-300"
-                          }`}
+                          className="fb px-3 py-1 inline-flex text-[10px] font-extrabold uppercase tracking-wide rounded-full border-2 border-black"
+                          style={{
+                            background: ROLE_BG[participant.role] || C.lime,
+                            color: participant.role === "DOSEN" || participant.role === "PENGURUS_HIMTI" ? "#fff" : C.navy,
+                          }}
                         >
-                          {participant.role === "DOSEN"
-                            ? "👨‍🏫 Dosen"
-                            : participant.role === "PANITIA"
-                              ? "👔 Panitia"
-                              : participant.role === "MAHASISWA"
-                                ? "🎓 Mahasiswa"
-                                : participant.role === "PENGURUS_HIMTI"
-                                  ? "🔥 Pengurus HIMTI"
-                                  : "🎟️ Peserta"}
+                          {ROLE_LABEL[participant.role] || "Peserta"}
                         </span>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      <td className="fb px-5 py-4 whitespace-nowrap text-sm font-semibold" style={{ color: C.muted }}>
                         {participant.no_wa}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      <td className="px-5 py-4 whitespace-nowrap">
                         <div className="flex flex-col gap-2">
                           <span
-                            className={`px-3 py-1 text-xs text-center font-semibold rounded-full border ${getPaymentColor(participant.paymentStatus)}`}
+                            className="fb px-3 py-1 text-[10px] text-center font-extrabold uppercase rounded-full border-2 border-black"
+                            style={{
+                              background: paymentBg(participant.paymentStatus),
+                              color: (participant.paymentStatus || "FREE") === "REJECTED" ? "#fff" : C.navy,
+                            }}
                           >
                             {participant.paymentStatus || "FREE"}
                           </span>
 
                           {participant.paymentStatus === "PENDING" && (
-                            <div className="flex gap-2">
+                            <div className="flex gap-1.5">
                               <button
-                                onClick={() =>
-                                  updatePaymentStatus(
-                                    participant.id,
-                                    "APPROVED",
-                                  )
-                                }
-                                className="px-2 py-1 text-xs bg-green-500 text-white rounded"
+                                onClick={() => updatePaymentStatus(participant.id, "APPROVED")}
+                                className="adm-btn adm-btn-sm px-2 py-1 text-[11px]"
+                                style={{ background: C.lime }}
                               >
-                                ✓ Approve
+                                Approve
                               </button>
                               <button
-                                onClick={() =>
-                                  updatePaymentStatus(
-                                    participant.id,
-                                    "REJECTED",
-                                  )
-                                }
-                                className="px-2 py-1 text-xs bg-red-500 text-white rounded"
+                                onClick={() => updatePaymentStatus(participant.id, "REJECTED")}
+                                className="adm-btn adm-btn-sm px-2 py-1 text-[11px]"
+                                style={{ background: C.coral, color: "#fff" }}
                               >
-                                ✗ Reject
+                                Reject
                               </button>
                             </div>
                           )}
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm">
+                      <td className="px-5 py-4 whitespace-nowrap text-sm">
                         {participant.buktiPembayaran ? (
                           <Popup
                             trigger={
-                              <button className="px-3 py-1.5 bg-gradient-to-r from-blue-500 to-indigo-600 text-white text-xs rounded-lg shadow hover:shadow-md hover:scale-105 transition-all">
-                                👁 Lihat Bukti
+                              <button className="adm-btn adm-btn-sm" style={{ background: C.blue, color: "#fff" }}>
+                                <EyeIcon className="w-3.5 h-3.5" strokeWidth={2.5} /> Bukti
                               </button>
                             }
                             modal
                             nested
-                            overlayStyle={{ background: "rgba(0,0,0,0.75)" }}
+                            overlayStyle={{ background: "rgba(0,0,0,0.7)" }}
                             contentStyle={{
                               background: "transparent",
                               border: "none",
@@ -587,55 +549,51 @@ export default function ParticipantsPage() {
                             }}
                           >
                             {(close) => (
-                              <div className="bg-white rounded-2xl w-full max-w-3xl overflow-hidden shadow-2xl animate-fadeIn relative">
-                                {/* HEADER */}
-                                <div className="bg-gradient-to-r from-indigo-600 to-blue-600 px-6 py-4 text-white flex justify-between items-center">
+                              <div className="adm-card sh-blue w-full max-w-3xl overflow-hidden relative bg-white">
+                                <div
+                                  className="px-6 py-4 flex justify-between items-center"
+                                  style={{ background: C.blue, borderBottom: "3px solid #000" }}
+                                >
                                   <div>
-                                    <h2 className="text-lg font-semibold">
-                                      Bukti Pembayaran
-                                    </h2>
-                                    <p className="text-xs opacity-80">
-                                      {participant.nama}
-                                    </p>
+                                    <h2 className="fd text-xl font-semibold text-white">Bukti Pembayaran</h2>
+                                    <p className="fb text-xs font-semibold text-white/75">{participant.nama}</p>
                                   </div>
-
                                   <button
                                     onClick={close}
-                                    className="text-white text-xl hover:scale-110 transition"
+                                    aria-label="Tutup"
+                                    className="fd w-9 h-9 rounded-full border-[2.5px] border-black bg-white text-xl leading-none hover:rotate-90 transition-transform"
+                                    style={{ boxShadow: "2px 2px 0 #000", color: C.navy }}
                                   >
-                                    ✕
+                                    ×
                                   </button>
                                 </div>
 
-                                {/* BODY */}
-                                <div className="p-6 bg-gray-50">
-                                  {/* IMAGE PREVIEW */}
-                                  <div className="flex justify-center group">
+                                <div className="p-6" style={{ background: C.sand }}>
+                                  <div className="flex justify-center">
                                     <img
                                       src={participant.buktiPembayaran}
                                       alt="Bukti"
-                                      className="rounded-xl shadow-lg max-h-[500px] object-contain transition-transform duration-300 group-hover:scale-[1.02]"
+                                      className="rounded-xl border-[3px] border-black max-h-[500px] object-contain"
+                                      style={{ boxShadow: "5px 5px 0 #000" }}
                                     />
                                   </div>
 
-                                  {/* ACTIONS */}
                                   <div className="flex justify-between items-center mt-6 text-sm">
-                                    {/* Link */}
                                     <a
                                       href={participant.buktiPembayaran}
                                       target="_blank"
-                                      className="text-blue-600 hover:underline"
+                                      className="fb font-extrabold hover:underline"
+                                      style={{ color: C.blue }}
                                     >
                                       Buka di tab baru
                                     </a>
-
-                                    {/* Download */}
                                     <a
                                       href={participant.buktiPembayaran}
                                       download
-                                      className="px-4 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 transition"
+                                      className="adm-btn adm-btn-sm"
+                                      style={{ background: C.lime }}
                                     >
-                                      ⬇ Download
+                                      <ArrowDownTrayIcon className="w-4 h-4" strokeWidth={2.5} /> Download
                                     </a>
                                   </div>
                                 </div>
@@ -643,53 +601,45 @@ export default function ParticipantsPage() {
                             )}
                           </Popup>
                         ) : (
-                          <span className="text-gray-400 text-xs italic">
+                          <span className="fb text-xs font-semibold italic" style={{ color: C.muted }}>
                             Tidak ada
                           </span>
                         )}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm space-x-2">
-                        {participant.status !== "hadir" && (
+                      <td className="px-5 py-4 whitespace-nowrap text-sm">
+                        <div className="flex gap-1.5 flex-wrap">
+                          {participant.status !== "hadir" && (
+                            <button
+                              onClick={() => updateParticipantStatus(participant.id, "hadir")}
+                              disabled={updatingId === participant.id}
+                              className="adm-btn adm-btn-sm px-2.5 py-1 text-[11px]"
+                              style={{ background: C.lime }}
+                              title="Tandai hadir"
+                            >
+                              {updatingId === participant.id ? "..." : "Hadir"}
+                            </button>
+                          )}
+                          {participant.status !== "tidak_hadir" && (
+                            <button
+                              onClick={() => updateParticipantStatus(participant.id, "tidak_hadir")}
+                              disabled={updatingId === participant.id}
+                              className="adm-btn adm-btn-sm px-2.5 py-1 text-[11px]"
+                              style={{ background: C.orange, color: "#fff" }}
+                              title="Tandai tidak hadir"
+                            >
+                              {updatingId === participant.id ? "..." : "Absen"}
+                            </button>
+                          )}
                           <button
-                            onClick={() =>
-                              updateParticipantStatus(participant.id, "hadir")
-                            }
+                            onClick={() => deleteParticipant(participant.id)}
                             disabled={updatingId === participant.id}
-                            className="px-3 py-1 bg-green-500 text-white text-xs font-medium rounded hover:bg-green-600 disabled:opacity-50 disabled:cursor-not-allowed transition"
-                            title="Tandai hadir"
+                            className="adm-btn adm-btn-sm px-2.5 py-1 text-[11px]"
+                            style={{ background: "#fff", color: C.coral }}
+                            title="Hapus peserta"
                           >
-                            {updatingId === participant.id
-                              ? "Loading..."
-                              : "✓ Hadir"}
+                            {updatingId === participant.id ? "..." : "Hapus"}
                           </button>
-                        )}
-                        {participant.status !== "tidak_hadir" && (
-                          <button
-                            onClick={() =>
-                              updateParticipantStatus(
-                                participant.id,
-                                "tidak_hadir",
-                              )
-                            }
-                            disabled={updatingId === participant.id}
-                            className="px-3 py-1 bg-orange-500 text-white text-xs font-medium rounded hover:bg-orange-600 disabled:opacity-50 disabled:cursor-not-allowed transition"
-                            title="Tandai tidak hadir"
-                          >
-                            {updatingId === participant.id
-                              ? "Loading..."
-                              : "✗ Tidak Hadir"}
-                          </button>
-                        )}
-                        <button
-                          onClick={() => deleteParticipant(participant.id)}
-                          disabled={updatingId === participant.id}
-                          className="px-3 py-1 bg-red-500 text-white text-xs font-medium rounded hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed transition"
-                          title="Hapus peserta"
-                        >
-                          {updatingId === participant.id
-                            ? "Loading..."
-                            : "🗑 Hapus"}
-                        </button>
+                        </div>
                       </td>
                     </tr>
                   ))
