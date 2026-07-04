@@ -9,8 +9,9 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 enum PaymentStatus {
@@ -18,6 +19,19 @@ enum PaymentStatus {
   PENDING
   APPROVED
   REJECTED
+}
+
+enum LombaKategori {
+  HACKATHON
+  KTI
+  IOT
+  GAME_MAKING
+}
+
+enum SubmissionStatus {
+  SUBMITTED
+  LOLOS_SELEKSI
+  TIDAK_LOLOS
 }
 
 model User {
@@ -79,4 +93,89 @@ model Participant {
   event   Event  @relation(fields: [eventId], references: [id])
 
   createdAt DateTime @default(now())
+}
+
+// ── Alur penjurian lomba ──
+
+// Akun juri — 1 baris = 1 juri dengan 1 kategori, id disambungkan ke Supabase auth user
+model Juri {
+  id         String        @id @default(cuid())
+  supabaseId String        @unique
+  nama       String
+  email      String        @unique
+  kategori   LombaKategori
+  createdAt  DateTime      @default(now())
+
+  scores Score[]
+}
+
+// Karya yang dikumpulkan peserta per kategori lomba
+model Submission {
+  id           String           @id @default(cuid())
+  kategori     LombaKategori
+  namaTim      String
+  ketuaNama    String
+  ketuaNim     String?
+  ketuaEmail   String
+  anggota      Json? // [{ nama, nim }]
+  judulKarya   String
+  deskripsi    String?
+  fileKaryaUrl String
+  status       SubmissionStatus @default(SUBMITTED)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  scores Score[]
+
+  @@index([kategori, status])
+}
+
+// Kriteria + bobot penilaian, dikelola panitia per kategori
+model Criteria {
+  id        String        @id @default(cuid())
+  kategori  LombaKategori
+  nama      String
+  bobot     Float // persen, mis. 30 untuk 30%
+  createdAt DateTime      @default(now())
+
+  scoreItems ScoreItem[]
+
+  @@index([kategori])
+}
+
+// 1 juri menilai 1 submission = 1 Score (berisi banyak ScoreItem per kriteria)
+model Score {
+  id           String   @id @default(cuid())
+  submissionId String
+  submission   Submission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  juriId       String
+  juri         Juri       @relation(fields: [juriId], references: [id], onDelete: Cascade)
+  catatan      String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  items ScoreItem[]
+
+  @@unique([submissionId, juriId])
+}
+
+model ScoreItem {
+  id         String   @id @default(cuid())
+  scoreId    String
+  score      Score    @relation(fields: [scoreId], references: [id], onDelete: Cascade)
+  criteriaId String
+  criteria   Criteria @relation(fields: [criteriaId], references: [id], onDelete: Cascade)
+  nilai      Float // 0-100 buat kriteria ini
+
+  @@unique([scoreId, criteriaId])
+}
+
+// Gerbang publikasi finalis per kategori — ranking kehitung otomatis, publish manual
+model FinalistPublish {
+  id          String        @id @default(cuid())
+  kategori    LombaKategori @unique
+  published   Boolean       @default(false)
+  publishedAt DateTime?
 }

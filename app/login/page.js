@@ -30,7 +30,21 @@ function LoginForm() {
       return;
     }
 
-    router.push(searchParams.get("redirect") || "/dashboard");
+    const redirect = searchParams.get("redirect");
+    if (redirect) {
+      router.push(redirect);
+      router.refresh();
+      return;
+    }
+
+    // Juri diarahin ke dashboard juri, panitia ke meja kontrol.
+    try {
+      const meRes = await fetch("/api/me");
+      const me = await meRes.json();
+      router.push(me.role === "JURI" ? "/juri" : "/dashboard");
+    } catch {
+      router.push("/dashboard");
+    }
     router.refresh();
   }
 

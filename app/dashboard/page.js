@@ -14,6 +14,7 @@ import {
   UserGroupIcon,
   ArrowDownTrayIcon,
   ArrowRightOnRectangleIcon,
+  TrophyIcon,
 } from "@heroicons/react/24/outline";
 
 const STAT_STYLES = [
@@ -355,6 +356,10 @@ export default function Dashboard() {
             <Link href="/events/create" className="adm-btn" style={{ background: C.lime }}>
               <PlusIcon className="h-5 w-5" />
               Event Baru
+            </Link>
+            <Link href="/dashboard/lomba" className="adm-btn" style={{ background: C.coral, color: "#fff" }}>
+              <TrophyIcon className="h-5 w-5" />
+              Alur Penjurian
             </Link>
             <button onClick={handleLogout} className="adm-btn" style={{ background: "#fff", color: C.coral }}>
               <ArrowRightOnRectangleIcon className="h-5 w-5" />

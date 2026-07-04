@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { updateSession } from "@/lib/supabase/middleware";
 
-const PROTECTED_PAGES = ["/dashboard", "/participants", "/events/create"];
+const PROTECTED_PAGES = ["/dashboard", "/dashboard/lomba", "/participants", "/events/create", "/juri"];
 
 function isProtectedEditPage(pathname) {
   return /^\/events\/[^/]+\/edit$/.test(pathname);
@@ -18,6 +18,20 @@ function isProtectedApi(pathname, method) {
     ["PUT", "DELETE"].includes(method)
   )
     return true;
+
+  // ── Alur penjurian lomba ──
+  if (pathname === "/api/me") return true;
+  if (pathname === "/api/submissions" && method === "GET") return true;
+  if (/^\/api\/submissions\/[^/]+$/.test(pathname) && method === "PATCH") return true;
+  if (pathname === "/api/criteria") return true; // GET (baca) + POST (buat), keduanya butuh login
+  if (/^\/api\/criteria\/[^/]+$/.test(pathname) && ["PUT", "DELETE"].includes(method))
+    return true;
+  if (pathname === "/api/juri") return true;
+  if (/^\/api\/juri\/[^/]+$/.test(pathname) && method === "DELETE") return true;
+  if (pathname === "/api/scores") return true;
+  if (pathname === "/api/finalists") return true;
+  if (/^\/api\/finalists\/[^/]+$/.test(pathname) && method === "PATCH") return true;
+
   return false;
 }
 
@@ -51,10 +65,22 @@ export async function middleware(req) {
 export const config = {
   matcher: [
     "/dashboard",
+    "/dashboard/lomba",
     "/participants/:path*",
     "/events/create",
     "/events/:id/edit",
+    "/juri",
     "/api/events/:path*",
     "/api/participants/:path*",
+    "/api/me",
+    "/api/submissions",
+    "/api/submissions/:id",
+    "/api/criteria",
+    "/api/criteria/:id",
+    "/api/juri",
+    "/api/juri/:id",
+    "/api/scores",
+    "/api/finalists",
+    "/api/finalists/:kategori",
   ],
 };
