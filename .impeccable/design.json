@@ -1,0 +1,108 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-07-04T00:00:00.000Z",
+  "title": "Design System: IT FEST 6.0",
+  "extensions": {
+    "colorMeta": {
+      "coral": { "role": "primary", "displayName": "CTA Coral", "canonical": "#EB3C6B", "tonalRamp": ["#471220", "#84223c", "#bc3056", "#ec4471", "#f17394", "#f59eb5", "#f9c5d3", "#fdebf0"] },
+      "lime": { "role": "secondary", "displayName": "Groovy Lime", "canonical": "#B5D948", "tonalRamp": ["#364116", "#657a28", "#91ae3a", "#b8db4f", "#cae47b", "#daeca4", "#e9f4c8", "#f8fbed"] },
+      "yellow": { "role": "secondary", "displayName": "Sunny Yellow", "canonical": "#FED245", "tonalRamp": ["#4c3f15", "#8e7627", "#cba837", "#fed44c", "#fedf79", "#ffe9a2", "#fff2c7", "#fffbec"] },
+      "orange": { "role": "tertiary", "displayName": "Tropical Orange", "canonical": "#F6890C", "tonalRamp": ["#4a2904", "#8a4d07", "#c56e0a", "#f68e16", "#f9aa50", "#fbc486", "#fcdcb6", "#fef3e7"] },
+      "ocean-blue": { "role": "tertiary", "displayName": "Ocean Blue", "canonical": "#31AECE", "tonalRamp": ["#0f343e", "#1b6173", "#278ba5", "#39b1d0", "#6bc5dc", "#98d7e7", "#c1e7f0", "#eaf7fa"] },
+      "navy": { "role": "neutral", "displayName": "Deep Navy", "canonical": "#082E4B", "tonalRamp": ["#020e17", "#041a2a", "#06253c", "#123652", "#4d697d", "#8497a5", "#b5c0c9", "#e6eaed"] },
+      "sand": { "role": "neutral", "displayName": "Sand Landing", "canonical": "#FDF5E4", "tonalRamp": ["#4c4a44", "#8e8980", "#cac4b6", "#fdf5e5", "#fef8ec", "#fefaf2", "#fefcf7", "#fffefc"] }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Groovy Display", "purpose": "Hero H1 only, with stroke+double-shadow poster treatment." },
+      "body": { "displayName": "Body", "purpose": "Paragraph copy on saturated section backgrounds." },
+      "label": { "displayName": "Label / Button", "purpose": "Sticker tags and button labels; Fredoka round voice." }
+    },
+    "shadows": [
+      { "name": "card", "value": "6px 6px 0 #000", "purpose": "Booths/cards at rest; grows to 9px 9px 0 #000 on hover (lift)." },
+      { "name": "button", "value": "5px 5px 0 #000", "purpose": "Buttons at rest; shrinks to 2px 2px 0 #000 on hover, none on active (press)." },
+      { "name": "node", "value": "3px 3px 0 #000", "purpose": "Timeline nodes, small stickers/tags." }
+    ],
+    "motion": [
+      { "name": "reveal-stagger", "value": "revealUp .7s cubic-bezier(.22,1,.36,1) forwards", "purpose": "Per-item scroll reveal via IntersectionObserver + --reveal-delay stagger." },
+      { "name": "press-inout", "value": "transform .12s ease, box-shadow .12s ease", "purpose": "Button press/release feedback." },
+      { "name": "parallax-scroll", "value": "--sy custom property driven by rAF scroll listener", "purpose": "Slow/mid parallax layers (px-slow, px-mid); disabled under prefers-reduced-motion." }
+    ],
+    "breakpoints": [
+      { "name": "tablet", "value": "960px" },
+      { "name": "mobile", "value": "600px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Coral CTA pill, the one primary action color across the whole page.",
+      "html": "<a class=\"ds-btn-primary\" href=\"#\">Daftar Sekarang<svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\"><path d=\"M5 12h14M13 6l6 6-6 6\" stroke=\"currentColor\" stroke-width=\"2.2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/></svg></a>",
+      "css": ".ds-btn-primary { display: inline-flex; align-items: center; gap: 8px; font-family: 'Space Grotesk', sans-serif; font-weight: 600; background: #EB3C6B; color: #fff; border: 3px solid #000; border-radius: 99px; padding: 13px 30px; box-shadow: 5px 5px 0 #000; text-decoration: none; transition: transform .12s ease, box-shadow .12s ease; } .ds-btn-primary:hover { transform: translate(2px,2px); box-shadow: 2px 2px 0 #000; } .ds-btn-primary:active { transform: translate(4px,4px); box-shadow: none; } .ds-btn-primary:focus-visible { outline: 3px dashed #FED245; outline-offset: 3px; }"
+    },
+    {
+      "name": "Ghost Button",
+      "kind": "button",
+      "refersTo": "button-ghost",
+      "description": "White secondary action, paired next to the coral CTA in the hero.",
+      "html": "<a class=\"ds-btn-ghost\" href=\"#\">Selengkapnya</a>",
+      "css": ".ds-btn-ghost { display: inline-flex; align-items: center; gap: 8px; font-family: 'Space Grotesk', sans-serif; font-weight: 600; background: #fff; color: #082E4B; border: 3px solid #000; border-radius: 99px; padding: 13px 30px; box-shadow: 5px 5px 0 #000; text-decoration: none; transition: transform .12s ease, box-shadow .12s ease; } .ds-btn-ghost:hover { transform: translate(2px,2px); box-shadow: 2px 2px 0 #000; }"
+    },
+    {
+      "name": "Sticker Tag",
+      "kind": "chip",
+      "refersTo": "chip-sticker",
+      "description": "Rotated pill label used for category/date stickers.",
+      "html": "<span class=\"ds-tag\">Hackathon</span>",
+      "css": ".ds-tag { display: inline-flex; align-items: center; gap: 6px; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 11px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; padding: 6px 15px; border-radius: 99px; border: 2.5px solid #000; box-shadow: 3px 3px 0 #000; transform: rotate(-1.5deg); background: #FED245; color: #082E4B; }"
+    },
+    {
+      "name": "Booth Card",
+      "kind": "card",
+      "refersTo": "card-booth",
+      "description": "Primary card/container — white surface, black outline, offset shadow, lifts on hover.",
+      "html": "<div class=\"ds-card\"><div class=\"ds-card-body\">Hackathon</div></div>",
+      "css": ".ds-card { background: #fff; border: 3px solid #000; border-radius: 18px; box-shadow: 6px 6px 0 #000; overflow: hidden; transition: transform .18s ease, box-shadow .18s ease; } .ds-card:hover { transform: translate(-2px,-4px); box-shadow: 9px 9px 0 #000; } .ds-card-body { padding: 20px; font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 600; color: #082E4B; }"
+    },
+    {
+      "name": "Timeline Node",
+      "kind": "custom",
+      "refersTo": "timeline-node",
+      "description": "Circular icon marker anchoring each row of the sea-route timeline.",
+      "html": "<div class=\"ds-node\"><svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\"><circle cx=\"12\" cy=\"12\" r=\"9\" stroke=\"#000\" stroke-width=\"2\"/></svg></div>",
+      "css": ".ds-node { width: 54px; height: 54px; flex-shrink: 0; border: 3px solid #000; border-radius: 50%; box-shadow: 3px 3px 0 #000; display: flex; align-items: center; justify-content: center; background: #fff; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Sea-to-Sand Journey",
+    "overview": "The landing page is one continuous descent: sky, into open sea, into deep sea, onto sand — each section a leg of the same trip, not an independent slide. Color itself carries the narrative (gradients shift hue section to section) and FoamDivider wave seams stitch each transition together so the scroll never cuts, it flows. On top of that current sits a retro comic-poster voice: thick black outlines, offset hard shadows, hand-tilted stickers — playful and energetic, built for a student festival, not a corporate brand. This system explicitly rejects the generic AI-SaaS landing page: no beige card grids, no gradient text, no timid pastel restraint.",
+    "keyCharacteristics": [
+      "Section backgrounds gradient into each other; FoamDivider seams make the transition physical, not a hard cut.",
+      "Every card, button, and node shares one shape language: 3px black border + flat offset shadow (no blur).",
+      "Scroll reveals stagger per item (--reveal-delay), never fire as one uniform block entrance.",
+      "Full prefers-reduced-motion parity: every drift, bob, parallax and reveal has an instant/static fallback."
+    ],
+    "rules": [
+      { "name": "The One CTA Rule", "body": "Coral is the only color used for a primary action button anywhere on the page.", "section": "colors" },
+      { "name": "The Groovy-Once Rule", "body": "The stroke+double-shadow 'groovy' title effect is reserved for the hero H1 alone.", "section": "typography" },
+      { "name": "The Missing Fredoka Gap", "body": "Fredoka is declared on .k-btn and .k-tag but never loaded — falls back to the body sans silently. Load it or drop the reference.", "section": "typography" },
+      { "name": "The Press-Don't-Lift Rule", "body": "Buttons compress on hover/active; cards lift on hover. The two directions are deliberate.", "section": "elevation" }
+    ],
+    "dos": [
+      "Do keep coral (#EB3C6B) as the only primary-CTA color across the entire page.",
+      "Do use flat offset shadows (Npx Npx 0 #000), never blur, for every card/button/node.",
+      "Do stagger data-reveal entrances per item via --reveal-delay; never one uniform block fade.",
+      "Do pair every animation with a prefers-reduced-motion static fallback.",
+      "Do keep decorative illustration layers (Bubbles, Fish, LightShafts) at z-index: 0, strictly beneath the content container's z-index: 1+, and pointer-events: none."
+    ],
+    "donts": [
+      "Don't add a second coral (or any other) CTA competing with the primary Daftar button on the same viewport.",
+      "Don't soften the outline-black borders/shadows to gray for elegance.",
+      "Don't let decorative Fish/Bubbles swim across a section's headline or CTA button band — Fish's top percentage is fixed regardless of viewport, so it can visually cross content at narrow/tablet widths.",
+      "Don't apply the hero's groovy title effect to any other heading.",
+      "Don't introduce a beige/cream/paper background anywhere outside the literal sand-landing section.",
+      "Don't ship Fredoka references without loading the font."
+    ]
+  }
+}

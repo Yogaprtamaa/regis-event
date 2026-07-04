@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Image from "next/image";
+import Loading from "./loading";
 import {
   TrophyIcon,
   MicrophoneIcon,
@@ -72,7 +73,7 @@ const FLAG_COLORS = [C.coral, C.yellow, C.blue, C.lime, C.orange];
 
 /* ── Global CSS ─────────────────────────────────────────────────────── */
 const CSS = `
-  @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,500&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,500&family=Fredoka:wght@500;600&display=swap');
 
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   html { scroll-behavior: smooth; }
@@ -141,6 +142,7 @@ const CSS = `
   .about-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 52px; align-items: center; }
   .footer-grid { display: grid; grid-template-columns: 1.4fr 1fr 1fr; gap: 48px; }
   .hero-grid { display: grid; grid-template-columns: 1.15fr .85fr; gap: 40px; align-items: flex-end; }
+  .hero-beach { display: flex; justify-content: center; align-items: flex-end; }
 
   /* ── Nav ── */
   .nav-links  { display: flex; }
@@ -174,6 +176,9 @@ const CSS = `
     .footer-grid { grid-template-columns: 1fr 1fr; }
     .hero-grid { grid-template-columns: 1fr; gap: 8px; text-align: center; }
     .hero-beach { display: none; }
+    .hero-sky { display: none; }
+    .hero-cta-row { justify-content: center; }
+    .fish { display: none; } /* ponytail: fixed top% drifts into reflowed content on narrower layouts */
   }
   @media (max-width: 600px) {
     .acara-grid { grid-template-columns: repeat(2,1fr); gap: 12px; }
@@ -226,17 +231,11 @@ const CSS = `
 `;
 
 /* ── Data ─────────────────────────────────────────────────────────────── */
-const FORM_URLS = {
-  talkshow: "https://forms.gle/YOUR_TALKSHOW_FORM_ID_HERE",
-  expo: "https://forms.gle/YOUR_EXPO_FORM_ID_HERE",
-  fungame: "https://forms.gle/YOUR_FUNGAME_FORM_ID_HERE",
-};
-
 const ACARA = [
   { Icon: TrophyIcon, label: "Lomba", sub: "27 Jul – 14 Agt", color: C.coral, tc: "#fff" },
-  { Icon: MicrophoneIcon, label: "Talkshow", sub: "13–14 Okt", color: C.blue, tc: "#fff", href: FORM_URLS.talkshow },
-  { Icon: RocketLaunchIcon, label: "Expo", sub: "13–14 Okt", color: C.lime, tc: C.navy, href: FORM_URLS.expo },
-  { Icon: PuzzlePieceIcon, label: "Fun Game", sub: "13–14 Okt", color: C.orange, tc: "#fff", href: FORM_URLS.fungame },
+  { Icon: MicrophoneIcon, label: "Talkshow", sub: "13–14 Okt", color: C.blue, tc: "#fff" },
+  { Icon: RocketLaunchIcon, label: "Expo", sub: "13–14 Okt", color: C.lime, tc: C.navy },
+  { Icon: PuzzlePieceIcon, label: "Fun Game", sub: "13–14 Okt", color: C.orange, tc: "#fff" },
   { Icon: ShoppingBagIcon, label: "Bazzar", sub: "Coming Soon", color: C.yellow, tc: C.navy },
 ];
 
@@ -244,14 +243,14 @@ const LOMBA = [
   { Icon: CodeBracketIcon, title: "Hackathon", color: C.lime, tc: C.navy, desc: "Selesaikan tantangan teknologi nyata dalam waktu terbatas. Asah problem-solving dan kerja tim bersama peserta terbaik dari seluruh Indonesia." },
   { Icon: CpuChipIcon, title: "Internet of Things", color: C.blue, tc: "#fff", desc: "Kembangkan perangkat IoT berdampak nyata — dari sensor hingga dashboard — dan presentasikan di hadapan juri industri." },
   { Icon: PuzzlePieceIcon, title: "Game Making", color: C.orange, tc: "#fff", desc: "Buat game digital dari nol: gameplay, visual, narasi. Platform untuk game developer muda menunjukkan karya terbaik." },
-  { Icon: DocumentTextIcon, title: "Karya Tulis Ilmiah", color: C.coral, tc: "#fff", desc: "Riset dan tulis solusi inovatif untuk masalah teknologi aktual, dipresentasikan ke akademisi dan praktisi terkemuka." },
+  { Icon: DocumentTextIcon, title: "Karya Tulis Ilmiah", color: C.yellow, tc: C.navy, desc: "Riset dan tulis solusi inovatif untuk masalah teknologi aktual, dipresentasikan ke akademisi dan praktisi terkemuka." },
 ];
 
 const TIMELINE = [
   { Icon: PencilSquareIcon, label: "Pendaftaran & Pelaksanaan Lomba", date: "27 Jul – 12 Okt 2026", note: "Hackathon, IoT, Game Making & KTI", color: C.coral },
   { Icon: FlagIcon, label: "Final Day (Online)", date: "12 Oktober 2026", note: "Babak final seluruh kategori lomba", color: C.orange },
-  { Icon: MicrophoneIcon, label: "Talkshow & Expo", date: "13–14 Oktober 2026", note: "Pendaftaran via Google Form", color: C.blue, href: FORM_URLS.talkshow },
-  { Icon: PuzzlePieceIcon, label: "Fun Game", date: "13–14 Oktober 2026", note: "Pendaftaran via Google Form", color: C.lime, href: FORM_URLS.fungame },
+  { Icon: MicrophoneIcon, label: "Talkshow & Expo", date: "13–14 Oktober 2026", note: "Link pendaftaran segera dibuka", color: C.blue },
+  { Icon: PuzzlePieceIcon, label: "Fun Game", date: "13–14 Oktober 2026", note: "Link pendaftaran segera dibuka", color: C.lime },
   { Icon: ShoppingBagIcon, label: "Tenant Bazzar", date: "Coming Soon", note: "Bazar produk, kuliner & merchandise", color: C.yellow },
 ];
 
@@ -324,38 +323,6 @@ function StarburstBig({ size = 360, color = C.coral }) {
   return (
     <svg width={size} height={size} viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
       <polygon points={pts.join(" ")} fill={color} stroke="#000" strokeWidth="2" strokeLinejoin="round" />
-    </svg>
-  );
-}
-
-/* ── Pohon kelapa ──────────────────────────────────────────────────── */
-function Palm({ size = 200, flip = false }) {
-  return (
-    <svg width={size} height={size * 1.15} viewBox="0 0 100 115" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"
-      style={{ transform: flip ? "scaleX(-1)" : "none" }}>
-      <path d="M48 112 Q44 70 52 38" fill="none" stroke="#8B5A2B" strokeWidth="8" strokeLinecap="round" />
-      {[
-        "M52 38 Q28 26 8 38 Q26 12 52 30",
-        "M52 38 Q40 12 16 10 Q44 2 56 28",
-        "M52 38 Q64 8 88 12 Q66 22 56 34",
-        "M52 38 Q80 26 94 44 Q72 36 54 40",
-      ].map((d, i) => (
-        <path key={i} d={d} fill={i % 2 ? "#7FBE3F" : C.lime} stroke="#157347" strokeWidth="2.5" strokeLinejoin="round" />
-      ))}
-      <circle cx="50" cy="40" r="5" fill="#8B5A2B" stroke="#000" strokeWidth="1.5" />
-      <circle cx="58" cy="43" r="4.5" fill="#A0692F" stroke="#000" strokeWidth="1.5" />
-    </svg>
-  );
-}
-
-/* ── Surfboard ─────────────────────────────────────────────────────── */
-function Surfboard({ size = 190, rotate = 8 }) {
-  return (
-    <svg width={size * 0.42} height={size} viewBox="0 0 42 100" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"
-      style={{ transform: `rotate(${rotate}deg)` }}>
-      <path d="M21 2 Q40 30 38 62 Q36 88 21 98 Q6 88 4 62 Q2 30 21 2 Z" fill={C.yellow} stroke="#000" strokeWidth="3" strokeLinejoin="round" />
-      <path d="M21 6 Q34 30 33 60 Q31 84 21 93 Q11 84 9 60 Q8 30 21 6 Z" fill="none" stroke={C.coral} strokeWidth="5" opacity=".85" />
-      <line x1="21" y1="8" x2="21" y2="92" stroke={C.blue} strokeWidth="4" opacity=".8" />
     </svg>
   );
 }
@@ -625,11 +592,11 @@ function Navbar({ open, setOpen }) {
 function Hero() {
   return (
     <section id="hero" className="sec" style={{ background: `linear-gradient(180deg, #9BE0F2 0%, ${C.seaLight} 58%, ${C.blue} 100%)`, borderBottom: "3px solid #000", overflow: "hidden" }}>
-      <div className="px-mid" style={{ position: "absolute", top: 64, right: "8%" }} aria-hidden="true">
+      <div className="hero-sky px-mid" style={{ position: "absolute", top: 64, right: "8%" }} aria-hidden="true">
         <div className="hero-anim" style={{ animationDelay: "100ms" }}><Sun size={130} /></div>
       </div>
-      <div className="drift px-slow" style={{ position: "absolute", top: 90, left: "4%" }} aria-hidden="true"><Cloud size={120} /></div>
-      <div className="drift px-slow" style={{ position: "absolute", top: 210, right: "28%", animationDelay: "3s" }} aria-hidden="true"><Cloud size={80} /></div>
+      <div className="hero-sky drift px-slow" style={{ position: "absolute", top: 90, left: "4%" }} aria-hidden="true"><Cloud size={120} /></div>
+      <div className="hero-sky drift px-slow" style={{ position: "absolute", top: 210, right: "28%", animationDelay: "3s" }} aria-hidden="true"><Cloud size={80} /></div>
 
       <div className="container" style={{ paddingTop: 72, paddingBottom: 40, position: "relative", zIndex: 2 }}>
         <div className="hero-grid">
@@ -662,7 +629,7 @@ function Hero() {
               dari HIMTI &amp; Prodi Teknik Informatika Universitas Paramadina.
             </p>
 
-            <div className="hero-anim" style={{ animationDelay: "440ms", display: "flex", gap: 14, flexWrap: "wrap", marginTop: 26, justifyContent: "inherit" }}>
+            <div className="hero-anim hero-cta-row" style={{ animationDelay: "440ms", display: "flex", gap: 14, flexWrap: "wrap", marginTop: 26 }}>
               <a href="/events" className="k-btn fd" style={{ background: C.coral, color: "#fff", fontSize: 15, padding: "13px 30px" }}>
                 <TrophyIcon width={18} height={18} strokeWidth={2.2} /> Daftar Sekarang
               </a>
@@ -683,12 +650,12 @@ function Hero() {
             </div>
           </div>
 
-          <div className="hero-beach hero-anim" style={{ animationDelay: "300ms", position: "relative", display: "flex", justifyContent: "center", alignItems: "flex-end", minHeight: 440 }}>
-            <div className="px-slow" style={{ position: "absolute", bottom: -10, right: "4%" }}><Palm size={260} /></div>
-            <div className="px-slow" style={{ position: "absolute", bottom: -14, left: "8%" }}><Palm size={175} flip /></div>
-            <div className="bob" style={{ position: "absolute", bottom: 0, left: "40%", "--rot": "6deg" }}><Surfboard size={230} rotate={6} /></div>
-            <div className="bob" style={{ position: "absolute", bottom: 30, left: "24%", animationDelay: "1.4s" }}><Hibiscus size={68} /></div>
-            <div className="bob" style={{ position: "absolute", top: 60, right: "26%", animationDelay: "2.2s" }}><Hibiscus size={48} color={C.orange} /></div>
+          <div className="hero-beach hero-anim" style={{ animationDelay: "300ms", position: "relative", minHeight: 440 }}>
+            <div className="px-slow bob" style={{ position: "absolute", bottom: 20, right: "2%", width: 420, maxWidth: "none" }}>
+              <Image src="/itfest-logo-hero.png" alt="Logo IT FEST 6.0" width={420} height={207} style={{ width: "100%", height: "auto", maxWidth: "none", objectFit: "contain", filter: "drop-shadow(6px 8px 0 rgba(0,0,0,.25))" }} />
+            </div>
+            <div className="bob" style={{ position: "absolute", bottom: 40, left: "18%", animationDelay: "1.4s" }}><Hibiscus size={68} /></div>
+            <div className="bob" style={{ position: "absolute", top: 40, right: "16%", animationDelay: "2.2s" }}><Hibiscus size={48} color={C.orange} /></div>
           </div>
         </div>
       </div>
@@ -741,14 +708,14 @@ function About() {
               tagTextColor={C.navy}
               headline={<>Apa itu <span style={{ color: C.yellow }}>IT FEST 6.0?</span></>}
             />
-            <p className="fb" data-reveal style={{ color: "rgba(255,255,255,.92)", fontSize: 15, lineHeight: 1.85, fontWeight: 500, marginBottom: 16 }}>
+            <p className="fb" data-reveal style={{ color: C.navy, fontSize: 15, lineHeight: 1.85, fontWeight: 500, marginBottom: 16 }}>
               IT Fest 6.0 adalah festival teknologi yang diselenggarakan oleh{" "}
-              <strong style={{ color: "#fff" }}>Himpunan Mahasiswa Teknik Informatika dan Prodi Teknik Informatika Universitas Paramadina</strong>{" "}
+              <strong style={{ color: "#04141f" }}>Himpunan Mahasiswa Teknik Informatika dan Prodi Teknik Informatika Universitas Paramadina</strong>{" "}
               dengan tema{" "}
-              <strong style={{ color: C.yellow }}>&ldquo;Human-Centered AI: Transforming the World with Integrity&rdquo;</strong>.
+              <strong style={{ color: "#04141f" }}>&ldquo;Human-Centered AI: Transforming the World with Integrity&rdquo;</strong>.
             </p>
-            <p className="fb" data-reveal style={{ "--reveal-delay": "80ms", color: "rgba(255,255,255,.75)", fontSize: 14, lineHeight: 1.85, fontWeight: 500 }}>
-              Perlombaan IT FEST 6.0 <strong style={{ color: "#fff" }}>khusus untuk mahasiswa</strong> — daftar via website ini. Talkshow, Expo, dan Fun Game terbuka untuk umum via Google Form.
+            <p className="fb" data-reveal style={{ "--reveal-delay": "80ms", color: "rgba(8,46,75,.92)", fontSize: 14, lineHeight: 1.85, fontWeight: 500 }}>
+              Perlombaan IT FEST 6.0 <strong style={{ color: C.navy }}>khusus untuk mahasiswa</strong> — daftar via website ini. Talkshow, Expo, dan Fun Game terbuka untuk umum via Google Form.
             </p>
           </div>
 
@@ -947,7 +914,7 @@ function Timeline() {
             <span className="rute-spine" aria-hidden="true" />
             {TIMELINE.map((item, i) => {
               const card = (
-                <div className="rute-card" style={{ borderLeft: `6px solid ${item.color}` }}>
+                <div className="rute-card">
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12, flexWrap: "wrap" }}>
                     <h3 className="fd" style={{ color: C.navy, fontSize: 16.5, fontWeight: 600, lineHeight: 1.25 }}>{item.label}</h3>
                     <span className="fb" style={{ fontSize: 11, fontWeight: 800, padding: "4px 12px", borderRadius: 99, background: item.color, color: tc(item.color), border: "2px solid #000", boxShadow: "2px 2px 0 #000", whiteSpace: "nowrap" }}>
@@ -1020,22 +987,22 @@ function Footer() {
                   <div className="fb" style={{ color: C.lime, fontSize: 10, fontWeight: 800, letterSpacing: ".1em", textTransform: "uppercase", marginTop: 2 }}>Festival Teknologi 2026</div>
                 </div>
               </div>
-              <p className="fb" style={{ color: "rgba(255,255,255,.4)", fontSize: 13.5, lineHeight: 1.85, maxWidth: 250, fontWeight: 500 }}>
-                Diselenggarakan oleh <strong style={{ color: "rgba(255,255,255,.7)" }}>Himpunan Mahasiswa Teknik Informatika</strong> dan <strong style={{ color: "rgba(255,255,255,.7)" }}>Prodi Teknik Informatika</strong> Universitas Paramadina.
+              <p className="fb" style={{ color: "rgba(255,255,255,.65)", fontSize: 13.5, lineHeight: 1.85, maxWidth: 250, fontWeight: 500 }}>
+                Diselenggarakan oleh <strong style={{ color: "rgba(255,255,255,.9)" }}>Himpunan Mahasiswa Teknik Informatika</strong> dan <strong style={{ color: "rgba(255,255,255,.9)" }}>Prodi Teknik Informatika</strong> Universitas Paramadina.
               </p>
             </div>
 
             <div>
-              <div className="fd" style={{ color: "rgba(255,255,255,.3)", fontSize: 10.5, fontWeight: 700, letterSpacing: ".14em", textTransform: "uppercase", marginBottom: 16 }}>Kontak Panitia</div>
+              <div className="fd" style={{ color: "rgba(255,255,255,.7)", fontSize: 10.5, fontWeight: 700, letterSpacing: ".14em", textTransform: "uppercase", marginBottom: 16 }}>Kontak Panitia</div>
               {[{ I: MapPinIcon, t: "Paramadina University, Cipayung, Jakarta" }, { I: PhoneIcon, t: "Ayu — 0819-9285-5778" }, { I: EnvelopeIcon, t: "itfestparamadina@gmail.com" }].map((item, i) => (
-                <div key={i} className="fb" style={{ display: "flex", gap: 9, marginBottom: 12, color: "rgba(255,255,255,.5)", fontSize: 13, fontWeight: 500, alignItems: "flex-start", lineHeight: 1.5 }}>
+                <div key={i} className="fb" style={{ display: "flex", gap: 9, marginBottom: 12, color: "rgba(255,255,255,.7)", fontSize: 13, fontWeight: 500, alignItems: "flex-start", lineHeight: 1.5 }}>
                   <item.I width={15} height={15} strokeWidth={2} style={{ flexShrink: 0, marginTop: 2 }} /><span>{item.t}</span>
                 </div>
               ))}
             </div>
 
             <div>
-              <div className="fd" style={{ color: "rgba(255,255,255,.3)", fontSize: 10.5, fontWeight: 700, letterSpacing: ".14em", textTransform: "uppercase", marginBottom: 16 }}>Ikuti IT FEST</div>
+              <div className="fd" style={{ color: "rgba(255,255,255,.7)", fontSize: 10.5, fontWeight: 700, letterSpacing: ".14em", textTransform: "uppercase", marginBottom: 16 }}>Ikuti IT FEST</div>
               <div style={{ display: "flex", gap: 10 }}>
                 {[
                   { label: "Instagram", href: "https://www.instagram.com/itfest.paramadina", icon: <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18"><path d="M12 2c2.717 0 3.056.01 4.122.06 1.065.05 1.79.217 2.428.465.66.254 1.216.598 1.772 1.153a4.908 4.908 0 0 1 1.153 1.772c.247.637.415 1.363.465 2.428.047 1.066.06 1.405.06 4.122 0 2.717-.01 3.056-.06 4.122-.05 1.065-.218 1.79-.465 2.428a4.883 4.883 0 0 1-1.153 1.772 4.915 4.915 0 0 1-1.772 1.153c-.637.247-1.363.415-2.428.465-1.066.047-1.405.06-4.122.06-2.717 0-3.056-.01-4.122-.06-1.065-.05-1.79-.218-2.428-.465a4.89 4.89 0 0 1-1.772-1.153 4.904 4.904 0 0 1-1.153-1.772c-.248-.637-.415-1.363-.465-2.428C2.013 15.056 2 14.717 2 12c0-2.717.01-3.056.06-4.122.05-1.066.217-1.79.465-2.428a4.88 4.88 0 0 1 1.153-1.772A4.897 4.897 0 0 1 5.45 2.525c.638-.248 1.362-.415 2.428-.465C8.944 2.013 9.283 2 12 2zm0 5a5 5 0 1 0 0 10 5 5 0 0 0 0-10zm6.5-.25a1.25 1.25 0 1 0-2.5 0 1.25 1.25 0 0 0 2.5 0zM12 9a3 3 0 1 1 0 6 3 3 0 0 1 0-6z" /></svg> },
@@ -1064,11 +1031,19 @@ function Footer() {
 /* ── Root ─────────────────────────────────────────────────────────── */
 export default function Page() {
   const [open, setOpen] = useState(false);
+  const [showLoader, setShowLoader] = useState(true);
+  const [loaderFading, setLoaderFading] = useState(false);
   useScrollReveal();
   useParallax();
+  useEffect(() => {
+    const t1 = setTimeout(() => setLoaderFading(true), 1600);
+    const t2 = setTimeout(() => setShowLoader(false), 2000);
+    return () => { clearTimeout(t1); clearTimeout(t2); };
+  }, []);
   return (
     <>
       <style>{CSS}</style>
+      {showLoader && <Loading fading={loaderFading} />}
       <div className="fb">
         <Navbar open={open} setOpen={setOpen} />
         <main>

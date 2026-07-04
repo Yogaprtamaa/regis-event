@@ -1,5 +1,7 @@
 /* Loading pantai IT FEST — dipakai semua route (app/loading.js) */
 
+import Image from "next/image";
+
 const C = {
   sand: "#FDF5E4",
   lime: "#B5D948",
@@ -13,53 +15,58 @@ const C = {
 const FLAGS = [C.coral, C.yellow, C.blue, C.lime, C.orange];
 
 const CSS = `
-  @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@600;700&family=Plus+Jakarta+Sans:wght@700;800&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Plus+Jakarta+Sans:wght@700;800&display=swap');
 
   .ld-wrap {
     position: fixed; inset: 0; z-index: 100;
-    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 22px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 26px;
     background: linear-gradient(180deg, #8FDCF0 0%, #5FC8E4 60%, ${C.blue} 100%);
     font-family: 'Plus Jakarta Sans', sans-serif;
     overflow: hidden;
+    opacity: 1; transition: opacity .4s ease;
   }
+  .ld-wrap.ld-out { opacity: 0; }
 
   .ld-sun { animation: ldSpin 8s linear infinite; transform-origin: center; }
   .ld-flag { transform-origin: top center; animation: ldSway 2.8s ease-in-out infinite; }
   .ld-wave-a { animation: ldSurf 3.2s ease-in-out infinite; }
   .ld-wave-b { animation: ldSurf 3.2s ease-in-out infinite reverse; }
+  .ld-logo { animation: ldPop .5s cubic-bezier(.22,1,.36,1) both, ldBob 2.6s ease-in-out .5s infinite; }
 
-  .ld-title {
-    font-family: 'Fredoka', sans-serif;
-    font-size: 34px; font-weight: 700;
-    -webkit-text-stroke: 3px #157347;
-    paint-order: stroke fill;
-    color: ${C.lime};
-    text-shadow: 3px 4px 0 ${C.yellow}, 6px 8px 0 rgba(0,0,0,.18);
-  }
   .ld-sub {
-    color: ${C.navy}; font-size: 11px; font-weight: 800;
+    color: ${C.navy}; font-family: 'Space Grotesk', sans-serif; font-size: 11px; font-weight: 700;
     text-transform: uppercase; letter-spacing: .24em;
   }
-  .ld-dot {
-    width: 10px; height: 10px; border-radius: 99px; border: 2px solid #000;
-    animation: ldBounce 1.1s ease-in-out infinite;
+
+  .ld-bar-track {
+    width: 200px; height: 8px; border-radius: 99px;
+    background: rgba(255,255,255,.55); border: 2.5px solid #000; overflow: hidden;
+  }
+  .ld-bar-fill {
+    height: 100%; width: 0%; border-radius: 99px;
+    background: linear-gradient(90deg, ${C.coral}, ${C.orange});
+    animation: ldFill 2s linear forwards;
   }
 
   @keyframes ldSpin   { to { transform: rotate(360deg); } }
   @keyframes ldSway   { 0%,100% { transform: rotate(-2deg); } 50% { transform: rotate(2deg); } }
-  @keyframes ldBounce { 0%,100% { transform: translateY(0); } 40% { transform: translateY(-8px); } }
   @keyframes ldSurf   { 0%,100% { transform: translateX(0); } 50% { transform: translateX(-40px); } }
+  @keyframes ldPop    { from { opacity: 0; transform: translateY(10px) scale(.9); } to { opacity: 1; transform: translateY(0) scale(1); } }
+  @keyframes ldBob    { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-7px); } }
+  @keyframes ldFill   { to { width: 100%; } }
 
   @media (prefers-reduced-motion: reduce) {
     .ld-sun { animation-duration: 30s; }
-    .ld-flag, .ld-dot, .ld-wave-a, .ld-wave-b { animation: none; }
+    .ld-flag, .ld-wave-a, .ld-wave-b, .ld-logo { animation: none; }
+    .ld-bar-fill { animation: none; width: 100%; }
+    .ld-wrap { transition: none; }
   }
 `;
 
 function Sun() {
   const rays = 12;
   return (
-    <svg width="140" height="140" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <svg width="100" height="100" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
       <g className="ld-sun" style={{ transformBox: "fill-box" }}>
         {Array.from({ length: rays }, (_, i) => (
           <polygon key={i} points="50,4 55,18 45,18"
@@ -107,23 +114,22 @@ function WavesBottom() {
   );
 }
 
-export default function Loading() {
+export default function Loading({ fading = false }) {
   return (
-    <div className="ld-wrap">
+    <div className={`ld-wrap${fading ? " ld-out" : ""}`}>
       <style dangerouslySetInnerHTML={{ __html: CSS }} />
 
       <BuntingTop />
       <Sun />
 
       <div style={{ textAlign: "center" }}>
-        <div className="ld-title fd">IT FEST 6.0</div>
-        <p className="ld-sub" style={{ marginTop: 10 }}>Nyiapin Ombak Kreativitas</p>
+        <Image src="/itfest-logo-hero.png" alt="IT FEST 6.0" width={220} height={109} priority
+          className="ld-logo" style={{ objectFit: "contain", filter: "drop-shadow(4px 5px 0 rgba(0,0,0,.25))" }} />
+        <p className="ld-sub" style={{ marginTop: 14 }}>Nyiapin Ombak Kreativitas</p>
       </div>
 
-      <div style={{ display: "flex", gap: 8 }} aria-hidden="true">
-        {[C.coral, C.yellow, C.navy].map((c, i) => (
-          <span key={i} className="ld-dot" style={{ background: c, animationDelay: `${i * 0.18}s` }} />
-        ))}
+      <div className="ld-bar-track" aria-hidden="true">
+        <div className="ld-bar-fill" />
       </div>
 
       <WavesBottom />
