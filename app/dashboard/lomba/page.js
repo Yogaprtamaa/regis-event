@@ -52,7 +52,8 @@ function SubmissionsTab({ kategori }) {
   const load = useCallback(async () => {
     setLoading(true);
     const res = await fetch(`/api/submissions?kategori=${kategori}`);
-    setItems(await res.json());
+    const data = await res.json();
+    setItems(Array.isArray(data) ? data : []);
     setLoading(false);
   }, [kategori]);
 
@@ -123,7 +124,8 @@ function CriteriaTab({ kategori }) {
   const load = useCallback(async () => {
     setLoading(true);
     const res = await fetch(`/api/criteria?kategori=${kategori}`);
-    setItems(await res.json());
+    const data = await res.json();
+    setItems(Array.isArray(data) ? data : []);
     setLoading(false);
   }, [kategori]);
 
@@ -199,7 +201,8 @@ function JuriTab() {
   const load = useCallback(async () => {
     setLoading(true);
     const res = await fetch("/api/juri");
-    setItems(await res.json());
+    const data = await res.json();
+    setItems(Array.isArray(data) ? data : []);
     setLoading(false);
   }, []);
 
@@ -281,7 +284,8 @@ function RankingTab({ kategori }) {
   const load = useCallback(async () => {
     setLoading(true);
     const res = await fetch(`/api/finalists?kategori=${kategori}`);
-    setData(await res.json());
+    const json = await res.json();
+    setData(Array.isArray(json.ranking) ? json : { ranking: [], published: false });
     setLoading(false);
   }, [kategori]);
 

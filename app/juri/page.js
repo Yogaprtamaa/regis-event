@@ -3,6 +3,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import RetroAdminStyles, { C } from "@/app/components/RetroAdminStyles";
+import Loading from "@/app/loading";
 import { ArrowRightOnRectangleIcon, DocumentArrowDownIcon } from "@heroicons/react/24/outline";
 import { computeWeightedTotal } from "@/lib/scoring";
 
@@ -193,14 +194,7 @@ export default function JuriDashboard() {
     router.refresh();
   }
 
-  if (!me || loading) {
-    return (
-      <div className="adm-bg min-h-screen flex items-center justify-center">
-        <RetroAdminStyles />
-        <p className="fb font-semibold" style={{ color: C.navy }}>Memuat dashboard juri...</p>
-      </div>
-    );
-  }
+  if (!me || loading) return <Loading />;
 
   return (
     <div className="adm-bg min-h-screen">

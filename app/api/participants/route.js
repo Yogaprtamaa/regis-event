@@ -3,7 +3,10 @@ export const runtime = "nodejs";
 
 import { prisma } from "../../../lib/prisma";
 import { sendConfirmationEmail } from "../../../lib/mail";
-import cloudinary from "../../../lib/cloudinary";
+import { createAdminClient } from "../../../lib/supabase/admin";
+import { eventSlug } from "../../../lib/kategori";
+
+const PARTICIPANT_BUCKET = "participant-uploads";
 /* =======================
    GET → ambil semua peserta
 ======================= */
@@ -61,23 +64,22 @@ export async function POST(req) {
       anggota = null;
     }
 
-    // Helper upload satu file ke Cloudinary
-    const uploadToCloudinary = async (f, prefix) => {
+    const admin = createAdminClient();
+
+    // Helper upload satu file ke Supabase Storage
+    const uploadToSupabase = async (f, prefix) => {
       const bytes = await f.arrayBuffer();
       const buffer = Buffer.from(bytes);
-      const result = await new Promise((resolve, reject) => {
-        cloudinary.uploader
-          .upload_stream(
-            {
-              folder: `itfest-events/${eventId}`,
-              resource_type: "auto",
-              public_id: `${prefix}-${Date.now()}-${Math.round(Math.random() * 1e4)}`,
-            },
-            (err, res) => (err ? reject(err) : resolve(res)),
-          )
-          .end(buffer);
-      });
-      return result.secure_url;
+      const ext = f.name?.split(".").pop() || "bin";
+      const path = `${eventSlug(event.nama_event)}/${prefix}-${Date.now()}-${Math.round(Math.random() * 1e4)}.${ext}`;
+
+      const { error: uploadError } = await admin.storage
+        .from(PARTICIPANT_BUCKET)
+        .upload(path, buffer, { contentType: f.type || "application/octet-stream" });
+      if (uploadError) throw uploadError;
+
+      const { data } = admin.storage.from(PARTICIPANT_BUCKET).getPublicUrl(path);
+      return data.publicUrl;
     };
 
     /* ===== VALIDASI EVENT ID ===== */
@@ -147,39 +149,20 @@ export async function POST(req) {
         );
       }
 
-      const bytes = await file.arrayBuffer();
-      const buffer = Buffer.from(bytes);
-
-      const uploadResult = await new Promise((resolve, reject) => {
-        cloudinary.uploader
-          .upload_stream(
-            {
-              folder: `himti-events/${eventId}`,
-              resource_type: "auto",
-              public_id: `bukti-${nama}-${Date.now()}`,
-            },
-            (err, result) => {
-              if (err) reject(err);
-              else resolve(result);
-            },
-          )
-          .end(buffer);
-      });
-
-      buktiUrl = uploadResult.secure_url;
+      buktiUrl = await uploadToSupabase(file, "bukti");
       paymentStatus = "PENDING";
     }
 
     /* ===== UPLOAD BUKTI FOLLOW IG & FOTO KTM ===== */
     let buktiFollowUrl = null;
     if (buktiFollowFile && buktiFollowFile.size > 0) {
-      buktiFollowUrl = await uploadToCloudinary(buktiFollowFile, "follow");
+      buktiFollowUrl = await uploadToSupabase(buktiFollowFile, "follow");
     }
 
     const fotoKtmUrls = [];
     for (const f of fotoKtmFiles) {
       if (f && typeof f.arrayBuffer === "function" && f.size > 0) {
-        fotoKtmUrls.push(await uploadToCloudinary(f, "ktm"));
+        fotoKtmUrls.push(await uploadToSupabase(f, "ktm"));
       }
     }
 

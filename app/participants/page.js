@@ -12,6 +12,7 @@ import {
 import Popup from "reactjs-popup";
 import "reactjs-popup/dist/index.css";
 import RetroAdminStyles, { C } from "@/app/components/RetroAdminStyles";
+import Loading from "@/app/loading";
 
 const ROLE_LABEL = {
   DOSEN: "Dosen",
@@ -261,24 +262,7 @@ export default function ParticipantsPage() {
     ).length,
   };
 
-  if (loading) {
-    return (
-      <div className="adm-bg flex items-center justify-center">
-        <RetroAdminStyles />
-        <div className="text-center">
-          <div
-            className="a-spin inline-flex items-center justify-center w-16 h-16 rounded-2xl border-[3px] border-black"
-            style={{ background: C.blue, boxShadow: "4px 4px 0 #000", animationDuration: "3s" }}
-          >
-            <UsersIcon className="w-8 h-8 text-white" strokeWidth={2.2} />
-          </div>
-          <p className="fd text-xl font-semibold mt-5" style={{ color: C.navy }}>
-            Ngambil guest list...
-          </p>
-        </div>
-      </div>
-    );
-  }
+  if (loading) return <Loading />;
 
   const statCards = [
     { label: "Total Peserta", value: stats.total, Icon: UsersIcon, sh: "sh-coral", bg: C.coral, rotate: "-0.8deg" },
@@ -435,8 +419,8 @@ export default function ParticipantsPage() {
                       className="hover:bg-[#FDF5E4] transition"
                       style={{ borderTop: idx === 0 ? "none" : "2px dashed rgba(8,46,75,.2)" }}
                     >
-                      <td className="px-5 py-4 whitespace-nowrap">
-                        <div className="flex items-center">
+                      <td className="px-5 py-4">
+                        <div className="flex items-start">
                           <div
                             className="fd flex-shrink-0 h-10 w-10 rounded-full border-[2.5px] border-black flex items-center justify-center font-semibold text-white"
                             style={{
@@ -446,13 +430,22 @@ export default function ParticipantsPage() {
                           >
                             {participant.nama.charAt(0).toUpperCase()}
                           </div>
-                          <div className="ml-3">
-                            <div className="fb text-sm font-extrabold" style={{ color: C.navy }}>
-                              {participant.nama}
+                          <div className="ml-3 min-w-[160px]">
+                            <div className="fb text-sm font-extrabold whitespace-nowrap" style={{ color: C.navy }}>
+                              {participant.jenisPeserta === "kelompok" ? `Tim ${participant.nama}` : participant.nama}
                             </div>
-                            <div className="fb text-xs font-semibold" style={{ color: C.muted }}>
+                            <div className="fb text-xs font-semibold whitespace-nowrap" style={{ color: C.muted }}>
                               {participant.email}
                             </div>
+                            {Array.isArray(participant.anggota) && participant.anggota.length > 1 && (
+                              <ul className="mt-1">
+                                {participant.anggota.map((a, i) => (
+                                  <li key={i} className="fb text-[11px] font-semibold whitespace-nowrap" style={{ color: C.muted }}>
+                                    {i === 0 ? "Ketua" : `Anggota ${i}`} — {a.nama}{a.nim ? ` (${a.nim})` : ""}
+                                  </li>
+                                ))}
+                              </ul>
+                            )}
                           </div>
                         </div>
                       </td>

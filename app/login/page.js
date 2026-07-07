@@ -30,20 +30,17 @@ function LoginForm() {
       return;
     }
 
+    // Juri selalu diarahin ke dashboard juri, gak peduli ?redirect= dari middleware
+    // (juri kena bounce ke sini kalau nyoba buka /dashboard duluan).
     const redirect = searchParams.get("redirect");
-    if (redirect) {
-      router.push(redirect);
-      router.refresh();
-      return;
-    }
-
-    // Juri diarahin ke dashboard juri, panitia ke meja kontrol.
     try {
       const meRes = await fetch("/api/me");
       const me = await meRes.json();
-      router.push(me.role === "JURI" ? "/juri" : "/dashboard");
+      const home = me.role === "JURI" ? "/juri" : "/dashboard";
+      const target = redirect && (me.role !== "JURI" || redirect.startsWith("/juri")) ? redirect : home;
+      router.push(target);
     } catch {
-      router.push("/dashboard");
+      router.push(redirect || "/dashboard");
     }
     router.refresh();
   }

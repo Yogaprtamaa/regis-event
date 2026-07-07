@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import RetroAdminStyles, { C } from "@/app/components/RetroAdminStyles";
+import Loading from "@/app/loading";
 import {
   CalendarIcon,
   UsersIcon,
@@ -290,24 +291,7 @@ export default function Dashboard() {
     }
   }
 
-  if (loading) {
-    return (
-      <div className="adm-bg flex items-center justify-center">
-        <RetroAdminStyles />
-        <div className="text-center">
-          <div
-            className="a-spin inline-flex items-center justify-center w-16 h-16 rounded-2xl border-[3px] border-black text-3xl"
-            style={{ background: C.yellow, boxShadow: "4px 4px 0 #000", animationDuration: "3s" }}
-          >
-            ★
-          </div>
-          <p className="fd text-xl font-semibold mt-5" style={{ color: C.navy }}>
-            Nyiapin meja kontrol...
-          </p>
-        </div>
-      </div>
-    );
-  }
+  if (loading) return <Loading />;
 
   const statCards = [
     {
@@ -511,6 +495,14 @@ export default function Dashboard() {
                         )}
 
                         <div className="mt-4 flex gap-2.5 flex-wrap">
+                          <Link
+                            href={`/dashboard/absensi/${event.id}`}
+                            className="adm-btn adm-btn-sm"
+                            style={{ background: C.navy, color: "#fff" }}
+                          >
+                            <UserGroupIcon className="h-4 w-4" />
+                            Absensi TM
+                          </Link>
                           <button
                             onClick={() => handleExportExcel(event.id, event.nama_event)}
                             disabled={exportingId === event.id || event.participantCount === 0}
@@ -600,10 +592,11 @@ export default function Dashboard() {
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="fb text-sm font-extrabold truncate" style={{ color: C.navy }}>
-                          {participant.nama}
+                          {participant.jenisPeserta === "kelompok" ? `Tim ${participant.nama}` : participant.nama}
                         </p>
                         <p className="fb text-xs font-semibold truncate" style={{ color: C.muted }}>
                           {participant.event?.nama_event || "Event tidak ditemukan"}
+                          {Array.isArray(participant.anggota) && participant.anggota.length > 1 && ` · ${participant.anggota.length} anggota`}
                         </p>
                         <div className="mt-1.5 flex items-center gap-1.5 flex-wrap">
                           <span

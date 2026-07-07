@@ -20,6 +20,7 @@ import {
   PhoneIcon,
   EnvelopeIcon,
   ArrowRightIcon,
+  ClockIcon,
 } from "@heroicons/react/24/outline";
 
 /* ── Scroll reveal ─────────────────────────────────────────────────── */
@@ -131,6 +132,24 @@ const CSS = `
   .awning { height: 44px; border-bottom: 3px solid #000; position: relative; }
   .awning-scallop { position: absolute; left: 0; right: 0; bottom: -17px; height: 17px; z-index: 2; background-repeat: repeat-x; background-size: 28px 17px; }
 
+  /* ── Butiran pasir (tekstur realistik) ── */
+  .sand-grain {
+    position: absolute; inset: 0; pointer-events: none; z-index: 0;
+    background-image:
+      radial-gradient(circle at 8% 22%,  rgba(139,105,20,.16) 1.5px, transparent 2px),
+      radial-gradient(circle at 34% 68%, rgba(139,105,20,.13) 1px,   transparent 1.6px),
+      radial-gradient(circle at 52% 15%, rgba(139,105,20,.15) 1.5px, transparent 2px),
+      radial-gradient(circle at 71% 55%, rgba(139,105,20,.12) 1px,   transparent 1.6px),
+      radial-gradient(circle at 88% 30%, rgba(139,105,20,.16) 1.5px, transparent 2px),
+      radial-gradient(circle at 20% 85%, rgba(139,105,20,.12) 1px,   transparent 1.6px),
+      radial-gradient(circle at 63% 90%, rgba(139,105,20,.14) 1.5px, transparent 2px),
+      radial-gradient(circle at 95% 78%, rgba(139,105,20,.1)  1px,   transparent 1.6px);
+    background-size: 130px 130px, 90px 90px, 150px 150px, 100px 100px, 140px 140px, 95px 95px, 120px 120px, 105px 105px;
+  }
+
+  /* ── Jejak kaki di pasir ── */
+  .footprint { opacity: .55; }
+
   /* ── Ticker ── */
   .ticker-wrap  { overflow: hidden; white-space: nowrap; }
   .ticker-track { display: inline-flex; animation: ticker 36s linear infinite; }
@@ -191,6 +210,7 @@ const CSS = `
   /* ── Animasi ── */
   @keyframes ticker { to { transform: translateX(-50%); } }
   @keyframes waveDrift { to { transform: translateX(-50%); } }
+  @keyframes waveSurge { 0% { transform: translateY(4px); } 35% { transform: translateY(-8px); } 100% { transform: translateY(4px); } }
   @keyframes slowSpin { to { transform: rotate(360deg); } }
   @keyframes bob { 0%,100% { transform: translateY(0) rotate(var(--rot,0deg)); } 50% { transform: translateY(-12px) rotate(var(--rot,0deg)); } }
   @keyframes drift { 0%,100% { transform: translateX(0); } 50% { transform: translateX(26px); } }
@@ -210,6 +230,7 @@ const CSS = `
   @keyframes sway { 0%,100% { transform: rotate(-.8deg); } 50% { transform: rotate(.8deg); } }
 
   .wave-move { animation: waveDrift 18s linear infinite; }
+  .wave-surge { animation: waveSurge 4.2s cubic-bezier(.45,0,.55,1) infinite; }
   @keyframes shaftGlow { 0%,100% { opacity: .5; } 50% { opacity: 1; } }
   .shaft { animation: shaftGlow 7s ease-in-out infinite; }
   .spin-slow { animation: slowSpin 24s linear infinite; transform-origin: center; }
@@ -244,6 +265,13 @@ const LOMBA = [
   { Icon: CpuChipIcon, title: "Internet of Things", color: C.blue, tc: "#fff", desc: "Kembangkan perangkat IoT berdampak nyata — dari sensor hingga dashboard — dan presentasikan di hadapan juri industri." },
   { Icon: PuzzlePieceIcon, title: "Game Making", color: C.orange, tc: "#fff", desc: "Buat game digital dari nol: gameplay, visual, narasi. Platform untuk game developer muda menunjukkan karya terbaik." },
   { Icon: DocumentTextIcon, title: "Karya Tulis Ilmiah", color: C.yellow, tc: C.navy, desc: "Riset dan tulis solusi inovatif untuk masalah teknologi aktual, dipresentasikan ke akademisi dan praktisi terkemuka." },
+];
+
+const HASIL_KATEGORI = [
+  { value: "HACKATHON", label: "Hackathon", color: C.lime, tc: C.navy },
+  { value: "IOT", label: "Internet of Things", color: C.blue, tc: "#fff" },
+  { value: "GAME_MAKING", label: "Game Making", color: C.orange, tc: "#fff" },
+  { value: "KTI", label: "Karya Tulis Ilmiah", color: C.yellow, tc: C.navy },
 ];
 
 const TIMELINE = [
@@ -379,6 +407,18 @@ function Starfish({ size = 60, color = C.orange }) {
   );
 }
 
+/* ── Jejak kaki di pasir ─────────────────────────────────────────────── */
+function Footprint({ size = 30, color = "rgba(139,105,20,.4)", rotate = 0 }) {
+  return (
+    <svg width={size} height={size * 1.4} viewBox="0 0 30 42" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" style={{ transform: `rotate(${rotate}deg)` }}>
+      <ellipse cx="15" cy="27" rx="9" ry="14" fill={color} />
+      {[[6, 6], [12, 2], [18, 2], [24, 6]].map(([x, y], i) => (
+        <ellipse key={i} cx={x} cy={y} rx="3" ry="4.2" fill={color} />
+      ))}
+    </svg>
+  );
+}
+
 /* ── Bunting: bendera segitiga ──────────────────────────────────────── */
 function Bunting({ flags = 22, height = 34, sway = false }) {
   const w = flags * 46;
@@ -423,15 +463,21 @@ function FoamTexture({ id, w = 150, h = 46, n = 6 }) {
 /* ── FoamDivider: buih ombak antar-section laut, bertekstur & bergerak (loop mulus) ── */
 function FoamDivider({ top, bottom, flip = false, id = "foam" }) {
   // top = warna section atas, bottom = warna section bawah (yang buihnya)
+  // SVG digambar lebih tinggi dari kotak keliatan (h), lalu digeser vertikal dalam
+  // batas `pad` — fill-nya selalu nutup penuh jadi gak ada celah warna nongol pas ombak "surut-pasang".
   const h = 46;
+  const pad = 10;
+  const hSvg = h + pad * 2;
   return (
-    <div style={{ lineHeight: 0, marginTop: -1, marginBottom: -1, transform: flip ? "scaleY(-1)" : "none", background: top, overflow: "hidden" }} aria-hidden="true">
-      <svg className="wave-move" width="200%" height={h} viewBox={`0 0 2400 ${h}`} preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" style={{ display: "block" }}>
-        <defs><FoamTexture id={id} h={h} /></defs>
-        <path d={tiledWavePath(150, 16, h, 24, 4)} fill={bottom} stroke="#000" strokeWidth="3" />
-        <path d={tiledWavePath(150, 16, h, 24, 4)} fill={`url(#${id})`} stroke="none" />
-        <path d={tiledWavePath(150, 16, h, 30, 12)} fill="none" stroke="#fff" strokeWidth="3" opacity=".6" />
-      </svg>
+    <div style={{ lineHeight: 0, marginTop: -1, marginBottom: -1, height: h, transform: flip ? "scaleY(-1)" : "none", background: top, overflow: "hidden", position: "relative" }} aria-hidden="true">
+      <div className="wave-surge" style={{ position: "absolute", top: -pad, left: 0, right: 0 }}>
+        <svg className="wave-move" width="200%" height={hSvg} viewBox={`0 0 2400 ${hSvg}`} preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" style={{ display: "block" }}>
+          <defs><FoamTexture id={id} h={hSvg} /></defs>
+          <path d={tiledWavePath(150, 16, hSvg, 24 + pad, 4 + pad)} fill={bottom} stroke="#000" strokeWidth="3" />
+          <path d={tiledWavePath(150, 16, hSvg, 24 + pad, 4 + pad)} fill={`url(#${id})`} stroke="none" />
+          <path d={tiledWavePath(150, 16, hSvg, 30 + pad, 12 + pad)} fill="none" stroke="#fff" strokeWidth="3" opacity=".6" />
+        </svg>
+      </div>
     </div>
   );
 }
@@ -457,6 +503,18 @@ function SharkSilhouette({ size = 130, color = "rgba(8,46,75,.5)", top = "70%", 
     <div className="fish" style={{ top, animationDuration: dur, animationDelay: delay, "--fx": 1 }} aria-hidden="true">
       <svg width={size} height={size * 0.46} viewBox="0 0 100 46" xmlns="http://www.w3.org/2000/svg">
         <path d="M2 30 Q22 38 46 34 Q40 18 62 6 Q54 20 60 28 Q80 24 98 30 Q80 38 58 33 Q68 42 60 46 Q45 40 40 31 Q20 37 2 30 Z" fill={color} />
+      </svg>
+    </div>
+  );
+}
+
+/* ── Lumba-lumba: melompat ────────────────────────────────────────── */
+function Dolphin({ color = C.blue, size = 60, top = "40%", dur = "30s", delay = "0s", flip = false }) {
+  return (
+    <div className="fish" style={{ top, animationDuration: dur, animationDelay: delay, "--fx": flip ? -1 : 1 }} aria-hidden="true">
+      <svg width={size} height={size * 0.6} viewBox="0 0 60 36" xmlns="http://www.w3.org/2000/svg">
+        <path d="M2 26 Q8 10 24 8 Q30 4 36 8 Q40 4 46 2 Q43 8 38 11 Q44 13 50 10 Q46 18 38 17 Q34 26 20 25 Q10 30 2 26 Z" fill={color} stroke="#000" strokeWidth="2.2" strokeLinejoin="round" />
+        <circle cx="15" cy="18" r="1.8" fill="#000" />
       </svg>
     </div>
   );
@@ -524,6 +582,7 @@ function Navbar({ open, setOpen }) {
     { l: "Acara", h: "#acara" },
     { l: "Lomba", h: "#lomba" },
     { l: "Jadwal", h: "#timeline" },
+    { l: "Hasil", h: "#hasil" },
   ];
 
   return (
@@ -697,6 +756,7 @@ function About() {
       <Bubbles count={12} />
       <Fish color={C.yellow} size={44} top="18%" dur="30s" delay="1s" />
       <Fish color={C.coral} size={34} top="72%" dur="38s" delay="6s" flip />
+      <Dolphin color="#fff" size={54} top="45%" dur="34s" delay="3s" />
 
       <div className="container" style={{ position: "relative", zIndex: 1 }}>
         <div className="about-grid">
@@ -766,6 +826,7 @@ function Acara() {
         <Fish color={C.lime} size={38} top="46%" dur="42s" delay="4s" flip />
         <Fish color={C.yellow} size={30} top="80%" dur="28s" delay="9s" />
         <SharkSilhouette top="64%" size={140} dur="55s" />
+        <Dolphin color={C.lime} size={50} top="30%" dur="40s" delay="7s" flip />
         <div className="bob" style={{ position: "absolute", bottom: 24, left: "6%", animationDelay: "2s" }}><Turtle size={58} /></div>
         <div style={{ position: "absolute", bottom: -6, left: "-10px" }}><Coral size={84} color={C.coral} /></div>
         <div style={{ position: "absolute", bottom: -6, right: "-10px" }}><Coral size={70} color={C.orange} /></div>
@@ -823,7 +884,15 @@ function Lomba() {
     <>
       <FoamDivider top="#14688A" bottom={C.seaLight} id="foam-2" />
       <section id="lomba" className="sec" style={{ background: `linear-gradient(180deg, ${C.seaLight} 0%, #7FD6EA 100%)`, padding: "72px 0 92px", overflow: "hidden" }}>
-        <Bubbles count={9} tint="rgba(255,255,255,.55)" />
+        <Bubbles count={18} tint="rgba(255,255,255,.55)" />
+        <Fish color={C.coral} size={40} top="16%" dur="32s" delay="2s" />
+        <Fish color={C.navy} size={30} top="34%" dur="40s" delay="8s" flip />
+        <Fish color={C.yellow} size={36} top="86%" dur="27s" delay="12s" />
+        <Dolphin color="#fff" size={48} top="76%" dur="36s" delay="5s" flip />
+        <div className="bob" style={{ position: "absolute", top: "9%", right: "4%" }} aria-hidden="true"><Starfish size={44} color={C.yellow} /></div>
+        <div className="bob" style={{ position: "absolute", top: "48%", left: "3%", animationDelay: "1.4s" }} aria-hidden="true"><Shell size={38} color={C.navy} /></div>
+        <div style={{ position: "absolute", bottom: -6, left: "-8px" }} aria-hidden="true"><Coral size={64} color={C.orange} /></div>
+        <div style={{ position: "absolute", bottom: -6, right: "-8px" }} aria-hidden="true"><Coral size={56} color={C.coral} /></div>
         <div className="container" style={{ position: "relative", zIndex: 1 }}>
           <SectionHead
             tag="Naik ke Permukaan"
@@ -901,8 +970,13 @@ function Timeline() {
     <>
       {/* buih terakhir sebelum menyentuh pasir */}
       <FoamDivider top="#7FD6EA" bottom={C.wetSand} id="foam-3" />
-      <section id="timeline" className="sec" style={{ background: `linear-gradient(180deg, ${C.wetSand} 0%, ${C.sand} 45%)`, padding: "70px 0 92px" }}>
-        <div className="container">
+      <section id="timeline" className="sec" style={{ background: `linear-gradient(180deg, ${C.wetSand} 0%, ${C.sand} 45%)`, padding: "70px 0 92px", position: "relative", overflow: "hidden" }}>
+        <div className="sand-grain" aria-hidden="true" />
+        <div className="footprint" style={{ position: "absolute", top: "58%", left: "6%" }} aria-hidden="true"><Footprint size={26} rotate={-8} /></div>
+        <div className="footprint" style={{ position: "absolute", top: "64%", left: "10.5%" }} aria-hidden="true"><Footprint size={26} rotate={6} /></div>
+        <div className="bob" style={{ position: "absolute", top: "20%", right: "5%", animationDelay: "1.2s" }} aria-hidden="true"><Shell size={40} color={C.blue} /></div>
+        <div className="bob" style={{ position: "absolute", bottom: "8%", right: "10%", animationDelay: "2.6s" }} aria-hidden="true"><Starfish size={44} /></div>
+        <div className="container" style={{ position: "relative", zIndex: 1 }}>
           <SectionHead center
             tag="Menepi ke Pantai"
             tagColor={C.lime}
@@ -943,16 +1017,125 @@ function Timeline() {
 }
 
 /* ══════════════════════════════════════════════════════════════════════
+   6.5 PAPAN PENGUMUMAN (hasil) — pasir kering, sebelum footer
+   ══════════════════════════════════════════════════════════════════════ */
+function Hasil() {
+  const [data, setData] = useState({});
+  const [loading, setLoading] = useState(true);
+  const [active, setActive] = useState(HASIL_KATEGORI[0].value);
+
+  useEffect(() => {
+    Promise.all(
+      HASIL_KATEGORI.map((k) =>
+        fetch(`/api/finalists/${k.value}`)
+          .then((r) => r.json())
+          .then((d) => [k.value, d])
+          .catch(() => [k.value, { published: false, finalists: [] }]),
+      ),
+    ).then((entries) => {
+      setData(Object.fromEntries(entries));
+      setLoading(false);
+    });
+  }, []);
+
+  const current = HASIL_KATEGORI.find((k) => k.value === active);
+  const result = data[active];
+
+  return (
+    <section id="hasil" className="sec" style={{ background: C.sand, padding: "70px 0 84px", position: "relative", overflow: "hidden" }}>
+      <div className="sand-grain" aria-hidden="true" />
+      <div className="bob" style={{ position: "absolute", top: "12%", left: "6%" }} aria-hidden="true"><Hibiscus size={54} /></div>
+      <div className="bob" style={{ position: "absolute", top: "18%", right: "7%", animationDelay: "1.8s" }} aria-hidden="true"><Starfish size={46} color={C.orange} /></div>
+      <div className="bob" style={{ position: "absolute", bottom: "10%", left: "9%", animationDelay: "3s" }} aria-hidden="true"><Shell size={38} color={C.coral} /></div>
+      <div className="footprint" style={{ position: "absolute", bottom: "16%", right: "13%" }} aria-hidden="true"><Footprint size={24} rotate={10} /></div>
+      <div className="footprint" style={{ position: "absolute", bottom: "10%", right: "9%" }} aria-hidden="true"><Footprint size={24} rotate={-4} /></div>
+      <div className="container" style={{ position: "relative", zIndex: 1 }}>
+        <SectionHead
+          center
+          tag="Papan Pengumuman"
+          tagColor={C.coral}
+          tagTextColor="#fff"
+          headline={<>Siapa yang <span style={{ color: C.coral }}>Lolos ke Final?</span></>}
+          sub="Hasil seleksi tiap kategori, diperbarui langsung sama panitia begitu penjurian selesai."
+        />
+
+        <div style={{ display: "flex", justifyContent: "center", gap: 10, flexWrap: "wrap", marginBottom: 30 }} data-reveal>
+          {HASIL_KATEGORI.map((k) => (
+            <button
+              key={k.value}
+              onClick={() => setActive(k.value)}
+              className="fd k-tag"
+              style={{
+                cursor: "pointer", border: "2.5px solid #000", transform: "none",
+                background: active === k.value ? k.color : "#fff",
+                color: active === k.value ? k.tc : C.navy,
+              }}
+            >
+              {k.label}
+            </button>
+          ))}
+        </div>
+
+        <div className="booth" data-reveal style={{ maxWidth: 600, margin: "0 auto", background: "#fff" }}>
+          <div className="awning" style={awningStyle(current.color).awning}>
+            <div className="awning-scallop" style={awningStyle(current.color).scallop} />
+          </div>
+          <div style={{ padding: "34px 30px 30px" }}>
+            {loading ? (
+              <p className="fb" style={{ color: C.muted, fontSize: 14, fontWeight: 600, textAlign: "center" }}>Memuat hasil...</p>
+            ) : !result?.published ? (
+              <div style={{ textAlign: "center" }}>
+                <div style={{ width: 56, height: 56, borderRadius: 16, background: C.sand, display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 14px", border: "2.5px solid #000", boxShadow: "3px 3px 0 #000" }}>
+                  <ClockIcon width={26} height={26} strokeWidth={2} style={{ color: C.navy }} />
+                </div>
+                <p className="fd" style={{ color: C.navy, fontSize: 17, fontWeight: 600, marginBottom: 6 }}>Belum diumumkan</p>
+                <p className="fb" style={{ color: C.muted, fontSize: 13, fontWeight: 500, lineHeight: 1.7 }}>
+                  Hasil {current.label} lagi diseleksi panitia & dinilai juri. Pantau terus halaman ini ya!
+                </p>
+              </div>
+            ) : (
+              <>
+                <p className="fb" style={{ fontSize: 11, fontWeight: 800, color: C.muted, textTransform: "uppercase", letterSpacing: ".1em", textAlign: "center", marginBottom: 18 }}>
+                  Top 5 Finalis — {current.label}
+                </p>
+                <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                  {result.finalists.map((f) => (
+                    <div key={f.rank} style={{ display: "flex", alignItems: "center", gap: 14, padding: "12px 14px", borderRadius: 12, background: C.sand, border: "2px solid #000" }}>
+                      <span className="fd" style={{ fontSize: 20, fontWeight: 700, color: C.coral, width: 28, flexShrink: 0 }}>#{f.rank}</span>
+                      <div style={{ minWidth: 0 }}>
+                        <p className="fd" style={{ color: C.navy, fontSize: 14.5, fontWeight: 600, lineHeight: 1.3 }}>{f.namaTim}</p>
+                        <p className="fb" style={{ color: C.muted, fontSize: 12, fontWeight: 500, lineHeight: 1.4 }}>{f.judulKarya}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <p className="fb" style={{ color: C.muted, fontSize: 11.5, fontWeight: 600, lineHeight: 1.7, textAlign: "center", marginTop: 18 }}>
+                  Nama timmu gak ada di atas? Berarti belum lolos ke babak final {current.label} tahun ini — makasih udah ikut berjuang, sampai jumpa di IT FEST berikutnya!
+                </p>
+              </>
+            )}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ══════════════════════════════════════════════════════════════════════
    7. TIBA DI PANTAI (footer) — pasir + langit senja
    ══════════════════════════════════════════════════════════════════════ */
 function Footer() {
   return (
     <footer className="sec" style={{ position: "relative" }}>
       {/* Bibir pantai: pasir dengan kerang & bintang laut */}
-      <div style={{ background: C.sand, borderTop: "3px solid #000", position: "relative", overflow: "hidden" }}>
+      <div style={{ background: C.sand, position: "relative", overflow: "hidden" }}>
+        <div className="sand-grain" aria-hidden="true" />
         <div className="bob" style={{ position: "absolute", top: 18, left: "8%" }} aria-hidden="true"><Shell size={46} color={C.coral} /></div>
         <div className="bob" style={{ position: "absolute", top: 40, right: "12%", animationDelay: "1.6s" }} aria-hidden="true"><Starfish size={54} /></div>
         <div className="bob" style={{ position: "absolute", bottom: 22, left: "22%", animationDelay: "2.4s" }} aria-hidden="true"><Shell size={34} color={C.blue} /></div>
+        <div className="bob" style={{ position: "absolute", top: 70, left: "42%", animationDelay: "0.8s" }} aria-hidden="true"><Hibiscus size={40} color={C.orange} /></div>
+        <div className="footprint" style={{ position: "absolute", bottom: 16, right: "20%" }} aria-hidden="true"><Footprint size={22} rotate={-6} /></div>
+        <div className="footprint" style={{ position: "absolute", bottom: 10, right: "16%" }} aria-hidden="true"><Footprint size={22} rotate={8} /></div>
 
         <div className="container" style={{ padding: "44px 24px 40px", textAlign: "center", position: "relative", zIndex: 1 }}>
           <span className="k-tag" style={{ background: C.coral, color: "#fff", display: "inline-flex" }}>Sampai Jumpa di Pantai</span>
@@ -1054,6 +1237,7 @@ export default function Page() {
           <Lomba />
           <Bazzar />
           <Timeline />
+          <Hasil />
         </main>
         <Footer />
       </div>

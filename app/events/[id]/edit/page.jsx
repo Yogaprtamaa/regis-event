@@ -4,6 +4,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { ArrowLeftIcon, CalendarIcon, ClockIcon, MapPinIcon, UsersIcon, PencilSquareIcon } from "@heroicons/react/24/outline";
 import { CheckBadgeIcon } from "@heroicons/react/24/solid";
 import { useState, useEffect } from "react";
+import Loading from "@/app/loading";
 
 const CSS = `
   @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Plus+Jakarta+Sans:wght@700;800&display=swap');
@@ -90,24 +91,7 @@ export default function EditEventPage() {
     fetchEvent();
   }, [eventId]);
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <style>{CSS}</style>
-        <div className="relative z-10 text-center">
-          <div className="w-20 h-20 bg-white b-border rounded-2xl flex items-center justify-center mx-auto mb-5" style={{ boxShadow: '6px 6px 0 #1a1a1a' }}>
-            <div className="flex gap-1.5">
-              {[0, 0.15, 0.3].map((d, i) => (
-                <div key={i} className="w-3 h-3 rounded-full" style={{ background: '#EB3C6B', animation: 'bounce1 1.2s infinite ease-in-out', animationDelay: `${d}s` }} />
-              ))}
-            </div>
-          </div>
-          <p className="font-fredoka text-xl font-bold text-slate-900">Memuat Event<span style={{ color: '#EB3C6B' }}>...</span></p>
-          <p className="text-xs font-black text-slate-400 uppercase tracking-widest mt-1">Mohon tunggu sebentar</p>
-        </div>
-      </div>
-    );
-  }
+  if (loading) return <Loading />;
 
   if (error && !formData.nama_event) {
     return (
