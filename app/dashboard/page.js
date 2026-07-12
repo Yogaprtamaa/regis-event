@@ -8,7 +8,6 @@ import Loading from "@/app/loading";
 import {
   CalendarIcon,
   UsersIcon,
-  CheckCircleIcon,
   PlusIcon,
   ClockIcon,
   MapPinIcon,
@@ -31,7 +30,7 @@ export default function Dashboard() {
   const [stats, setStats] = useState({
     totalEvents: 0,
     totalParticipants: 0,
-    activeEvents: 0,
+    pendingVerification: 0,
     upcomingEvents: 0,
   });
   const [events, setEvents] = useState([]);
@@ -122,13 +121,9 @@ export default function Dashboard() {
 
       // Calculate stats
       const now = new Date();
-      const activeEvents = eventsData.filter((event) => {
-        const eventDate = new Date(event.tanggal);
-        // Event is active if it's today or within next 30 days
-        const diffTime = eventDate - now;
-        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-        return diffDays >= 0 && diffDays <= 30;
-      });
+      const pendingVerification = participantsData.filter(
+        (p) => (p.paymentStatus || "FREE") === "PENDING",
+      ).length;
 
       const upcomingEvents = eventsData.filter((event) => {
         const eventDate = new Date(event.tanggal);
@@ -138,7 +133,7 @@ export default function Dashboard() {
       setStats({
         totalEvents: eventsData.length,
         totalParticipants: participantsData.length,
-        activeEvents: activeEvents.length,
+        pendingVerification,
         upcomingEvents: upcomingEvents.length,
       });
 
@@ -166,7 +161,7 @@ export default function Dashboard() {
       setStats({
         totalEvents: 0,
         totalParticipants: 0,
-        activeEvents: 0,
+        pendingVerification: 0,
         upcomingEvents: 0,
       });
       setEvents([]);
@@ -307,10 +302,12 @@ export default function Dashboard() {
       Icon: UsersIcon,
     },
     {
-      label: "Event Aktif",
-      value: stats.activeEvents,
-      note: "30 hari mendatang",
-      Icon: CheckCircleIcon,
+      label: "Perlu Verifikasi",
+      value: stats.pendingVerification,
+      note: "Bukti bayar & berkas",
+      Icon: ClockIcon,
+      href: "/participants",
+      highlight: stats.pendingVerification > 0,
     },
   ];
 
@@ -358,10 +355,12 @@ export default function Dashboard() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           {statCards.map((s, i) => {
             const st = STAT_STYLES[i];
+            const Wrapper = s.href ? Link : "div";
             return (
-              <div
+              <Wrapper
                 key={s.label}
-                className={`pop-in adm-card adm-lift ${st.sh} p-6`}
+                href={s.href}
+                className={`pop-in adm-card adm-lift ${st.sh} p-6 ${s.highlight ? "ring-4 ring-black/10" : ""}`}
                 style={{ "--d": `${120 + i * 100}ms`, "--r": st.rotate, transform: `rotate(${st.rotate})` }}
               >
                 <div className="flex items-center justify-between">
@@ -369,7 +368,7 @@ export default function Dashboard() {
                     <p className="fb text-[11px] font-extrabold uppercase tracking-[.14em]" style={{ color: C.muted }}>
                       {s.label}
                     </p>
-                    <p className="fd text-5xl font-bold mt-1" style={{ color: C.navy }}>
+                    <p className="fd text-5xl font-bold mt-1" style={{ color: s.highlight ? C.coral : C.navy }}>
                       {s.value}
                     </p>
                     <p className="fb text-xs font-semibold mt-1" style={{ color: C.muted }}>
@@ -383,7 +382,7 @@ export default function Dashboard() {
                     <s.Icon className="h-7 w-7 text-white" strokeWidth={2.2} />
                   </div>
                 </div>
-              </div>
+              </Wrapper>
             );
           })}
         </div>

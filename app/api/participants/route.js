@@ -46,6 +46,8 @@ export async function POST(req) {
     const role = formData.get("role");
     const eventId = formData.get("eventId");
     const file = formData.get("bukti_pembayaran");
+    const password = formData.get("password");
+    const setujuSyaratKti = formData.get("setujuSyaratKti") === "true";
 
     // ── IT FEST 6.0 — field pendaftaran lomba ──
     const jenisPeserta = formData.get("jenisPeserta");
@@ -134,6 +136,46 @@ export async function POST(req) {
       );
     }
 
+    /* ===== PERSETUJUAN SYARAT KTI (khusus event KTI) ===== */
+    const isKti = eventSlug(event.nama_event) === "kti";
+    if (isKti && !setujuSyaratKti) {
+      return Response.json(
+        { message: "Wajib menyetujui persyaratan lomba KTI" },
+        { status: 400 },
+      );
+    }
+
+    /* ===== BUAT AKUN LOGIN PESERTA (kalau kirim password) ===== */
+    // Akun dipakai peserta buat login & pantau status verifikasi + upload karya.
+    // Tanpa password = alur lama (event tanpa login), tetap jalan.
+    let supabaseId = null;
+    if (password) {
+      const { data: authData, error: authError } =
+        await admin.auth.admin.createUser({
+          email,
+          password,
+          email_confirm: true,
+          user_metadata: { nama },
+          // Ditaruh di JWT → middleware bisa cegah peserta buka area admin
+          // tanpa query DB. Lihat middleware.js.
+          app_metadata: { role: "peserta" },
+        });
+      if (authError) {
+        // ponytail: 1 email = 1 akun. Kalau mau reuse akun buat multi-event,
+        // upgrade: lookup user by email lalu link supabaseId-nya.
+        const dup = /already|registered|exists/i.test(authError.message || "");
+        return Response.json(
+          {
+            message: dup
+              ? "Email ini sudah punya akun. Pakai email lain atau login."
+              : "Gagal membuat akun: " + authError.message,
+          },
+          { status: 400 },
+        );
+      }
+      supabaseId = authData.user.id;
+    }
+
     /* ===============================
        🔥 HANDLE UPLOAD CLOUDINARY
     ================================ */
@@ -150,6 +192,11 @@ export async function POST(req) {
       }
 
       buktiUrl = await uploadToSupabase(file, "bukti");
+      paymentStatus = "PENDING";
+    } else if (jenisPeserta) {
+      // Lomba gratis (follow IG + KTM) tetap butuh review panitia sebelum
+      // peserta boleh upload karya — tanpa ini paymentStatus="FREE" gak
+      // pernah masuk antrian & peserta terkunci upload selamanya.
       paymentStatus = "PENDING";
     }
 
@@ -192,6 +239,8 @@ export async function POST(req) {
         anggota: anggota ?? undefined,
         buktiFollow: buktiFollowUrl,
         fotoKtm: fotoKtmUrls.length ? fotoKtmUrls : undefined,
+        supabaseId,
+        setujuSyaratKti,
       },
       include: { event: true },
     });

@@ -36,9 +36,19 @@ function LoginForm() {
     try {
       const meRes = await fetch("/api/me");
       const me = await meRes.json();
-      const home = me.role === "JURI" ? "/juri" : "/dashboard";
-      const target = redirect && (me.role !== "JURI" || redirect.startsWith("/juri")) ? redirect : home;
-      router.push(target);
+      const home =
+        me.role === "JURI"
+          ? "/juri"
+          : me.role === "PESERTA"
+            ? "/submit-karya"
+            : "/dashboard";
+      // Peserta & juri selalu ke home role-nya, gak ikut ?redirect= ke area admin.
+      const canUseRedirect =
+        redirect &&
+        (me.role === "ADMIN" ||
+          (me.role === "JURI" && redirect.startsWith("/juri")) ||
+          (me.role === "PESERTA" && redirect.startsWith("/submit-karya")));
+      router.push(canUseRedirect ? redirect : home);
     } catch {
       router.push(redirect || "/dashboard");
     }

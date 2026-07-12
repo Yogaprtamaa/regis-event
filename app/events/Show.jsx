@@ -14,6 +14,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { CheckBadgeIcon } from "@heroicons/react/24/solid";
 import { useState } from "react";
+import { eventSlug } from "../../lib/kategori";
 
 const ACCENTS = [
   { bg: "#EB3C6B", btn: "#EB3C6B", bar: "#FED245", tag: "rgba(0,0,0,0.18)", tagText: "#fff" },
@@ -22,6 +23,77 @@ const ACCENTS = [
   { bg: "#082E4B", btn: "#EB3C6B", bar: "#FED245", tag: "#FED245", tagText: "#082E4B" },
   { bg: "#EB3C6B", btn: "#082E4B", bar: "#FED245", tag: "rgba(0,0,0,0.18)", tagText: "#fff" },
 ];
+
+// ponytail: teks dummy, ganti ke naskah resmi panitia sebelum lomba dibuka.
+const KTI_TERMS = [
+  {
+    title: "1. Orisinalitas Karya",
+    body: "Karya tulis ilmiah yang dikumpulkan wajib merupakan karya asli peserta/tim, belum pernah dipublikasikan atau memenangkan lomba serupa di tempat lain, dan bebas dari plagiarisme.",
+  },
+  {
+    title: "2. Format Penulisan",
+    body: "Naskah ditulis mengikuti format baku KTI (halaman judul, abstrak, pendahuluan, tinjauan pustaka, metode, pembahasan, penutup, daftar pustaka), font Times New Roman 12pt, spasi 1.5, ukuran A4.",
+  },
+  {
+    title: "3. Ketentuan Tim",
+    body: "Tim terdiri dari 1-4 orang mahasiswa aktif dari perguruan tinggi yang sama, dibuktikan dengan KTM yang masih berlaku.",
+  },
+  {
+    title: "4. Hak Panitia",
+    body: "Panitia berhak mendiskualifikasi karya yang terbukti plagiat atau melanggar ketentuan di atas kapan pun ditemukan, termasuk setelah pengumuman finalis.",
+  },
+  {
+    title: "5. Batas Waktu",
+    body: "Karya wajib dikumpulkan sebelum tenggat yang ditentukan panitia. Karya yang terlambat tidak akan diproses ke tahap seleksi.",
+  },
+];
+
+function KtiTermsModal({ open, onClose, onAgree }) {
+  if (!open) return null;
+  return (
+    <div className="fixed inset-0 bg-black/60 z-[70] flex items-end sm:items-center justify-center p-0 sm:p-4">
+      <div className="bg-white b-border b-shadow w-full sm:max-w-lg sm:rounded-[2rem] rounded-t-[2rem] overflow-hidden max-h-[85vh] flex flex-col">
+        <div className="px-6 py-5 flex items-center justify-between" style={{ background: "#082E4B" }}>
+          <h3 className="font-fredoka text-xl font-bold text-white">
+            Persyaratan Lomba KTI
+          </h3>
+          <button
+            onClick={onClose}
+            aria-label="Tutup"
+            className="w-8 h-8 rounded-full border-2 border-black bg-white flex items-center justify-center text-lg leading-none"
+          >
+            ×
+          </button>
+        </div>
+        <div className="px-6 py-5 overflow-y-auto space-y-4">
+          {KTI_TERMS.map((t) => (
+            <div key={t.title}>
+              <p className="text-sm font-black text-slate-900 mb-1">{t.title}</p>
+              <p className="text-xs font-semibold text-slate-600 leading-relaxed">{t.body}</p>
+            </div>
+          ))}
+        </div>
+        <div className="px-6 py-4 border-t-2 border-slate-100 flex gap-3">
+          <button
+            type="button"
+            onClick={onClose}
+            className="b-btn b-border flex-1 py-3 rounded-xl text-xs font-black uppercase tracking-wide bg-white"
+          >
+            Batal
+          </button>
+          <button
+            type="button"
+            onClick={onAgree}
+            className="b-btn b-border flex-1 py-3 rounded-xl text-xs font-black text-white uppercase tracking-wide"
+            style={{ background: "#16a34a" }}
+          >
+            Saya Sudah Baca &amp; Setuju
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 const STATUS_CFG = {
   PUBLISHED: { color: "#B5D948", textColor: "#082E4B", label: "Open Now" },
@@ -77,11 +149,15 @@ export default function ShowEvent({
     provinsi: "",
     buktiFollow: null, // file (screenshot follow IG)
     fotoKtm: [], // files (KTM seluruh anggota)
+    password: "", // akun login peserta (buat pantau verifikasi + upload karya)
+    passwordConfirm: "",
+    setujuSyaratKti: false, // khusus event KTI
   });
   // Anggota: ketua di index 0; maksimal 4 orang dalam 1 kelompok
   const [members, setMembers] = useState([{ nama: "", nim: "" }]);
   const [errors, setErrors] = useState({});
   const [processing, setProcessing] = useState(false);
+  const [showKtiTerms, setShowKtiTerms] = useState(false);
 
   const MAX_MEMBERS = 4;
 
@@ -117,6 +193,7 @@ export default function ShowEvent({
 
   const acc = ACCENTS[hashUUID(event.id) % ACCENTS.length];
   const status = STATUS_CFG[event.status] || STATUS_CFG.DRAFT;
+  const isKti = eventSlug(event.nama_event) === "kti";
 
   const handleInputChange = (key, value) => {
     setFormData((prev) => ({ ...prev, [key]: value }));
@@ -257,6 +334,14 @@ export default function ShowEvent({
     if (!formData.fotoKtm || formData.fotoKtm.length === 0)
       newErrors.fotoKtm = "Foto KTM wajib diupload";
 
+    if (!formData.password || formData.password.length < 6)
+      newErrors.password = "Password minimal 6 karakter";
+    if (formData.password !== formData.passwordConfirm)
+      newErrors.passwordConfirm = "Konfirmasi password tidak cocok";
+
+    if (isKti && !formData.setujuSyaratKti)
+      newErrors.setujuSyaratKti = "Wajib menyetujui persyaratan lomba KTI";
+
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
       return;
@@ -280,6 +365,9 @@ export default function ShowEvent({
       form.append("provinsi", formData.provinsi);
       form.append("anggota", JSON.stringify(cleanMembers));
       form.append("eventId", event.id);
+
+      form.append("password", formData.password);
+      form.append("setujuSyaratKti", isKti && formData.setujuSyaratKti ? "true" : "false");
 
       if (formData.buktiFollow) form.append("buktiFollow", formData.buktiFollow);
       (formData.fotoKtm || []).forEach((file) => form.append("fotoKtm", file));
@@ -784,6 +872,103 @@ export default function ShowEvent({
                   </p>
                 )}
               </div>
+
+              {/* 13. Akun login peserta */}
+              <div className="pt-1">
+                <div
+                  className="rounded-2xl b-border p-3.5"
+                  style={{ background: "#f0f9ff", boxShadow: "3px 3px 0 #1a1a1a" }}
+                >
+                  <p className="text-[11px] font-black text-slate-700 uppercase tracking-wider mb-0.5">
+                    🔐 Buat Akun Peserta
+                  </p>
+                  <p className="text-[10px] font-bold text-slate-500 mb-3">
+                    Login pakai <span className="font-black">email di atas</span> +
+                    password ini buat pantau verifikasi &amp; upload karya.
+                  </p>
+                  <div className="space-y-2.5">
+                    <div>
+                      <input
+                        type="password"
+                        value={formData.password}
+                        onChange={(e) => handleInputChange("password", e.target.value)}
+                        placeholder="Password (min. 6 karakter)"
+                        className={inputBase}
+                        style={sh(errors.password)}
+                      />
+                      {errors.password && (
+                        <p className="text-[11px] text-red-500 mt-1 font-black">
+                          {errors.password}
+                        </p>
+                      )}
+                    </div>
+                    <div>
+                      <input
+                        type="password"
+                        value={formData.passwordConfirm}
+                        onChange={(e) => handleInputChange("passwordConfirm", e.target.value)}
+                        placeholder="Ulangi password"
+                        className={inputBase}
+                        style={sh(errors.passwordConfirm)}
+                      />
+                      {errors.passwordConfirm && (
+                        <p className="text-[11px] text-red-500 mt-1 font-black">
+                          {errors.passwordConfirm}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* 14. Persetujuan syarat KTI (khusus event KTI) — wajib dibaca dulu di popup */}
+              {isKti && (
+                <div>
+                  {formData.setujuSyaratKti ? (
+                    <div
+                      className="flex items-start gap-2.5 rounded-2xl b-border p-3.5"
+                      style={{ background: "#f0fdf4", boxShadow: "3px 3px 0 #1a1a1a" }}
+                    >
+                      <CheckBadgeIcon className="w-4 h-4 mt-0.5 flex-shrink-0 text-emerald-600" strokeWidth={2.5} />
+                      <div className="flex-1">
+                        <span className="text-[11px] font-bold text-slate-600 leading-snug">
+                          Kamu udah menyetujui{" "}
+                          <span className="font-black text-slate-900">
+                            persyaratan &amp; ketentuan lomba KTI
+                          </span>
+                          .
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => setShowKtiTerms(true)}
+                          className="block text-[11px] font-black underline mt-1"
+                          style={{ color: acc.bg }}
+                        >
+                          Baca ulang
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => setShowKtiTerms(true)}
+                      className="b-btn b-border w-full py-3 rounded-xl text-xs font-black uppercase tracking-wide flex items-center justify-center gap-2"
+                      style={{
+                        background: "#fff",
+                        color: "#1a1a1a",
+                        boxShadow: errors.setujuSyaratKti ? "3px 3px 0 #f87171" : "3px 3px 0 #1a1a1a",
+                      }}
+                    >
+                      📄 Baca &amp; Setujui Persyaratan Lomba KTI
+                    </button>
+                  )}
+                  {errors.setujuSyaratKti && (
+                    <p className="text-[11px] text-red-500 mt-1 font-black">
+                      {errors.setujuSyaratKti}
+                    </p>
+                  )}
+                </div>
+              )}
             </div>
             <div className="mt-4 space-y-2">
               <button
@@ -958,6 +1143,15 @@ export default function ShowEvent({
   const pageBody = (
     <div className="min-h-screen">
       <style>{CSS}</style>
+
+      <KtiTermsModal
+        open={showKtiTerms}
+        onClose={() => setShowKtiTerms(false)}
+        onAgree={() => {
+          handleInputChange("setujuSyaratKti", true);
+          setShowKtiTerms(false);
+        }}
+      />
 
       {/* Hero */}
       <div
@@ -1258,6 +1452,13 @@ export default function ShowEvent({
               <span className="font-fredoka text-2xl font-bold tracking-tight text-black">
                 IT FEST 6.0
               </span>
+            </Link>
+            <Link
+              href="/login"
+              className="b-btn b-border inline-flex items-center gap-1.5 px-4 py-2 sm:px-5 sm:py-2.5 rounded-xl sm:rounded-2xl text-white text-[11px] sm:text-xs font-black uppercase tracking-widest"
+              style={{ background: "#082E4B" }}
+            >
+              Login
             </Link>
           </div>
         </header>

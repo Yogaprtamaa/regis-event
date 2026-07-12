@@ -49,6 +49,19 @@ export async function middleware(req) {
   }
 
   if (user) {
+    // Peserta login boleh, tapi gak boleh masuk area panitia/juri.
+    // Role dibaca dari JWT (app_metadata) — gak perlu query DB di edge.
+    // /api/me dikecualiin karena peserta butuh buat pantau status sendiri.
+    const isPeserta = user.app_metadata?.role === "peserta";
+    if (isPeserta && pathname !== "/api/me") {
+      if (isApi) {
+        return NextResponse.json({ message: "Forbidden" }, { status: 403 });
+      }
+      const url = req.nextUrl.clone();
+      url.pathname = "/submit-karya";
+      url.search = "";
+      return NextResponse.redirect(url);
+    }
     return res;
   }
 

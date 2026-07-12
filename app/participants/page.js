@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useRef, Fragment } from "react";
 import {
   MagnifyingGlassIcon,
   CheckIcon,
@@ -8,9 +8,10 @@ import {
   CalendarIcon,
   EyeIcon,
   ArrowDownTrayIcon,
+  ChevronDownIcon,
+  ClockIcon,
+  ShieldCheckIcon,
 } from "@heroicons/react/24/outline";
-import Popup from "reactjs-popup";
-import "reactjs-popup/dist/index.css";
 import RetroAdminStyles, { C } from "@/app/components/RetroAdminStyles";
 import Loading from "@/app/loading";
 
@@ -28,69 +29,371 @@ const ROLE_BG = {
   PENGURUS_HIMTI: C.coral,
 };
 
+const PAYMENT_CFG = {
+  APPROVED: { bg: C.lime, text: C.navy, label: "Terverifikasi" },
+  PENDING: { bg: C.yellow, text: C.navy, label: "Menunggu" },
+  REJECTED: { bg: C.coral, text: "#fff", label: "Ditolak" },
+  FREE: { bg: C.blue, text: "#fff", label: "Free" },
+};
+
+function paymentCfg(status) {
+  return PAYMENT_CFG[status || "FREE"] || PAYMENT_CFG.FREE;
+}
+
+/* ── Toast (pengganti alert()) ── */
+function Toast({ toast, onClose }) {
+  const timerRef = useRef(null);
+  useEffect(() => {
+    if (!toast) return;
+    clearTimeout(timerRef.current);
+    timerRef.current = setTimeout(onClose, 3200);
+    return () => clearTimeout(timerRef.current);
+  }, [toast, onClose]);
+
+  if (!toast) return null;
+  const bg = toast.tone === "error" ? C.coral : toast.tone === "info" ? C.blue : C.lime;
+  const text = toast.tone === "success" ? C.navy : "#fff";
+  return (
+    <div
+      className="stamp-in fixed bottom-6 right-6 z-[70] adm-card px-5 py-3.5 max-w-sm"
+      style={{ background: bg, boxShadow: "5px 5px 0 #000", "--d": "0ms" }}
+      role="status"
+    >
+      <p className="fb text-sm font-extrabold" style={{ color: text }}>
+        {toast.message}
+      </p>
+    </div>
+  );
+}
+
+/* ── Modal konfirmasi generik (approve / reject / reset / hapus) ── */
+function ConfirmModal({ action, reason, onReasonChange, onCancel, onConfirm, busy }) {
+  if (!action) return null;
+  const CFG = {
+    approve: {
+      title: "Setujui peserta ini?",
+      body: "Peserta akan bisa login & upload karya lomba setelah disetujui.",
+      confirmLabel: "Ya, Setujui",
+      color: C.lime,
+      confirmText: C.navy,
+    },
+    reject: {
+      title: "Tolak peserta ini?",
+      body: "Upload karya peserta akan terkunci. Kasih alasan biar peserta paham (opsional, tapi disarankan).",
+      confirmLabel: "Ya, Tolak",
+      color: C.coral,
+      confirmText: "#fff",
+    },
+    reset: {
+      title: "Reset ke status Menunggu?",
+      body: "Peserta akan masuk lagi ke antrian verifikasi. Kalau sebelumnya disetujui, upload karya bakal terkunci lagi.",
+      confirmLabel: "Ya, Reset",
+      color: C.yellow,
+      confirmText: C.navy,
+    },
+    delete: {
+      title: "Hapus peserta ini?",
+      body: "Data pendaftaran & seluruh berkasnya bakal hilang permanen. Gak bisa dibatalkan.",
+      confirmLabel: "Ya, Hapus",
+      color: C.coral,
+      confirmText: "#fff",
+    },
+  }[action.type];
+
+  return (
+    <div className="fixed inset-0 bg-black/60 z-[60] flex items-center justify-center p-4">
+      <div className="stamp-in adm-card sh-navy max-w-sm w-full overflow-hidden" style={{ "--d": "0ms" }}>
+        <div className="px-6 py-5">
+          <h3 className="fd text-xl font-bold" style={{ color: C.navy }}>
+            {CFG.title}
+          </h3>
+          <p className="fb text-sm font-semibold mt-2" style={{ color: C.muted }}>
+            {action.participant?.nama}
+          </p>
+          <p className="fb text-sm font-medium mt-3" style={{ color: C.muted }}>
+            {CFG.body}
+          </p>
+
+          {action.type === "reject" && (
+            <textarea
+              className="adm-input mt-3"
+              rows={3}
+              placeholder="Contoh: Foto KTM buram, tolong upload ulang."
+              value={reason}
+              onChange={(e) => onReasonChange(e.target.value)}
+            />
+          )}
+        </div>
+        <div className="px-6 pb-6 flex gap-3">
+          <button onClick={onCancel} className="adm-btn flex-1" disabled={busy}>
+            Batal
+          </button>
+          <button
+            onClick={onConfirm}
+            disabled={busy}
+            className="adm-btn flex-1"
+            style={{ background: CFG.color, color: CFG.confirmText }}
+          >
+            {busy ? "..." : CFG.confirmLabel}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ── Modal review bukti (bayar + follow IG + KTM) ── */
+function ReviewModal({ participant, onClose, onAction }) {
+  if (!participant) return null;
+  const fotoKtm = Array.isArray(participant.fotoKtm) ? participant.fotoKtm : [];
+  const st = paymentCfg(participant.paymentStatus);
+
+  const Evidence = ({ label, url }) =>
+    url ? (
+      <a href={url} target="_blank" rel="noopener noreferrer" className="block">
+        <img
+          src={url}
+          alt={label}
+          className="rounded-xl border-[3px] border-black w-full h-40 object-cover"
+          style={{ boxShadow: "3px 3px 0 #000" }}
+        />
+        <p className="fb text-[11px] font-extrabold mt-1.5" style={{ color: C.navy }}>
+          {label}
+        </p>
+      </a>
+    ) : (
+      <div
+        className="rounded-xl border-[3px] border-dashed flex items-center justify-center h-40"
+        style={{ borderColor: "rgba(8,46,75,.3)" }}
+      >
+        <p className="fb text-xs font-bold" style={{ color: C.muted }}>
+          {label} — tidak ada
+        </p>
+      </div>
+    );
+
+  return (
+    <div className="fixed inset-0 bg-black/70 z-50 overflow-y-auto flex items-start sm:items-center justify-center p-4">
+      <div className="stamp-in adm-card sh-blue max-w-2xl w-full overflow-hidden my-8" style={{ "--d": "0ms" }}>
+        <div
+          className="px-6 py-4 flex justify-between items-start gap-3"
+          style={{ background: C.blue, borderBottom: "3px solid #000" }}
+        >
+          <div>
+            <h2 className="fd text-xl font-bold text-white">Review Berkas</h2>
+            <p className="fb text-xs font-semibold text-white/80 mt-0.5">
+              {participant.jenisPeserta === "kelompok" ? `Tim ${participant.nama}` : participant.nama} · {participant.event?.nama_event}
+            </p>
+          </div>
+          <button
+            onClick={onClose}
+            aria-label="Tutup"
+            className="fd w-9 h-9 flex-shrink-0 rounded-full border-[2.5px] border-black bg-white text-xl leading-none hover:rotate-90 transition-transform"
+            style={{ boxShadow: "2px 2px 0 #000", color: C.navy }}
+          >
+            ×
+          </button>
+        </div>
+
+        <div className="p-6" style={{ background: C.sand }}>
+          <div className="flex flex-wrap items-center gap-2 mb-5">
+            <span
+              className="fb px-3 py-1.5 text-xs font-extrabold uppercase tracking-wide rounded-full border-2 border-black"
+              style={{ background: st.bg, color: st.text }}
+            >
+              {st.label}
+            </span>
+            {participant.setujuSyaratKti && (
+              <span
+                className="fb inline-flex items-center gap-1 px-3 py-1.5 text-xs font-extrabold uppercase tracking-wide rounded-full border-2 border-black"
+                style={{ background: "#fff", color: C.navy }}
+              >
+                <ShieldCheckIcon className="w-3.5 h-3.5" strokeWidth={2.5} /> Setuju Syarat KTI
+              </span>
+            )}
+          </div>
+
+          <div className="grid sm:grid-cols-3 gap-4">
+            <Evidence label="Bukti Pembayaran" url={participant.buktiPembayaran} />
+            <Evidence label="Bukti Follow IG" url={participant.buktiFollow} />
+            {fotoKtm.length > 0 ? (
+              fotoKtm.map((url, i) => (
+                <Evidence key={url} label={`Foto KTM ${fotoKtm.length > 1 ? i + 1 : ""}`} url={url} />
+              ))
+            ) : (
+              <Evidence label="Foto KTM" url={null} />
+            )}
+          </div>
+
+          {participant.catatanVerifikasi && (
+            <div
+              className="mt-5 rounded-xl border-[3px] border-black p-4"
+              style={{ background: "#fff" }}
+            >
+              <p className="fb text-[10px] font-extrabold uppercase tracking-widest" style={{ color: C.coral }}>
+                Catatan Verifikasi
+              </p>
+              <p className="fb text-sm font-semibold mt-1" style={{ color: C.navy }}>
+                {participant.catatanVerifikasi}
+              </p>
+            </div>
+          )}
+
+          <div className="flex gap-2.5 flex-wrap mt-6">
+            {participant.paymentStatus !== "APPROVED" && (
+              <button
+                onClick={() => onAction("approve", participant)}
+                className="adm-btn"
+                style={{ background: C.lime }}
+              >
+                <CheckIcon className="w-4 h-4" strokeWidth={2.5} /> Setujui
+              </button>
+            )}
+            {participant.paymentStatus !== "REJECTED" && (
+              <button
+                onClick={() => onAction("reject", participant)}
+                className="adm-btn"
+                style={{ background: C.coral, color: "#fff" }}
+              >
+                Tolak
+              </button>
+            )}
+            {(participant.paymentStatus === "APPROVED" || participant.paymentStatus === "REJECTED") && (
+              <button onClick={() => onAction("reset", participant)} className="adm-btn" style={{ background: "#fff" }}>
+                ↺ Reset ke Menunggu
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ── Baris detail (expandable) ── */
+function DetailRow({ participant }) {
+  const fields = [
+    ["NIM", participant.nim],
+    ["Jurusan / Prodi", participant.jurusan],
+    ["Angkatan", participant.angkatan],
+    ["Divisi", participant.divisi],
+    ["Instansi", participant.instansi],
+    ["No. WhatsApp", participant.no_wa],
+    ["Universitas", participant.universitas],
+    ["Fakultas", participant.fakultas],
+    ["Kota Domisili", participant.kotaDomisili],
+    ["Provinsi", participant.provinsi],
+    ["Jenis Peserta", participant.jenisPeserta === "kelompok" ? "Kelompok" : participant.jenisPeserta === "individu" ? "Individu" : null],
+    ["Terdaftar", participant.createdAt ? new Date(participant.createdAt).toLocaleDateString("id-ID", { dateStyle: "medium" }) : null],
+  ].filter(([, v]) => v);
+
+  return (
+    <tr style={{ background: "#FDF5E4" }}>
+      <td colSpan={5} className="px-5 py-4" style={{ borderTop: "2px dashed rgba(8,46,75,.2)" }}>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-x-6 gap-y-3">
+          {fields.map(([label, val]) => (
+            <div key={label}>
+              <p className="fb text-[10px] font-extrabold uppercase tracking-widest" style={{ color: C.muted }}>
+                {label}
+              </p>
+              <p className="fb text-sm font-bold mt-0.5" style={{ color: C.navy }}>
+                {val}
+              </p>
+            </div>
+          ))}
+          {Array.isArray(participant.anggota) && participant.anggota.length > 0 && (
+            <div className="col-span-full">
+              <p className="fb text-[10px] font-extrabold uppercase tracking-widest mb-1" style={{ color: C.muted }}>
+                Anggota
+              </p>
+              <ul className="space-y-0.5">
+                {participant.anggota.map((a, i) => (
+                  <li key={i} className="fb text-sm font-bold" style={{ color: C.navy }}>
+                    {i === 0 ? "Ketua" : `Anggota ${i}`} — {a.nama}{a.nim ? ` (${a.nim})` : ""}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
+      </td>
+    </tr>
+  );
+}
+
 export default function ParticipantsPage() {
   const [participants, setParticipants] = useState([]);
-  const [filteredParticipants, setFilteredParticipants] = useState([]);
   const [search, setSearch] = useState("");
+  const [tab, setTab] = useState("verifikasi"); // "verifikasi" | "semua"
   const [statusFilter, setStatusFilter] = useState("all");
   const [eventFilter, setEventFilter] = useState("all");
   const [paymentFilter, setPaymentFilter] = useState("all");
   const [loading, setLoading] = useState(true);
   const [events, setEvents] = useState([]);
   const [updatingId, setUpdatingId] = useState(null);
+  const [expandedId, setExpandedId] = useState(null);
+  const [reviewing, setReviewing] = useState(null);
+  const [confirmAction, setConfirmAction] = useState(null);
+  const [reason, setReason] = useState("");
+  const [toast, setToast] = useState(null);
 
   useEffect(() => {
     fetchData();
   }, []);
 
-  useEffect(() => {
-    filterParticipants();
-  }, [search, statusFilter, eventFilter, paymentFilter, participants]);
+  function notify(message, tone = "success") {
+    setToast({ message, tone });
+  }
 
   async function fetchData() {
     try {
       setLoading(true);
-
-      // Fetch participants
       const participantsRes = await fetch("/api/participants");
-      if (!participantsRes.ok) {
-        throw new Error(`Participants API error: ${participantsRes.status}`);
-      }
+      if (!participantsRes.ok) throw new Error(`Participants API error: ${participantsRes.status}`);
       const participantsData = await participantsRes.json();
-      if (!Array.isArray(participantsData)) {
-        throw new Error("Participants data is not an array");
-      }
+      if (!Array.isArray(participantsData)) throw new Error("Participants data is not an array");
 
-      // Fetch events
       const eventsRes = await fetch("/api/events");
-      if (!eventsRes.ok) {
-        throw new Error(`Events API error: ${eventsRes.status}`);
-      }
+      if (!eventsRes.ok) throw new Error(`Events API error: ${eventsRes.status}`);
       const eventsData = await eventsRes.json();
-      if (!Array.isArray(eventsData)) {
-        throw new Error("Events data is not an array");
-      }
+      if (!Array.isArray(eventsData)) throw new Error("Events data is not an array");
 
       setParticipants(participantsData);
-      setFilteredParticipants(participantsData);
       setEvents(eventsData);
-      setLoading(false);
     } catch (error) {
       console.error("Error fetching data:", error);
       setParticipants([]);
-      setFilteredParticipants([]);
       setEvents([]);
+    } finally {
       setLoading(false);
     }
   }
 
-  function filterParticipants() {
-    let filtered = participants;
+  const counts = useMemo(
+    () => ({
+      total: participants.length,
+      pending: participants.filter((p) => (p.paymentStatus || "FREE") === "PENDING").length,
+      approved: participants.filter((p) => p.paymentStatus === "APPROVED").length,
+      hadir: participants.filter((p) => p.status === "hadir").length,
+    }),
+    [participants],
+  );
 
-    // Filter by search
+  const filtered = useMemo(() => {
+    let list = participants;
+
+    if (tab === "verifikasi") {
+      list = list.filter((p) => (p.paymentStatus || "FREE") === "PENDING");
+    } else {
+      if (paymentFilter !== "all") list = list.filter((p) => (p.paymentStatus || "FREE") === paymentFilter);
+      if (statusFilter !== "all") list = list.filter((p) => p.status === statusFilter);
+    }
+
+    if (eventFilter !== "all") list = list.filter((p) => p.eventId === eventFilter);
+
     if (search) {
       const q = search.toLowerCase();
-      filtered = filtered.filter(
+      list = list.filter(
         (p) =>
           p.nama.toLowerCase().includes(q) ||
           p.email.toLowerCase().includes(q) ||
@@ -101,144 +404,83 @@ export default function ParticipantsPage() {
       );
     }
 
-    // Filter by payment
-    if (paymentFilter !== "all") {
-      filtered = filtered.filter(
-        (p) => (p.paymentStatus || "FREE") === paymentFilter,
-      );
-    }
+    return list;
+  }, [participants, tab, search, statusFilter, eventFilter, paymentFilter]);
 
-    // Filter by status
-    if (statusFilter !== "all") {
-      filtered = filtered.filter((p) => p.status === statusFilter);
+  async function updateParticipant(participantId, body) {
+    setUpdatingId(participantId);
+    try {
+      const response = await fetch(`/api/participants/${participantId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      if (!response.ok) {
+        const err = await response.json();
+        throw new Error(err.message || "Gagal update");
+      }
+      const updated = await response.json();
+      setParticipants((prev) => prev.map((p) => (p.id === participantId ? updated : p)));
+      return updated;
+    } finally {
+      setUpdatingId(null);
     }
-
-    // Filter by event
-    if (eventFilter !== "all") {
-      filtered = filtered.filter((p) => p.eventId === eventFilter);
-    }
-
-    setFilteredParticipants(filtered);
   }
 
   async function updateParticipantStatus(participantId, newStatus) {
     try {
-      setUpdatingId(participantId);
-      const response = await fetch(`/api/participants/${participantId}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ status: newStatus }),
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || "Gagal mengupdate status");
-      }
-
-      // Update both lists
-      const updatedParticipant = await response.json();
-      setParticipants((prev) =>
-        prev.map((p) => (p.id === participantId ? updatedParticipant : p)),
-      );
-      setFilteredParticipants((prev) =>
-        prev.map((p) => (p.id === participantId ? updatedParticipant : p)),
-      );
+      await updateParticipant(participantId, { status: newStatus });
     } catch (error) {
-      console.error("Error updating participant:", error);
-      alert("Gagal mengupdate status peserta: " + error.message);
-    } finally {
-      setUpdatingId(null);
+      notify("Gagal update kehadiran: " + error.message, "error");
     }
   }
 
-  async function updatePaymentStatus(participantId, newPaymentStatus) {
+  function requestAction(type, participant) {
+    setReason("");
+    setConfirmAction({ type, participant });
+  }
+
+  async function confirmActionRun() {
+    const { type, participant } = confirmAction;
     try {
-      setUpdatingId(participantId);
-      const response = await fetch(`/api/participants/${participantId}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ paymentStatus: newPaymentStatus }),
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || "Gagal mengupdate pembayaran");
+      if (type === "delete") {
+        setUpdatingId(participant.id);
+        const res = await fetch(`/api/participants/${participant.id}`, { method: "DELETE" });
+        if (!res.ok) {
+          const err = await res.json();
+          throw new Error(err.message || "Gagal menghapus peserta");
+        }
+        setParticipants((prev) => prev.filter((p) => p.id !== participant.id));
+        notify("Peserta dihapus.");
+      } else {
+        const paymentStatus = type === "approve" ? "APPROVED" : type === "reject" ? "REJECTED" : "PENDING";
+        const body = { paymentStatus };
+        if (type === "reject") body.catatanVerifikasi = reason;
+        if (type === "approve" || type === "reset") body.catatanVerifikasi = "";
+        await updateParticipant(participant.id, body);
+        notify(
+          type === "approve"
+            ? "Peserta disetujui — upload karya udah kebuka."
+            : type === "reject"
+              ? "Peserta ditolak."
+              : "Direset ke Menunggu.",
+        );
+        setReviewing(null);
       }
-
-      const updatedParticipant = await response.json();
-
-      setParticipants((prev) =>
-        prev.map((p) => (p.id === participantId ? updatedParticipant : p)),
-      );
-      setFilteredParticipants((prev) =>
-        prev.map((p) => (p.id === participantId ? updatedParticipant : p)),
-      );
+      setConfirmAction(null);
     } catch (error) {
-      alert("Gagal update payment: " + error.message);
+      notify(error.message, "error");
     } finally {
       setUpdatingId(null);
     }
   }
-
-  async function deleteParticipant(participantId) {
-    if (!confirm("Apakah Anda yakin ingin menghapus peserta ini?")) {
-      return;
-    }
-
-    try {
-      setUpdatingId(participantId);
-      const response = await fetch(`/api/participants/${participantId}`, {
-        method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || "Gagal menghapus peserta");
-      }
-
-      // Remove from both lists
-      setParticipants((prev) => prev.filter((p) => p.id !== participantId));
-      setFilteredParticipants((prev) =>
-        prev.filter((p) => p.id !== participantId),
-      );
-    } catch (error) {
-      console.error("Error deleting participant:", error);
-      alert("Gagal menghapus peserta: " + error.message);
-    } finally {
-      setUpdatingId(null);
-    }
-  }
-
-  const paymentBg = (status) => {
-    switch ((status || "FREE").toUpperCase()) {
-      case "APPROVED":
-        return C.lime;
-      case "PENDING":
-        return C.yellow;
-      case "REJECTED":
-        return C.coral;
-      case "FREE":
-      default:
-        return C.blue;
-    }
-  };
 
   const statusBg = (status) => {
-    switch (status.toLowerCase()) {
-      case "attended":
+    switch ((status || "").toLowerCase()) {
       case "hadir":
         return C.lime;
-      case "registered":
       case "terdaftar":
         return C.yellow;
-      case "cancelled":
       case "batal":
         return C.coral;
       default:
@@ -246,35 +488,32 @@ export default function ParticipantsPage() {
     }
   };
 
-  const stats = {
-    total: participants.length,
-    attended: participants.filter(
-      (p) =>
-        p.status === "hadir" ||
-        p.status === "ATTENDED" ||
-        p.status === "attended",
-    ).length,
-    registered: participants.filter(
-      (p) =>
-        p.status === "terdaftar" ||
-        p.status === "REGISTERED" ||
-        p.status === "registered",
-    ).length,
-  };
-
   if (loading) return <Loading />;
 
   const statCards = [
-    { label: "Total Peserta", value: stats.total, Icon: UsersIcon, sh: "sh-coral", bg: C.coral, rotate: "-0.8deg" },
-    { label: "Hadir", value: stats.attended, Icon: CheckIcon, sh: "sh-lime", bg: C.lime, rotate: "0.7deg" },
-    { label: "Terdaftar", value: stats.registered, Icon: CalendarIcon, sh: "sh-blue", bg: C.blue, rotate: "-0.5deg" },
+    { label: "Total Peserta", value: counts.total, Icon: UsersIcon, sh: "sh-navy", bg: C.navy, rotate: "-0.8deg" },
+    { label: "Perlu Verifikasi", value: counts.pending, Icon: ClockIcon, sh: "sh-coral", bg: C.coral, rotate: "0.6deg", highlight: true },
+    { label: "Terverifikasi", value: counts.approved, Icon: ShieldCheckIcon, sh: "sh-lime", bg: C.lime, rotate: "-0.5deg" },
+    { label: "Hadir", value: counts.hadir, Icon: CheckIcon, sh: "sh-blue", bg: C.blue, rotate: "0.7deg" },
   ];
-
-  const inputCls = "adm-input";
 
   return (
     <div className="adm-bg">
       <RetroAdminStyles />
+      <Toast toast={toast} onClose={() => setToast(null)} />
+      <ConfirmModal
+        action={confirmAction}
+        reason={reason}
+        onReasonChange={setReason}
+        onCancel={() => setConfirmAction(null)}
+        onConfirm={confirmActionRun}
+        busy={updatingId === confirmAction?.participant?.id}
+      />
+      <ReviewModal
+        participant={reviewing}
+        onClose={() => setReviewing(null)}
+        onAction={(type, participant) => requestAction(type, participant)}
+      />
 
       {/* Header */}
       <div className="max-w-[96rem] mx-auto px-4 sm:px-6 lg:px-8 pt-8">
@@ -286,18 +525,19 @@ export default function ParticipantsPage() {
             Manajemen Peserta
           </h1>
           <p className="fb text-sm font-semibold mt-2" style={{ color: C.muted }}>
-            Kelola kehadiran, pembayaran, dan data semua peserta.
+            Verifikasi berkas, kelola kehadiran, dan data semua peserta.
           </p>
         </div>
       </div>
 
       <div className="max-w-[96rem] mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           {statCards.map((s, i) => (
-            <div
+            <button
               key={s.label}
-              className={`pop-in adm-card adm-lift ${s.sh} p-6`}
+              onClick={() => s.label === "Perlu Verifikasi" && setTab("verifikasi")}
+              className={`pop-in adm-card adm-lift ${s.sh} p-6 text-left ${s.highlight ? "ring-4 ring-black/5" : ""}`}
               style={{ "--d": `${100 + i * 90}ms`, "--r": s.rotate, transform: `rotate(${s.rotate})` }}
             >
               <div className="flex items-center justify-between">
@@ -316,13 +556,34 @@ export default function ParticipantsPage() {
                   <s.Icon className="h-7 w-7 text-white" strokeWidth={2.2} />
                 </div>
               </div>
-            </div>
+            </button>
+          ))}
+        </div>
+
+        {/* Tabs */}
+        <div className="pop-in flex gap-2 mb-5" style={{ "--d": "220ms" }}>
+          {[
+            { key: "verifikasi", label: `Antrian Verifikasi (${counts.pending})` },
+            { key: "semua", label: "Semua Peserta" },
+          ].map((t) => (
+            <button
+              key={t.key}
+              onClick={() => setTab(t.key)}
+              className="fb px-4 py-2.5 text-xs font-extrabold uppercase tracking-wider rounded-2xl border-[3px] border-black transition"
+              style={{
+                background: tab === t.key ? C.navy : "#fff",
+                color: tab === t.key ? "#fff" : C.navy,
+                boxShadow: tab === t.key ? "3px 3px 0 #000" : "none",
+              }}
+            >
+              {t.label}
+            </button>
           ))}
         </div>
 
         {/* Filters */}
         <div className="pop-in adm-card sh-yellow p-5 sm:p-6 mb-8" style={{ "--d": "280ms" }}>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className={`grid grid-cols-1 ${tab === "semua" ? "md:grid-cols-4" : "md:grid-cols-2"} gap-4`}>
             <div className="relative">
               <MagnifyingGlassIcon className="absolute left-3.5 top-1/2 -translate-y-1/2 h-5 w-5 pointer-events-none" style={{ color: C.muted }} strokeWidth={2.5} />
               <input
@@ -330,45 +591,17 @@ export default function ParticipantsPage() {
                 placeholder="Cari nama, email, NIM..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className={inputCls}
+                className="adm-input"
                 style={{ paddingLeft: "2.6rem" }}
               />
             </div>
-
-            <div className="relative">
-              <FunnelIcon className="absolute left-3.5 top-1/2 -translate-y-1/2 h-5 w-5 pointer-events-none z-10" style={{ color: C.muted }} strokeWidth={2.5} />
-              <select
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-                className={inputCls}
-                style={{ paddingLeft: "2.6rem", appearance: "none" }}
-              >
-                <option value="all">Semua Status</option>
-                <option value="terdaftar">Terdaftar</option>
-                <option value="hadir">Hadir</option>
-                <option value="batal">Batal</option>
-              </select>
-            </div>
-
-            <select
-              value={paymentFilter}
-              onChange={(e) => setPaymentFilter(e.target.value)}
-              className={inputCls}
-              style={{ appearance: "none" }}
-            >
-              <option value="all">Semua Pembayaran</option>
-              <option value="FREE">Free</option>
-              <option value="PENDING">Pending</option>
-              <option value="APPROVED">Approved</option>
-              <option value="REJECTED">Rejected</option>
-            </select>
 
             <div className="relative">
               <CalendarIcon className="absolute left-3.5 top-1/2 -translate-y-1/2 h-5 w-5 pointer-events-none z-10" style={{ color: C.muted }} strokeWidth={2.5} />
               <select
                 value={eventFilter}
                 onChange={(e) => setEventFilter(e.target.value)}
-                className={inputCls}
+                className="adm-input"
                 style={{ paddingLeft: "2.6rem", appearance: "none" }}
               >
                 <option value="all">Semua Event</option>
@@ -379,10 +612,42 @@ export default function ParticipantsPage() {
                 ))}
               </select>
             </div>
+
+            {tab === "semua" && (
+              <>
+                <div className="relative">
+                  <FunnelIcon className="absolute left-3.5 top-1/2 -translate-y-1/2 h-5 w-5 pointer-events-none z-10" style={{ color: C.muted }} strokeWidth={2.5} />
+                  <select
+                    value={statusFilter}
+                    onChange={(e) => setStatusFilter(e.target.value)}
+                    className="adm-input"
+                    style={{ paddingLeft: "2.6rem", appearance: "none" }}
+                  >
+                    <option value="all">Semua Kehadiran</option>
+                    <option value="terdaftar">Terdaftar</option>
+                    <option value="hadir">Hadir</option>
+                    <option value="batal">Batal</option>
+                  </select>
+                </div>
+
+                <select
+                  value={paymentFilter}
+                  onChange={(e) => setPaymentFilter(e.target.value)}
+                  className="adm-input"
+                  style={{ appearance: "none" }}
+                >
+                  <option value="all">Semua Verifikasi</option>
+                  <option value="FREE">Free</option>
+                  <option value="PENDING">Menunggu</option>
+                  <option value="APPROVED">Terverifikasi</option>
+                  <option value="REJECTED">Ditolak</option>
+                </select>
+              </>
+            )}
           </div>
 
           <p className="fb mt-4 text-sm font-bold" style={{ color: C.navy }}>
-            Menampilkan {filteredParticipants.length} dari {participants.length} peserta
+            Menampilkan {filtered.length} peserta
           </p>
         </div>
 
@@ -392,250 +657,140 @@ export default function ParticipantsPage() {
             <table className="min-w-full">
               <thead>
                 <tr style={{ background: C.navy }}>
-                  {["Peserta", "NIM", "Event", "Detail", "Instansi", "Status", "Role", "Kontak", "Pembayaran", "Bukti", "Aksi"].map((h) => (
-                    <th
-                      key={h}
-                      className="fb px-5 py-4 text-left text-[10px] font-extrabold text-white uppercase tracking-[.14em] whitespace-nowrap"
-                    >
+                  {["Peserta", "Event", "Kehadiran", "Verifikasi", "Aksi"].map((h) => (
+                    <th key={h} className="fb px-5 py-4 text-left text-[10px] font-extrabold text-white uppercase tracking-[.14em] whitespace-nowrap">
                       {h}
                     </th>
                   ))}
                 </tr>
               </thead>
               <tbody>
-                {filteredParticipants.length === 0 ? (
+                {filtered.length === 0 ? (
                   <tr>
-                    <td colSpan="11" className="px-6 py-14 text-center">
+                    <td colSpan={5} className="px-6 py-14 text-center">
                       <UsersIcon className="mx-auto h-12 w-12" style={{ color: C.muted }} />
                       <p className="fb mt-3 text-sm font-semibold" style={{ color: C.muted }}>
-                        Tidak ada peserta ditemukan.
+                        {tab === "verifikasi" ? "Gak ada yang perlu diverifikasi. 🎉" : "Tidak ada peserta ditemukan."}
                       </p>
                     </td>
                   </tr>
                 ) : (
-                  filteredParticipants.map((participant, idx) => (
-                    <tr
-                      key={participant.id}
-                      className="hover:bg-[#FDF5E4] transition"
-                      style={{ borderTop: idx === 0 ? "none" : "2px dashed rgba(8,46,75,.2)" }}
-                    >
-                      <td className="px-5 py-4">
-                        <div className="flex items-start">
-                          <div
-                            className="fd flex-shrink-0 h-10 w-10 rounded-full border-[2.5px] border-black flex items-center justify-center font-semibold text-white"
-                            style={{
-                              background: [C.coral, C.blue, C.orange, C.lime, C.navy][idx % 5],
-                              boxShadow: "2px 2px 0 #000",
-                            }}
-                          >
-                            {participant.nama.charAt(0).toUpperCase()}
-                          </div>
-                          <div className="ml-3 min-w-[160px]">
-                            <div className="fb text-sm font-extrabold whitespace-nowrap" style={{ color: C.navy }}>
-                              {participant.jenisPeserta === "kelompok" ? `Tim ${participant.nama}` : participant.nama}
-                            </div>
-                            <div className="fb text-xs font-semibold whitespace-nowrap" style={{ color: C.muted }}>
-                              {participant.email}
-                            </div>
-                            {Array.isArray(participant.anggota) && participant.anggota.length > 1 && (
-                              <ul className="mt-1">
-                                {participant.anggota.map((a, i) => (
-                                  <li key={i} className="fb text-[11px] font-semibold whitespace-nowrap" style={{ color: C.muted }}>
-                                    {i === 0 ? "Ketua" : `Anggota ${i}`} — {a.nama}{a.nim ? ` (${a.nim})` : ""}
-                                  </li>
-                                ))}
-                              </ul>
-                            )}
-                          </div>
-                        </div>
-                      </td>
-                      <td className="fb px-5 py-4 whitespace-nowrap text-sm font-bold" style={{ color: C.navy }}>
-                        {participant.nim || "-"}
-                      </td>
-                      <td className="fb px-5 py-4 whitespace-nowrap text-sm font-bold" style={{ color: C.navy }}>
-                        {participant.event?.nama_event || "-"}
-                      </td>
-                      <td className="fb px-5 py-4 whitespace-nowrap text-xs font-semibold" style={{ color: C.muted }}>
-                        {participant.jurusan || participant.angkatan || participant.divisi ? (
-                          <>
-                            {participant.jurusan && <div>Jurusan: {participant.jurusan}</div>}
-                            {participant.angkatan && <div>Angkatan: {participant.angkatan}</div>}
-                            {participant.divisi && <div>Divisi: {participant.divisi}</div>}
-                          </>
-                        ) : (
-                          "-"
-                        )}
-                      </td>
-                      <td className="fb px-5 py-4 whitespace-nowrap text-sm font-bold" style={{ color: C.navy }}>
-                        {participant.instansi || "-"}
-                      </td>
-                      <td className="px-5 py-4 whitespace-nowrap">
-                        <span
-                          className="fb px-3 py-1 inline-flex text-[10px] font-extrabold uppercase tracking-wide rounded-full border-2 border-black"
-                          style={{ background: statusBg(participant.status), color: C.navy }}
+                  filtered.map((participant, idx) => {
+                    const pst = paymentCfg(participant.paymentStatus);
+                    const isExpanded = expandedId === participant.id;
+                    return (
+                      <Fragment key={participant.id}>
+                        <tr
+                          className="hover:bg-[#FDF5E4] transition"
+                          style={{ borderTop: idx === 0 ? "none" : "2px dashed rgba(8,46,75,.2)" }}
                         >
-                          {participant.status}
-                        </span>
-                      </td>
-                      <td className="px-5 py-4 whitespace-nowrap">
-                        <span
-                          className="fb px-3 py-1 inline-flex text-[10px] font-extrabold uppercase tracking-wide rounded-full border-2 border-black"
-                          style={{
-                            background: ROLE_BG[participant.role] || C.lime,
-                            color: participant.role === "DOSEN" || participant.role === "PENGURUS_HIMTI" ? "#fff" : C.navy,
-                          }}
-                        >
-                          {ROLE_LABEL[participant.role] || "Peserta"}
-                        </span>
-                      </td>
-                      <td className="fb px-5 py-4 whitespace-nowrap text-sm font-semibold" style={{ color: C.muted }}>
-                        {participant.no_wa}
-                      </td>
-                      <td className="px-5 py-4 whitespace-nowrap">
-                        <div className="flex flex-col gap-2">
-                          <span
-                            className="fb px-3 py-1 text-[10px] text-center font-extrabold uppercase rounded-full border-2 border-black"
-                            style={{
-                              background: paymentBg(participant.paymentStatus),
-                              color: (participant.paymentStatus || "FREE") === "REJECTED" ? "#fff" : C.navy,
-                            }}
-                          >
-                            {participant.paymentStatus || "FREE"}
-                          </span>
-
-                          {participant.paymentStatus === "PENDING" && (
-                            <div className="flex gap-1.5">
-                              <button
-                                onClick={() => updatePaymentStatus(participant.id, "APPROVED")}
-                                className="adm-btn adm-btn-sm px-2 py-1 text-[11px]"
-                                style={{ background: C.lime }}
+                          <td className="px-5 py-4">
+                            <button
+                              onClick={() => setExpandedId(isExpanded ? null : participant.id)}
+                              className="flex items-start gap-3 text-left"
+                            >
+                              <div
+                                className="fd flex-shrink-0 h-10 w-10 rounded-full border-[2.5px] border-black flex items-center justify-center font-semibold text-white"
+                                style={{
+                                  background: [C.coral, C.blue, C.orange, C.lime, C.navy][idx % 5],
+                                  boxShadow: "2px 2px 0 #000",
+                                }}
                               >
-                                Approve
-                              </button>
-                              <button
-                                onClick={() => updatePaymentStatus(participant.id, "REJECTED")}
-                                className="adm-btn adm-btn-sm px-2 py-1 text-[11px]"
-                                style={{ background: C.coral, color: "#fff" }}
-                              >
-                                Reject
-                              </button>
-                            </div>
-                          )}
-                        </div>
-                      </td>
-                      <td className="px-5 py-4 whitespace-nowrap text-sm">
-                        {participant.buktiPembayaran ? (
-                          <Popup
-                            trigger={
-                              <button className="adm-btn adm-btn-sm" style={{ background: C.blue, color: "#fff" }}>
-                                <EyeIcon className="w-3.5 h-3.5" strokeWidth={2.5} /> Bukti
-                              </button>
-                            }
-                            modal
-                            nested
-                            overlayStyle={{ background: "rgba(0,0,0,0.7)" }}
-                            contentStyle={{
-                              background: "transparent",
-                              border: "none",
-                              padding: "0",
-                              width: "auto",
-                            }}
-                          >
-                            {(close) => (
-                              <div className="adm-card sh-blue w-full max-w-3xl overflow-hidden relative bg-white">
-                                <div
-                                  className="px-6 py-4 flex justify-between items-center"
-                                  style={{ background: C.blue, borderBottom: "3px solid #000" }}
-                                >
-                                  <div>
-                                    <h2 className="fd text-xl font-semibold text-white">Bukti Pembayaran</h2>
-                                    <p className="fb text-xs font-semibold text-white/75">{participant.nama}</p>
-                                  </div>
-                                  <button
-                                    onClick={close}
-                                    aria-label="Tutup"
-                                    className="fd w-9 h-9 rounded-full border-[2.5px] border-black bg-white text-xl leading-none hover:rotate-90 transition-transform"
-                                    style={{ boxShadow: "2px 2px 0 #000", color: C.navy }}
-                                  >
-                                    ×
-                                  </button>
-                                </div>
-
-                                <div className="p-6" style={{ background: C.sand }}>
-                                  <div className="flex justify-center">
-                                    <img
-                                      src={participant.buktiPembayaran}
-                                      alt="Bukti"
-                                      className="rounded-xl border-[3px] border-black max-h-[500px] object-contain"
-                                      style={{ boxShadow: "5px 5px 0 #000" }}
-                                    />
-                                  </div>
-
-                                  <div className="flex justify-between items-center mt-6 text-sm">
-                                    <a
-                                      href={participant.buktiPembayaran}
-                                      target="_blank"
-                                      className="fb font-extrabold hover:underline"
-                                      style={{ color: C.blue }}
-                                    >
-                                      Buka di tab baru
-                                    </a>
-                                    <a
-                                      href={participant.buktiPembayaran}
-                                      download
-                                      className="adm-btn adm-btn-sm"
-                                      style={{ background: C.lime }}
-                                    >
-                                      <ArrowDownTrayIcon className="w-4 h-4" strokeWidth={2.5} /> Download
-                                    </a>
-                                  </div>
-                                </div>
+                                {participant.nama.charAt(0).toUpperCase()}
                               </div>
-                            )}
-                          </Popup>
-                        ) : (
-                          <span className="fb text-xs font-semibold italic" style={{ color: C.muted }}>
-                            Tidak ada
-                          </span>
-                        )}
-                      </td>
-                      <td className="px-5 py-4 whitespace-nowrap text-sm">
-                        <div className="flex gap-1.5 flex-wrap">
-                          {participant.status !== "hadir" && (
+                              <div className="min-w-[160px]">
+                                <div className="fb text-sm font-extrabold flex items-center gap-1.5" style={{ color: C.navy }}>
+                                  {participant.jenisPeserta === "kelompok" ? `Tim ${participant.nama}` : participant.nama}
+                                  <ChevronDownIcon
+                                    className="w-3.5 h-3.5 transition-transform"
+                                    style={{ transform: isExpanded ? "rotate(180deg)" : "none", color: C.muted }}
+                                  />
+                                </div>
+                                <div className="fb text-xs font-semibold whitespace-nowrap" style={{ color: C.muted }}>
+                                  {participant.email}
+                                </div>
+                                {participant.role && participant.role !== "PESERTA" && (
+                                  <span
+                                    className="fb mt-1 inline-block px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wide rounded-full border-2 border-black"
+                                    style={{
+                                      background: ROLE_BG[participant.role] || C.lime,
+                                      color: participant.role === "DOSEN" || participant.role === "PENGURUS_HIMTI" ? "#fff" : C.navy,
+                                    }}
+                                  >
+                                    {ROLE_LABEL[participant.role] || participant.role}
+                                  </span>
+                                )}
+                              </div>
+                            </button>
+                          </td>
+                          <td className="fb px-5 py-4 whitespace-nowrap text-sm font-bold" style={{ color: C.navy }}>
+                            {participant.event?.nama_event || "-"}
+                          </td>
+                          <td className="px-5 py-4 whitespace-nowrap">
+                            <div className="flex flex-col gap-2 items-start">
+                              <span
+                                className="fb px-3 py-1 text-[10px] font-extrabold uppercase tracking-wide rounded-full border-2 border-black"
+                                style={{ background: statusBg(participant.status), color: C.navy }}
+                              >
+                                {participant.status}
+                              </span>
+                              <div className="flex gap-1.5">
+                                {participant.status !== "hadir" && (
+                                  <button
+                                    onClick={() => updateParticipantStatus(participant.id, "hadir")}
+                                    disabled={updatingId === participant.id}
+                                    className="adm-btn adm-btn-sm px-2 py-1 text-[11px]"
+                                    style={{ background: C.lime }}
+                                  >
+                                    Hadir
+                                  </button>
+                                )}
+                                {participant.status !== "tidak_hadir" && (
+                                  <button
+                                    onClick={() => updateParticipantStatus(participant.id, "tidak_hadir")}
+                                    disabled={updatingId === participant.id}
+                                    className="adm-btn adm-btn-sm px-2 py-1 text-[11px]"
+                                    style={{ background: C.orange, color: "#fff" }}
+                                  >
+                                    Absen
+                                  </button>
+                                )}
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-5 py-4 whitespace-nowrap">
+                            <div className="flex flex-col gap-2 items-start">
+                              <span
+                                className="fb px-3 py-1 text-[10px] font-extrabold uppercase tracking-wide rounded-full border-2 border-black"
+                                style={{ background: pst.bg, color: pst.text }}
+                              >
+                                {pst.label}
+                              </span>
+                              <button
+                                onClick={() => setReviewing(participant)}
+                                className="adm-btn adm-btn-sm"
+                                style={{ background: C.blue, color: "#fff" }}
+                              >
+                                <EyeIcon className="w-3.5 h-3.5" strokeWidth={2.5} /> Review
+                              </button>
+                            </div>
+                          </td>
+                          <td className="px-5 py-4 whitespace-nowrap text-sm">
                             <button
-                              onClick={() => updateParticipantStatus(participant.id, "hadir")}
+                              onClick={() => requestAction("delete", participant)}
                               disabled={updatingId === participant.id}
                               className="adm-btn adm-btn-sm px-2.5 py-1 text-[11px]"
-                              style={{ background: C.lime }}
-                              title="Tandai hadir"
+                              style={{ background: "#fff", color: C.coral }}
+                              title="Hapus peserta"
                             >
-                              {updatingId === participant.id ? "..." : "Hadir"}
+                              Hapus
                             </button>
-                          )}
-                          {participant.status !== "tidak_hadir" && (
-                            <button
-                              onClick={() => updateParticipantStatus(participant.id, "tidak_hadir")}
-                              disabled={updatingId === participant.id}
-                              className="adm-btn adm-btn-sm px-2.5 py-1 text-[11px]"
-                              style={{ background: C.orange, color: "#fff" }}
-                              title="Tandai tidak hadir"
-                            >
-                              {updatingId === participant.id ? "..." : "Absen"}
-                            </button>
-                          )}
-                          <button
-                            onClick={() => deleteParticipant(participant.id)}
-                            disabled={updatingId === participant.id}
-                            className="adm-btn adm-btn-sm px-2.5 py-1 text-[11px]"
-                            style={{ background: "#fff", color: C.coral }}
-                            title="Hapus peserta"
-                          >
-                            {updatingId === participant.id ? "..." : "Hapus"}
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))
+                          </td>
+                        </tr>
+                        {isExpanded && <DetailRow participant={participant} />}
+                      </Fragment>
+                    );
+                  })
                 )}
               </tbody>
             </table>

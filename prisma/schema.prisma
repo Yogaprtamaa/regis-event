@@ -88,6 +88,15 @@ model Participant {
 
   buktiPembayaran String?
   paymentStatus PaymentStatus @default(FREE)
+  // Alasan panitia saat reject (atau catatan verifikasi lain)
+  catatanVerifikasi String?
+
+  // Akun login peserta (Supabase auth user id). Peserta = user Supabase yang
+  // ke-link ke baris ini; sisanya dianggap panitia. Lihat lib/auth-role.js.
+  supabaseId String? @unique
+
+  // KTI punya persyaratan lomba sendiri — checkbox persetujuan wajib buat event KTI.
+  setujuSyaratKti Boolean @default(false)
 
   eventId String
   event   Event  @relation(fields: [eventId], references: [id])

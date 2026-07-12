@@ -371,9 +371,18 @@ export default function EventsIndex({ auth, events, filters }) {
                             </div>
                             <span className="font-fredoka text-[1.25rem] sm:text-[1.5rem] font-bold tracking-tight text-black">IT FEST 6.0</span>
                         </Link>
-                        <a href="/" className="hidden sm:inline-flex items-center gap-1.5 text-xs font-black tracking-wider uppercase text-slate-500 hover:text-slate-900 transition-colors">
-                            ← Beranda
-                        </a>
+                        <div className="flex items-center gap-3 sm:gap-5">
+                            <a href="/" className="hidden sm:inline-flex items-center gap-1.5 text-xs font-black tracking-wider uppercase text-slate-500 hover:text-slate-900 transition-colors">
+                                ← Beranda
+                            </a>
+                            <Link
+                                href="/login"
+                                className="b-btn b-border inline-flex items-center gap-1.5 px-4 py-2 sm:px-5 sm:py-2.5 rounded-xl sm:rounded-2xl text-white text-[11px] sm:text-xs font-black uppercase tracking-widest"
+                                style={{ background: '#082E4B' }}
+                            >
+                                Login
+                            </Link>
+                        </div>
                     </nav>
                 </header>
 

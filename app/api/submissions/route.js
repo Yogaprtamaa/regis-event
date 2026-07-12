@@ -4,8 +4,10 @@ export const runtime = "nodejs";
 import { prisma } from "@/lib/prisma";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getRequester, unauthorized, forbidden } from "@/lib/auth-role";
+import { kategoriFromEventName } from "@/lib/kategori";
 
 const KARYA_BUCKET = "karya-submissions";
+const MAX_KARYA_BYTES = 10 * 1024 * 1024; // 10MB
 
 /* =======================
    GET → panitia: list semua submission (filter kategori/status bebas)
@@ -45,31 +47,55 @@ export async function GET(req) {
 }
 
 /* =======================
-   POST → peserta submit karya (publik, gak butuh login)
+   POST → peserta submit karya (wajib login peserta + sudah terverifikasi)
 ======================= */
 export async function POST(req) {
+  const { user, participant } = await getRequester();
+  if (!user || !participant) {
+    return forbidden("Harus login sebagai peserta");
+  }
+  if (participant.paymentStatus !== "APPROVED") {
+    return forbidden("Akun belum terverifikasi panitia");
+  }
+
   try {
     const formData = await req.formData();
 
-    const kategori = formData.get("kategori");
-    const namaTim = formData.get("namaTim");
-    const ketuaNama = formData.get("ketuaNama");
-    const ketuaNim = formData.get("ketuaNim");
-    const ketuaEmail = formData.get("ketuaEmail");
     const judulKarya = formData.get("judulKarya");
     const deskripsi = formData.get("deskripsi");
-    const anggotaRaw = formData.get("anggota");
     const file = formData.get("fileKarya");
 
-    if (!kategori || !namaTim || !ketuaNama || !ketuaEmail || !judulKarya || !file) {
-      return Response.json({ error: "Ada field wajib yang belum diisi" }, { status: 400 });
+    if (!judulKarya || !file) {
+      return Response.json({ error: "Judul karya & file wajib diisi" }, { status: 400 });
+    }
+    if (file.size > MAX_KARYA_BYTES) {
+      return Response.json(
+        { error: "Ukuran file maksimal 10MB. Kompres dulu file kamu ya." },
+        { status: 400 },
+      );
     }
 
-    let anggota = null;
-    try {
-      anggota = anggotaRaw ? JSON.parse(anggotaRaw) : null;
-    } catch {
-      anggota = null;
+    // Data tim diturunkan dari akun peserta (gak percaya input klien).
+    const kategori = kategoriFromEventName(participant.event?.nama_event);
+    if (!kategori) {
+      return Response.json({ error: "Kategori lomba tidak dikenali" }, { status: 400 });
+    }
+    const anggota = participant.anggota || null;
+    const ketua = Array.isArray(anggota) && anggota[0] ? anggota[0] : null;
+    const namaTim = participant.nama;
+    const ketuaNama = ketua?.nama || participant.nama;
+    const ketuaNim = ketua?.nim || participant.nim || null;
+    const ketuaEmail = participant.email;
+
+    // Cegah dobel submit untuk peserta yang sama di kategori ini.
+    const existing = await prisma.submission.findFirst({
+      where: { kategori, ketuaEmail },
+    });
+    if (existing) {
+      return Response.json(
+        { error: "Kamu sudah pernah mengumpulkan karya di kategori ini" },
+        { status: 400 },
+      );
     }
 
     const bytes = await file.arrayBuffer();

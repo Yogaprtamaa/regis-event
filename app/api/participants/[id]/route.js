@@ -84,9 +84,9 @@ export async function PUT(req, { params }) {
     }
 
     const body = await req.json();
-    const { status, paymentStatus } = body;
+    const { status, paymentStatus, catatanVerifikasi } = body;
 
-    if (!status && !paymentStatus) {
+    if (!status && !paymentStatus && catatanVerifikasi === undefined) {
       return Response.json(
         { message: "Status atau paymentStatus wajib diisi" },
         { status: 400 },
@@ -117,6 +117,11 @@ export async function PUT(req, { params }) {
         );
       }
       dataToUpdate.paymentStatus = paymentStatus;
+    }
+
+    // Catatan verifikasi (alasan reject dll) — string kosong = clear catatan
+    if (catatanVerifikasi !== undefined) {
+      dataToUpdate.catatanVerifikasi = catatanVerifikasi || null;
     }
 
     const participant = await prisma.participant.update({
