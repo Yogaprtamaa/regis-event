@@ -442,7 +442,7 @@ export default function EventsIndex({ auth, events, filters }) {
                                 </div>
 
                                 <p className="w-full max-w-md text-xs font-bold leading-relaxed sm:text-sm md:text-base text-white/90">
-                                    Hackathon, IoT, Game Making & KTI —{' '}
+                                    Hackathon, IoT & KTI —{' '}
                                     <span className="font-black text-yellow-200">perlombaan khusus untuk mahasiswa.</span>
                                 </p>
 

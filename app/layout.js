@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 export const metadata = {
   title: "IT FEST 6.0 — Human-Centered AI: Transforming the World with Integrity",
   description:
-    "Festival teknologi oleh HIMTI & Prodi Teknik Informatika Universitas Paramadina. Hackathon, IoT, Game Making, KTI, Talkshow, Expo, dan Fun Game — 27 Juli hingga 14 Oktober 2026.",
+    "Festival teknologi oleh HIMTI & Prodi Teknik Informatika Universitas Paramadina. Hackathon, IoT, KTI, Talkshow, Expo, dan Fun Game — 27 Juli hingga 14 Oktober 2026.",
 };
 
 export default function RootLayout({ children }) {

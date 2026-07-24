@@ -5,6 +5,12 @@ import { prisma } from "../../../lib/prisma";
 import { sendConfirmationEmail } from "../../../lib/mail";
 import { createAdminClient } from "../../../lib/supabase/admin";
 import { eventSlug } from "../../../lib/kategori";
+import {
+  getFormSchema,
+  isFileField,
+  RESERVED_TEXT_COLUMNS,
+  RESERVED_FILE_COLUMNS,
+} from "../../../lib/formSchema";
 
 const PARTICIPANT_BUCKET = "participant-uploads";
 /* =======================
@@ -34,11 +40,10 @@ export async function POST(req) {
   try {
     const formData = await req.formData();
 
+    // Field struktural (di luar form-builder)
     const nama = formData.get("nama");
     const email = formData.get("email");
     const nim = formData.get("nim");
-    const no_wa = formData.get("no_wa");
-    const jurusan = formData.get("jurusan");
     const divisi = formData.get("divisi");
     const instansi = formData.get("instansi");
     const angkatan = formData.get("angkatan");
@@ -48,16 +53,8 @@ export async function POST(req) {
     const file = formData.get("bukti_pembayaran");
     const password = formData.get("password");
     const setujuSyaratKti = formData.get("setujuSyaratKti") === "true";
-
-    // ── IT FEST 6.0 — field pendaftaran lomba ──
     const jenisPeserta = formData.get("jenisPeserta");
-    const universitas = formData.get("universitas");
-    const fakultas = formData.get("fakultas");
-    const kotaDomisili = formData.get("kotaDomisili");
-    const provinsi = formData.get("provinsi");
     const anggotaRaw = formData.get("anggota");
-    const buktiFollowFile = formData.get("buktiFollow");
-    const fotoKtmFiles = formData.getAll("fotoKtm");
 
     let anggota = null;
     try {
@@ -200,16 +197,28 @@ export async function POST(req) {
       paymentStatus = "PENDING";
     }
 
-    /* ===== UPLOAD BUKTI FOLLOW IG & FOTO KTM ===== */
-    let buktiFollowUrl = null;
-    if (buktiFollowFile && buktiFollowFile.size > 0) {
-      buktiFollowUrl = await uploadToSupabase(buktiFollowFile, "follow");
-    }
+    /* ===== PARSING FIELD FORM-BUILDER ===== */
+    // Field bawaan (id di RESERVED_*) → kolom Participant khusus; sisanya → formData JSON.
+    const cols = {}; // kolom teks/file bawaan
+    const extraData = {}; // jawaban field custom → Participant.formData
 
-    const fotoKtmUrls = [];
-    for (const f of fotoKtmFiles) {
-      if (f && typeof f.arrayBuffer === "function" && f.size > 0) {
-        fotoKtmUrls.push(await uploadToSupabase(f, "ktm"));
+    for (const field of getFormSchema(event)) {
+      if (isFileField(field)) {
+        const files = formData
+          .getAll(field.id)
+          .filter((x) => x && typeof x.arrayBuffer === "function" && x.size > 0);
+        const urls = [];
+        for (const f of files) urls.push(await uploadToSupabase(f, field.id));
+
+        const fileCol = RESERVED_FILE_COLUMNS[field.id];
+        if (fileCol === "single") cols[field.id] = urls[0] || null;
+        else if (fileCol === "multi") cols[field.id] = urls.length ? urls : null;
+        else extraData[field.id] = field.type === "files" ? urls : urls[0] || null;
+      } else {
+        let v = formData.get(field.id);
+        if (field.type === "checkbox") v = v === "true" || v === "on";
+        if (RESERVED_TEXT_COLUMNS.includes(field.id)) cols[field.id] = v ?? null;
+        else extraData[field.id] = v ?? null;
       }
     }
 
@@ -217,10 +226,7 @@ export async function POST(req) {
     const participant = await prisma.participant.create({
       data: {
         nama,
-        email,
         nim,
-        no_wa,
-        jurusan,
         angkatan,
         status: status || "terdaftar",
         role: role || "PESERTA",
@@ -232,13 +238,9 @@ export async function POST(req) {
         instansi,
         divisi,
         jenisPeserta,
-        universitas,
-        fakultas,
-        kotaDomisili,
-        provinsi,
+        ...cols, // email, no_wa, jurusan, universitas, fakultas, kotaDomisili, provinsi, buktiFollow, fotoKtm
         anggota: anggota ?? undefined,
-        buktiFollow: buktiFollowUrl,
-        fotoKtm: fotoKtmUrls.length ? fotoKtmUrls : undefined,
+        formData: Object.keys(extraData).length ? extraData : undefined,
         supabaseId,
         setujuSyaratKti,
       },
@@ -251,7 +253,6 @@ export async function POST(req) {
         email,
         {
           ...participant,
-          jurusan,
           divisi,
           instansi,
         },

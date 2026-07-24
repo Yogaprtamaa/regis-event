@@ -15,6 +15,7 @@ import {
 import { CheckBadgeIcon } from "@heroicons/react/24/solid";
 import { useState } from "react";
 import { eventSlug } from "../../lib/kategori";
+import { getFormSchema, isFileField } from "../../lib/formSchema";
 
 const ACCENTS = [
   { bg: "#EB3C6B", btn: "#EB3C6B", bar: "#FED245", tag: "rgba(0,0,0,0.18)", tagText: "#fff" },
@@ -95,6 +96,37 @@ function KtiTermsModal({ open, onClose, onAgree }) {
   );
 }
 
+// Buku panduan + grup WA yang dilampirkan admin. Muncul kalau diisi.
+function EventLinks({ event }) {
+  if (!event.panduanUrl && !event.waGroupLink) return null;
+  return (
+    <div className="space-y-2">
+      {event.panduanUrl && (
+        <a
+          href={event.panduanUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="b-btn b-border flex items-center justify-center gap-2 w-full py-3 rounded-2xl text-sm font-black text-white uppercase tracking-wide"
+          style={{ background: "#082E4B" }}
+        >
+          📘 Buku Panduan
+        </a>
+      )}
+      {event.waGroupLink && (
+        <a
+          href={event.waGroupLink}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="b-btn b-border flex items-center justify-center gap-2 w-full py-3 rounded-2xl text-sm font-black text-white uppercase tracking-wide"
+          style={{ background: "#25D366" }}
+        >
+          💬 Gabung Grup WA
+        </a>
+      )}
+    </div>
+  );
+}
+
 const STATUS_CFG = {
   PUBLISHED: { color: "#B5D948", textColor: "#082E4B", label: "Open Now" },
   DRAFT: { color: "#e2e8f0", textColor: "#000", label: "Draft" },
@@ -138,21 +170,26 @@ export default function ShowEvent({
   eventId,
 }) {
   const [step, setStep] = useState("detail");
+  // Field struktural (di luar form-builder)
   const [formData, setFormData] = useState({
     jenisPeserta: "individu", // "individu" | "kelompok"
-    email: "",
-    no_wa: "",
-    universitas: "",
-    fakultas: "",
-    jurusan: "", // Program Studi
-    kotaDomisili: "",
-    provinsi: "",
-    buktiFollow: null, // file (screenshot follow IG)
-    fotoKtm: [], // files (KTM seluruh anggota)
     password: "", // akun login peserta (buat pantau verifikasi + upload karya)
     passwordConfirm: "",
     setujuSyaratKti: false, // khusus event KTI
   });
+  // Skema kolom formulir (dari admin / default) + jawabannya
+  const schema = getFormSchema(event);
+  const [answers, setAnswers] = useState(() => {
+    const init = {};
+    for (const f of schema) {
+      init[f.id] = f.type === "files" ? [] : isFileField(f) ? null : f.type === "checkbox" ? false : "";
+    }
+    return init;
+  });
+  const setAnswer = (id, value) => {
+    setAnswers((prev) => ({ ...prev, [id]: value }));
+    if (errors[id]) setErrors((prev) => ({ ...prev, [id]: "" }));
+  };
   // Anggota: ketua di index 0; maksimal 4 orang dalam 1 kelompok
   const [members, setMembers] = useState([{ nama: "", nim: "" }]);
   const [errors, setErrors] = useState({});
@@ -313,13 +350,21 @@ export default function ShowEvent({
 
     // ── Validasi ──
     const newErrors = {};
-    if (!formData.email) newErrors.email = "Email harus diisi";
-    if (!formData.no_wa) newErrors.no_wa = "Nomor WhatsApp harus diisi";
-    if (!formData.universitas) newErrors.universitas = "Universitas harus diisi";
-    if (!formData.fakultas) newErrors.fakultas = "Fakultas harus diisi";
-    if (!formData.jurusan) newErrors.jurusan = "Program Studi harus diisi";
-    if (!formData.kotaDomisili) newErrors.kotaDomisili = "Kota domisili harus diisi";
-    if (!formData.provinsi) newErrors.provinsi = "Provinsi harus diisi";
+
+    // Field formulir (dari skema admin / default)
+    for (const f of schema) {
+      if (!f.required) continue;
+      const v = answers[f.id];
+      const empty =
+        f.type === "files"
+          ? !v || v.length === 0
+          : isFileField(f)
+            ? !v
+            : f.type === "checkbox"
+              ? !v
+              : !String(v ?? "").trim();
+      if (empty) newErrors[f.id] = `${f.label} wajib diisi`;
+    }
 
     const activeMembers = members.filter((m) => m.nama.trim() || m.nim.trim());
     if (activeMembers.length === 0 || !members[0].nama.trim()) {
@@ -329,10 +374,6 @@ export default function ShowEvent({
       if (m.nama.trim() && !m.nim.trim()) newErrors[`nim_${i}`] = "NIM wajib diisi";
       if (!m.nama.trim() && m.nim.trim()) newErrors[`nama_${i}`] = "Nama wajib diisi";
     });
-
-    if (!formData.buktiFollow) newErrors.buktiFollow = "Bukti follow IG wajib diupload";
-    if (!formData.fotoKtm || formData.fotoKtm.length === 0)
-      newErrors.fotoKtm = "Foto KTM wajib diupload";
 
     if (!formData.password || formData.password.length < 6)
       newErrors.password = "Password minimal 6 karakter";
@@ -356,21 +397,25 @@ export default function ShowEvent({
       form.append("kategori", event.nama_event);
       form.append("nama", cleanMembers[0].nama); // ketua
       form.append("nim", cleanMembers[0].nim);
-      form.append("email", formData.email);
-      form.append("no_wa", formData.no_wa);
-      form.append("universitas", formData.universitas);
-      form.append("fakultas", formData.fakultas);
-      form.append("jurusan", formData.jurusan);
-      form.append("kotaDomisili", formData.kotaDomisili);
-      form.append("provinsi", formData.provinsi);
       form.append("anggota", JSON.stringify(cleanMembers));
       form.append("eventId", event.id);
 
       form.append("password", formData.password);
       form.append("setujuSyaratKti", isKti && formData.setujuSyaratKti ? "true" : "false");
 
-      if (formData.buktiFollow) form.append("buktiFollow", formData.buktiFollow);
-      (formData.fotoKtm || []).forEach((file) => form.append("fotoKtm", file));
+      // Field formulir → dikirim per id
+      for (const f of schema) {
+        const v = answers[f.id];
+        if (f.type === "files") {
+          (v || []).forEach((file) => form.append(f.id, file));
+        } else if (isFileField(f)) {
+          if (v) form.append(f.id, v);
+        } else if (f.type === "checkbox") {
+          form.append(f.id, v ? "true" : "false");
+        } else {
+          form.append(f.id, v ?? "");
+        }
+      }
 
       const response = await fetch("/api/participants", {
         method: "POST",
@@ -388,137 +433,6 @@ export default function ShowEvent({
     } finally {
       setProcessing(false);
     }
-  };
-
-  const getFormFields = () => {
-    const baseFields = [
-      {
-        key: "nama",
-        label: "Nama Lengkap",
-        placeholder: "Nama lengkap kamu",
-        type: "text",
-        required: true,
-      },
-      {
-        key: "email",
-        label: "Email",
-        placeholder: "nama@email.com",
-        type: "email",
-        required: true,
-      },
-      {
-        key: "no_wa",
-        label: "WhatsApp",
-        placeholder: "081234567890",
-        type: "tel",
-        required: true,
-      },
-    ];
-
-    const roleField = {
-      key: "role",
-      label: "Mendaftar Sebagai",
-      placeholder: "",
-      type: "select",
-      required: true,
-      options: [
-        { value: "MAHASISWA", label: "🎓 Mahasiswa" },
-        { value: "PENGURUS_HIMTI", label: "👔 Pengurus HIMTI" },
-        { value: "PESERTA", label: "👤 Peserta" },
-        { value: "DOSEN", label: "👨‍🏫 Dosen" },
-        { value: "PANITIA", label: "🎯 Panitia" },
-      ],
-    };
-
-    const conditionalFields = [];
-
-    // Upload Bukti Pembayaran (hanya jika event berbayar)
-    if (event.isPaidEvent) {
-      conditionalFields.push({
-        key: "bukti_pembayaran",
-        label: "Upload Bukti Pembayaran",
-        type: "file",
-        required: true,
-      });
-    }
-
-    // NIM untuk Mahasiswa, Panitia, dan Pengurus HIMTI
-    if (
-      formData.role === "MAHASISWA" ||
-      formData.role === "PANITIA" ||
-      formData.role === "PENGURUS_HIMTI"
-    ) {
-      conditionalFields.push({
-        key: "nim",
-        label: "NIM",
-        placeholder: "Nomor Induk Mahasiswa",
-        type: "text",
-        required: true,
-      });
-    }
-
-    // Program Studi untuk Pengurus HIMTI dan Mahasiswa
-    if (formData.role === "PENGURUS_HIMTI" || formData.role === "MAHASISWA") {
-      conditionalFields.push({
-        key: "jurusan",
-        label: "Program Studi",
-        placeholder: "",
-        type: "select",
-        required: true,
-        options: [
-          { value: "Teknik Informatika", label: "Teknik Informatika" },
-          {
-            value: "Desain Komunikasi Visual",
-            label: "Desain Komunikasi Visual",
-          },
-          { value: "Desain Produk", label: "Desain Produk" },
-          { value: "Manajemen dan Bisnis", label: "Manajemen dan Bisnis" },
-          { value: "Falsafah dan Agama", label: "Falsafah dan Agama" },
-          { value: "Hubungan Internasional", label: "Hubungan Internasional" },
-          { value: "Ilmu Komunikasi", label: "Ilmu Komunikasi" },
-          { value: "Psikologi", label: "Psikologi" },
-        ],
-      });
-    }
-
-    // Divisi untuk Panitia dan Pengurus HIMTI
-    if (formData.role === "PANITIA" || formData.role === "PENGURUS_HIMTI") {
-      conditionalFields.push({
-        key: "divisi",
-        label: "Divisi",
-        placeholder: "Contoh: Acara, Humas, dll",
-        type: "text",
-        required: true,
-      });
-    }
-
-    // Angkatan untuk Mahasiswa, Panitia, dan Pengurus HIMTI
-    if (
-      formData.role === "MAHASISWA" ||
-      formData.role === "PANITIA" ||
-      formData.role === "PENGURUS_HIMTI"
-    ) {
-      conditionalFields.push({
-        key: "angkatan",
-        label: "Angkatan",
-        placeholder: "Contoh: 2023",
-        type: "text",
-        required: true,
-      });
-    }
-
-    // Instansi untuk Peserta
-    if (formData.role === "PESERTA") {
-      conditionalFields.push({
-        key: "instansi",
-        label: "Instansi",
-        placeholder: "Nama instansi/universitas",
-        type: "text",
-        required: true,
-      });
-    }
-
-    return [...baseFields, roleField, ...conditionalFields];
   };
 
   /* render fn, not component  avoids input remount on typing */
@@ -613,6 +527,7 @@ export default function ShowEvent({
                 Konfirmasi dikirim ke email kamu
               </p>
             </div>
+            <EventLinks event={event} />
             <Link
               href="/events"
               className="b-btn b-border flex items-center justify-center w-full gap-2 py-3.5 text-sm font-black text-white rounded-2xl uppercase tracking-widest"
@@ -787,91 +702,95 @@ export default function ShowEvent({
                 )}
               </div>
 
-              {/* 5-10. Field teks */}
-              {[
-                { key: "universitas", label: "Universitas", ph: "Nama universitas", type: "text" },
-                { key: "fakultas", label: "Fakultas", ph: "Nama fakultas", type: "text" },
-                { key: "jurusan", label: "Program Studi", ph: "Nama program studi", type: "text" },
-                { key: "kotaDomisili", label: "Kota Domisili", ph: "Kota tempat tinggal", type: "text" },
-                { key: "provinsi", label: "Provinsi", ph: "Nama provinsi", type: "text" },
-                { key: "email", label: "Email", ph: "nama@email.com", type: "email" },
-                { key: "no_wa", label: "Nomor WhatsApp", ph: "081234567890", type: "tel" },
-              ].map((f) => (
-                <div key={f.key}>
+              {/* Field formulir (skema admin / default) */}
+              {schema.map((f) => (
+                <div key={f.id}>
                   <label className={labelCls}>
-                    {f.label}<span className="text-red-500 ml-0.5">*</span>
+                    {f.label}
+                    {f.required && <span className="text-red-500 ml-0.5">*</span>}
                   </label>
-                  <input
-                    type={f.type}
-                    value={formData[f.key]}
-                    onChange={(e) => handleInputChange(f.key, e.target.value)}
-                    placeholder={f.ph}
-                    className={inputBase}
-                    style={sh(errors[f.key])}
-                  />
-                  {errors[f.key] && (
+
+                  {f.type === "textarea" ? (
+                    <textarea
+                      rows="3"
+                      value={answers[f.id] || ""}
+                      onChange={(e) => setAnswer(f.id, e.target.value)}
+                      placeholder={f.placeholder}
+                      className={inputBase + " resize-none"}
+                      style={sh(errors[f.id])}
+                    />
+                  ) : f.type === "select" ? (
+                    <select
+                      value={answers[f.id] || ""}
+                      onChange={(e) => setAnswer(f.id, e.target.value)}
+                      className={inputBase + " cursor-pointer"}
+                      style={sh(errors[f.id])}
+                    >
+                      <option value="">Pilih...</option>
+                      {(f.options || []).map((o) => {
+                        const val = typeof o === "string" ? o : o.value;
+                        const lbl = typeof o === "string" ? o : o.label;
+                        return (
+                          <option key={val} value={val}>{lbl}</option>
+                        );
+                      })}
+                    </select>
+                  ) : f.type === "checkbox" ? (
+                    <label className="flex items-start gap-2.5 rounded-xl b-border p-3 bg-white cursor-pointer" style={sh(errors[f.id])}>
+                      <input
+                        type="checkbox"
+                        checked={!!answers[f.id]}
+                        onChange={(e) => setAnswer(f.id, e.target.checked)}
+                        className="mt-0.5 w-4 h-4 flex-shrink-0"
+                      />
+                      <span className="text-[11px] font-bold text-slate-600 leading-snug">
+                        {f.help || f.placeholder || "Saya setuju"}
+                      </span>
+                    </label>
+                  ) : f.type === "file" || f.type === "files" ? (
+                    <>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        multiple={f.type === "files"}
+                        onChange={(e) =>
+                          setAnswer(
+                            f.id,
+                            f.type === "files"
+                              ? Array.from(e.target.files)
+                              : e.target.files[0] || null,
+                          )
+                        }
+                        className="w-full px-3 py-2.5 rounded-xl text-xs font-bold bg-white b-border"
+                        style={sh(errors[f.id])}
+                      />
+                      {f.type === "files" && answers[f.id]?.length > 0 && (
+                        <p className="text-[10px] font-black text-slate-600 mt-1">
+                          {answers[f.id].length} file dipilih
+                        </p>
+                      )}
+                    </>
+                  ) : (
+                    <input
+                      type={f.type}
+                      value={answers[f.id] || ""}
+                      onChange={(e) => setAnswer(f.id, e.target.value)}
+                      placeholder={f.placeholder}
+                      className={inputBase}
+                      style={sh(errors[f.id])}
+                    />
+                  )}
+
+                  {f.help && f.type !== "checkbox" && (
+                    <p className="text-[10px] font-bold text-slate-400 mt-1">{f.help}</p>
+                  )}
+                  {errors[f.id] && (
                     <p className="text-[11px] text-red-500 mt-1 font-black">
-                      {errors[f.key]}
+                      {errors[f.id]}
                     </p>
                   )}
                 </div>
               ))}
-
-              {/* 11. Bukti follow IG */}
-              <div>
-                <label className={labelCls}>
-                  Bukti Follow IG @itfest &amp; @himti
-                  <span className="text-red-500 ml-0.5">*</span>
-                </label>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) =>
-                    handleInputChange("buktiFollow", e.target.files[0])
-                  }
-                  className="w-full px-3 py-2.5 rounded-xl text-xs font-bold bg-white b-border"
-                  style={sh(errors.buktiFollow)}
-                />
-                <p className="text-[10px] font-bold text-slate-400 mt-1">
-                  Screenshot follow kedua akun (1 gambar).
-                </p>
-                {errors.buktiFollow && (
-                  <p className="text-[11px] text-red-500 mt-1 font-black">
-                    {errors.buktiFollow}
-                  </p>
-                )}
-              </div>
-
-              {/* 12. Foto KTM */}
-              <div>
-                <label className={labelCls}>
-                  Foto KTM (Seluruh Anggota)
-                  <span className="text-red-500 ml-0.5">*</span>
-                </label>
-                <input
-                  type="file"
-                  accept="image/*"
-                  multiple
-                  onChange={(e) =>
-                    handleInputChange("fotoKtm", Array.from(e.target.files))
-                  }
-                  className="w-full px-3 py-2.5 rounded-xl text-xs font-bold bg-white b-border"
-                  style={sh(errors.fotoKtm)}
-                />
-                <p className="text-[10px] font-bold text-slate-400 mt-1">
-                  Bisa pilih beberapa file sekaligus (1 KTM per anggota).
-                </p>
-                {formData.fotoKtm?.length > 0 && (
-                  <p className="text-[10px] font-black text-slate-600 mt-1">
-                    {formData.fotoKtm.length} file dipilih
-                  </p>
-                )}
-                {errors.fotoKtm && (
-                  <p className="text-[11px] text-red-500 mt-1 font-black">
-                    {errors.fotoKtm}
-                  </p>
-                )}
-              </div>
 
               {/* 13. Akun login peserta */}
               <div className="pt-1">
@@ -1131,6 +1050,8 @@ export default function ShowEvent({
               <UsersIcon className="w-4 h-4" strokeWidth={3} /> Kelola Peserta
             </Link>
           )}
+
+          <EventLinks event={event} />
 
           <p className="text-[11px] text-center text-slate-400 font-black uppercase tracking-wider">
             Event HIMTI Terbuka Umum Email Konfirmasi

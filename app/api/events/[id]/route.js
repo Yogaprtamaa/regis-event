@@ -44,6 +44,9 @@ export async function PUT(req, { params }) {
         jam_berakhir: body.jam_berakhir,
         lokasi: body.lokasi,
         kapasitas: body.kapasitas ? parseInt(body.kapasitas) : null,
+        panduanUrl: body.panduanUrl !== undefined ? (body.panduanUrl || null) : undefined,
+        waGroupLink: body.waGroupLink !== undefined ? (body.waGroupLink || null) : undefined,
+        formSchema: body.formSchema !== undefined ? body.formSchema : undefined,
       },
       include: {
         participants: true,

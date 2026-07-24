@@ -263,19 +263,17 @@ const ACARA = [
 const LOMBA = [
   { Icon: CodeBracketIcon, title: "Hackathon", color: C.lime, tc: C.navy, desc: "Selesaikan tantangan teknologi nyata dalam waktu terbatas. Asah problem-solving dan kerja tim bersama peserta terbaik dari seluruh Indonesia." },
   { Icon: CpuChipIcon, title: "Internet of Things", color: C.blue, tc: "#fff", desc: "Kembangkan perangkat IoT berdampak nyata — dari sensor hingga dashboard — dan presentasikan di hadapan juri industri." },
-  { Icon: PuzzlePieceIcon, title: "Game Making", color: C.orange, tc: "#fff", desc: "Buat game digital dari nol: gameplay, visual, narasi. Platform untuk game developer muda menunjukkan karya terbaik." },
   { Icon: DocumentTextIcon, title: "Karya Tulis Ilmiah", color: C.yellow, tc: C.navy, desc: "Riset dan tulis solusi inovatif untuk masalah teknologi aktual, dipresentasikan ke akademisi dan praktisi terkemuka." },
 ];
 
 const HASIL_KATEGORI = [
   { value: "HACKATHON", label: "Hackathon", color: C.lime, tc: C.navy },
   { value: "IOT", label: "Internet of Things", color: C.blue, tc: "#fff" },
-  { value: "GAME_MAKING", label: "Game Making", color: C.orange, tc: "#fff" },
   { value: "KTI", label: "Karya Tulis Ilmiah", color: C.yellow, tc: C.navy },
 ];
 
 const TIMELINE = [
-  { Icon: PencilSquareIcon, label: "Pendaftaran & Pelaksanaan Lomba", date: "27 Jul – 12 Okt 2026", note: "Hackathon, IoT, Game Making & KTI", color: C.coral },
+  { Icon: PencilSquareIcon, label: "Pendaftaran & Pelaksanaan Lomba", date: "27 Jul – 12 Okt 2026", note: "Hackathon, IoT & KTI", color: C.coral },
   { Icon: FlagIcon, label: "Final Day (Online)", date: "12 Oktober 2026", note: "Babak final seluruh kategori lomba", color: C.orange },
   { Icon: MicrophoneIcon, label: "Talkshow & Expo", date: "13–14 Oktober 2026", note: "Link pendaftaran segera dibuka", color: C.blue },
   { Icon: PuzzlePieceIcon, label: "Fun Game", date: "13–14 Oktober 2026", note: "Link pendaftaran segera dibuka", color: C.lime },
@@ -781,7 +779,7 @@ function About() {
 
           <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
             {[
-              { Icon: AcademicCapIcon, label: "Lomba — Khusus Mahasiswa", color: C.blue, note: "Daftar via website ini", items: ["Hackathon", "Internet of Things", "Game Making", "Karya Tulis Ilmiah"] },
+              { Icon: AcademicCapIcon, label: "Lomba — Khusus Mahasiswa", color: C.blue, note: "Daftar via website ini", items: ["Hackathon", "Internet of Things", "Karya Tulis Ilmiah"] },
               { Icon: MicrophoneIcon, label: "Talkshow, Expo & Fun Game", color: C.lime, note: "Daftar via Google Form", items: ["Terbuka untuk umum & SMA/SMK"] },
             ].map((a, i) => {
               const st = awningStyle(a.color);

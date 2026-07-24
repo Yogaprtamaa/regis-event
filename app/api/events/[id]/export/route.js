@@ -3,6 +3,11 @@ export const runtime = "nodejs";
 
 import { prisma } from "../../../../../lib/prisma";
 import * as XLSX from "xlsx";
+import {
+  getFormSchema,
+  RESERVED_TEXT_COLUMNS,
+  RESERVED_FILE_COLUMNS,
+} from "../../../../../lib/formSchema";
 
 /**
  * GET /api/events/[id]/export
@@ -78,6 +83,13 @@ function generateExcel(event) {
   // Add info sheet to workbook
   XLSX.utils.book_append_sheet(workbook, infoSheet, "Info Event");
 
+  // Kolom custom form-builder (field di luar kolom bawaan) → satu kolom per field.
+  const customFields = getFormSchema(event).filter(
+    (f) =>
+      !RESERVED_TEXT_COLUMNS.includes(f.id) &&
+      !Object.prototype.hasOwnProperty.call(RESERVED_FILE_COLUMNS, f.id),
+  );
+
   const participantsData = [
     [
       "No",
@@ -86,6 +98,10 @@ function generateExcel(event) {
       "NIM",
       "No WhatsApp",
       "Jurusan",
+      "Universitas",
+      "Fakultas",
+      "Kota Domisili",
+      "Provinsi",
       "Instansi",
       "Divisi",
       "Angkatan",
@@ -93,9 +109,11 @@ function generateExcel(event) {
       "Status",
       "Status Pembayaran",
       "Tanggal Daftar",
+      ...customFields.map((f) => f.label || f.id),
     ],
     ...event.participants.map((participant, index) => {
       const { jurusan } = mapParticipantFields(participant);
+      const fd = participant.formData || {};
 
       return [
         index + 1,
@@ -104,6 +122,10 @@ function generateExcel(event) {
         normalizeCell(participant.nim),
         normalizeCell(participant.no_wa),
         normalizeCell(jurusan),
+        normalizeCell(participant.universitas),
+        normalizeCell(participant.fakultas),
+        normalizeCell(participant.kotaDomisili),
+        normalizeCell(participant.provinsi),
         normalizeCell(participant.instansi),
         normalizeCell(participant.divisi),
         normalizeCell(participant.angkatan),
@@ -118,6 +140,7 @@ function generateExcel(event) {
           hour: "2-digit",
           minute: "2-digit",
         }),
+        ...customFields.map((f) => normalizeCell(formatFormValue(fd[f.id]))),
       ];
     }),
   ];
@@ -136,6 +159,10 @@ function generateExcel(event) {
     { wch: 15 }, // NIM
     { wch: 16 }, // No WhatsApp
     { wch: 24 }, // Jurusan
+    { wch: 24 }, // Universitas
+    { wch: 24 }, // Fakultas
+    { wch: 18 }, // Kota Domisili
+    { wch: 18 }, // Provinsi
     { wch: 24 }, // Instansi
     { wch: 24 }, // Divisi
     { wch: 10 }, // Angkatan
@@ -143,6 +170,7 @@ function generateExcel(event) {
     { wch: 12 }, // Status
     { wch: 20 }, // Bukti Pembayaran
     { wch: 20 }, // Tanggal Daftar
+    ...customFields.map(() => ({ wch: 22 })),
   ];
 
   XLSX.utils.book_append_sheet(workbook, participantsSheet, "Data Peserta");
@@ -197,6 +225,14 @@ function mapParticipantFields(participant) {
   }
 
   return { jurusan: null, instansi: null, divisi: null };
+}
+
+// Jawaban form-builder: array (multi-file/multi) → gabung, boolean → Ya/Tidak
+function formatFormValue(v) {
+  if (v === null || v === undefined || v === "") return "-";
+  if (Array.isArray(v)) return v.length ? v.join(", ") : "-";
+  if (typeof v === "boolean") return v ? "Ya" : "Tidak";
+  return String(v);
 }
 
 function normalizeCell(value) {

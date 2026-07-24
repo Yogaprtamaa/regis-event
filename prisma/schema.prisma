@@ -58,6 +58,13 @@ model Event {
 
   isPaidEvent Boolean @default(false)
 
+  // Dilampirkan admin setelah peserta daftar (buku panduan + grup WA)
+  panduanUrl  String?
+  waGroupLink String?
+
+  // Form-builder: skema kolom formulir pendaftaran. null = pakai DEFAULT_FORM_SCHEMA (lib/formSchema.js)
+  formSchema Json?
+
   createdAt    DateTime      @default(now())
   participants Participant[]
 }
@@ -97,6 +104,9 @@ model Participant {
 
   // KTI punya persyaratan lomba sendiri — checkbox persetujuan wajib buat event KTI.
   setujuSyaratKti Boolean @default(false)
+
+  // Jawaban field custom form-builder (kolom di luar kolom bawaan) → { fieldId: value|url|[url] }
+  formData Json?
 
   eventId String
   event   Event  @relation(fields: [eventId], references: [id])

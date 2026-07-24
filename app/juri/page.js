@@ -11,7 +11,6 @@ const KATEGORI_LABEL = {
   HACKATHON: "Hackathon",
   KTI: "Karya Tulis Ilmiah",
   IOT: "Internet of Things",
-  GAME_MAKING: "Game Making",
 };
 
 function ScoreForm({ submission, criteria, onSaved }) {

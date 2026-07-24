@@ -10,7 +10,6 @@ const KATEGORI_LIST = [
   { value: "HACKATHON", label: "Hackathon" },
   { value: "KTI", label: "Karya Tulis Ilmiah" },
   { value: "IOT", label: "Internet of Things" },
-  { value: "GAME_MAKING", label: "Game Making" },
 ];
 
 const STATUS_LABEL = {
