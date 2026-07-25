@@ -91,6 +91,15 @@ function SubmissionsTab({ kategori }) {
           </div>
           <div className="flex gap-2">
             <a href={s.fileKaryaUrl} target="_blank" rel="noopener noreferrer" className="adm-btn adm-btn-sm" style={{ background: "#fff" }}>Lihat</a>
+            {s.fileTurnitinUrl && (
+              <a href={s.fileTurnitinUrl} target="_blank" rel="noopener noreferrer" className="adm-btn adm-btn-sm" style={{ background: "#fff" }}>Turnitin</a>
+            )}
+            {s.linkRepo && (
+              <a href={s.linkRepo} target="_blank" rel="noopener noreferrer" className="adm-btn adm-btn-sm" style={{ background: "#fff" }}>Repo</a>
+            )}
+            {s.linkVideo && (
+              <a href={s.linkVideo} target="_blank" rel="noopener noreferrer" className="adm-btn adm-btn-sm" style={{ background: "#fff" }}>Video</a>
+            )}
             <button
               disabled={updatingId === s.id}
               onClick={() => setStatus(s.id, "LOLOS_SELEKSI")}

@@ -12,7 +12,9 @@ import {
 import { CheckBadgeIcon } from "@heroicons/react/24/solid";
 import { useRouter } from "next/navigation";
 import FormBuilder from "@/app/components/FormBuilder";
+import PesertaConfigFields from "@/app/components/PesertaConfigFields";
 import { DEFAULT_FORM_SCHEMA } from "@/lib/formSchema";
+import { DEFAULT_PESERTA_CONFIG } from "@/lib/pesertaConfig";
 
 const CSS = `
   @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Plus+Jakarta+Sans:wght@700;800&display=swap');
@@ -134,6 +136,7 @@ export default function CreateEventPage() {
   });
   // Form-builder: kolom formulir pendaftaran
   const [fields, setFields] = useState(DEFAULT_FORM_SCHEMA);
+  const [pesertaConfig, setPesertaConfig] = useState(DEFAULT_PESERTA_CONFIG);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -184,6 +187,7 @@ export default function CreateEventPage() {
           kapasitas: parseInt(formData.kapasitas, 10),
           isPaidEvent: formData.isPaidEvent,
           formSchema: fields,
+          pesertaConfig,
         }),
       });
 
@@ -401,6 +405,11 @@ export default function CreateEventPage() {
               <div className="border-t-2 border-dashed border-slate-200" />
 
               {/* ── Form-builder: kolom formulir pendaftaran ── */}
+              <PesertaConfigFields value={pesertaConfig} onChange={setPesertaConfig} />
+
+              {/* Divider */}
+              <div className="border-t-2 border-dashed border-slate-200" />
+
               <FormBuilder fields={fields} setFields={setFields} />
 
               {/* Divider */}

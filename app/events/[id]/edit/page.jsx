@@ -6,7 +6,9 @@ import { CheckBadgeIcon } from "@heroicons/react/24/solid";
 import { useState, useEffect } from "react";
 import Loading from "@/app/loading";
 import FormBuilder from "@/app/components/FormBuilder";
+import PesertaConfigFields from "@/app/components/PesertaConfigFields";
 import { DEFAULT_FORM_SCHEMA } from "@/lib/formSchema";
+import { DEFAULT_PESERTA_CONFIG, getPesertaConfig } from "@/lib/pesertaConfig";
 
 const CSS = `
   @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Plus+Jakarta+Sans:wght@700;800&display=swap');
@@ -69,6 +71,7 @@ export default function EditEventPage() {
   });
   // Form-builder: kolom formulir pendaftaran
   const [fields, setFields] = useState(DEFAULT_FORM_SCHEMA);
+  const [pesertaConfig, setPesertaConfig] = useState(DEFAULT_PESERTA_CONFIG);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
@@ -95,6 +98,7 @@ export default function EditEventPage() {
         if (Array.isArray(event.formSchema) && event.formSchema.length) {
           setFields(event.formSchema);
         }
+        setPesertaConfig(getPesertaConfig(event));
       } catch (err) {
         setError(err.message);
       } finally {
@@ -160,6 +164,7 @@ export default function EditEventPage() {
           panduanUrl: formData.panduanUrl,
           waGroupLink: formData.waGroupLink,
           formSchema: fields,
+          pesertaConfig,
         }),
       });
 
@@ -293,6 +298,11 @@ export default function EditEventPage() {
               <div className="border-t-2 border-dashed border-slate-200" />
 
               {/* ── Form-builder: kolom formulir pendaftaran ── */}
+              <PesertaConfigFields value={pesertaConfig} onChange={setPesertaConfig} />
+
+              {/* Divider */}
+              <div className="border-t-2 border-dashed border-slate-200" />
+
               <FormBuilder fields={fields} setFields={setFields} />
 
               {/* Divider */}

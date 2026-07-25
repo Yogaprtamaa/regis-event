@@ -1,6 +1,7 @@
 export const dynamic = "force-dynamic"
 
 import { prisma } from "@/lib/prisma";
+import { getPesertaConfig } from "@/lib/pesertaConfig";
 
 export async function GET(req, { params }) {
   try {
@@ -47,6 +48,9 @@ export async function PUT(req, { params }) {
         panduanUrl: body.panduanUrl !== undefined ? (body.panduanUrl || null) : undefined,
         waGroupLink: body.waGroupLink !== undefined ? (body.waGroupLink || null) : undefined,
         formSchema: body.formSchema !== undefined ? body.formSchema : undefined,
+        pesertaConfig: body.pesertaConfig !== undefined
+          ? getPesertaConfig({ pesertaConfig: body.pesertaConfig })
+          : undefined,
       },
       include: {
         participants: true,

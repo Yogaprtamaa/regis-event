@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import RetroAdminStyles, { C } from "@/app/components/RetroAdminStyles";
+import { kategoriFromEventName, karyaRequirements, MAX_KARYA_BYTES } from "@/lib/kategori";
 
 const STATUS_CFG = {
   APPROVED: { tag: "Terverifikasi", color: C.lime, text: C.navy, emoji: "✅" },
@@ -10,8 +11,6 @@ const STATUS_CFG = {
   FREE: { tag: "Menunggu Verifikasi", color: C.yellow, text: C.navy, emoji: "⏳" },
   REJECTED: { tag: "Pembayaran Ditolak", color: C.coral, text: "#fff", emoji: "⛔" },
 };
-
-const MAX_KARYA_BYTES = 10 * 1024 * 1024; // 10MB, samain sama batas server di api/submissions
 
 const SUBMISSION_CFG = {
   SUBMITTED: { tag: "Menunggu Seleksi Panitia", color: C.yellow, text: C.navy, emoji: "📥" },
@@ -26,8 +25,9 @@ export default function SubmitKaryaPage() {
   const [mySubmission, setMySubmission] = useState(null);
   const [loadingSubmission, setLoadingSubmission] = useState(true);
 
-  const [form, setForm] = useState({ judulKarya: "", deskripsi: "" });
+  const [form, setForm] = useState({ judulKarya: "", deskripsi: "", linkRepo: "", linkVideo: "" });
   const [file, setFile] = useState(null);
+  const [turnitinFile, setTurnitinFile] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -66,18 +66,57 @@ export default function SubmitKaryaPage() {
       setError("File karya wajib diunggah.");
       return;
     }
+    if (file.type !== "application/pdf") {
+      setError("File karya harus PDF.");
+      return;
+    }
     if (file.size > MAX_KARYA_BYTES) {
-      setError(`File terlalu besar (${(file.size / 1024 / 1024).toFixed(1)}MB). Maksimal 10MB — kompres dulu ya.`);
+      setError(`File terlalu besar (${(file.size / 1024 / 1024).toFixed(1)}MB). Maksimal ${MAX_KARYA_BYTES / 1024 / 1024}MB — kompres dulu ya.`);
+      return;
+    }
+    if (needTurnitin && !turnitinFile) {
+      setError("Laporan Turnitin wajib diunggah.");
+      return;
+    }
+    if (turnitinFile && (turnitinFile.type !== "application/pdf" || turnitinFile.size > MAX_KARYA_BYTES)) {
+      setError(`Laporan Turnitin harus PDF, maksimal ${MAX_KARYA_BYTES / 1024 / 1024}MB.`);
       return;
     }
     setLoading(true);
     try {
-      const fd = new FormData();
-      fd.append("judulKarya", form.judulKarya);
-      fd.append("deskripsi", form.deskripsi);
-      fd.append("fileKarya", file);
+      // File diupload langsung ke Supabase pakai signed URL — lewat API route
+      // kena batas ukuran body Vercel.
+      const uploadPdf = async (f, kind) => {
+        const urlRes = await fetch("/api/submissions/upload-url", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ filename: f.name, kind }),
+        });
+        const urlData = await urlRes.json();
+        if (!urlRes.ok) throw new Error(urlData.error || "Gagal menyiapkan upload");
 
-      const res = await fetch("/api/submissions", { method: "POST", body: fd });
+        const { error: uploadError } = await createClient()
+          .storage.from("karya-submissions")
+          .uploadToSignedUrl(urlData.path, urlData.token, f, { contentType: "application/pdf" });
+        if (uploadError) throw new Error(`Gagal mengunggah file: ${uploadError.message}`);
+        return urlData.publicUrl;
+      };
+
+      const fileKaryaUrl = await uploadPdf(file, "karya");
+      const fileTurnitinUrl = turnitinFile ? await uploadPdf(turnitinFile, "turnitin") : null;
+
+      const res = await fetch("/api/submissions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          judulKarya: form.judulKarya,
+          deskripsi: form.deskripsi,
+          fileKaryaUrl,
+          fileTurnitinUrl,
+          linkRepo: form.linkRepo.trim() || null,
+          linkVideo: form.linkVideo.trim() || null,
+        }),
+      });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
         throw new Error(data.error || "Gagal mengirim karya");
@@ -126,6 +165,9 @@ export default function SubmitKaryaPage() {
   const verified = participant.paymentStatus === "APPROVED";
   const isPaid = participant.isPaidEvent;
   const rejected = participant.paymentStatus === "REJECTED";
+  // Berkas yang diminta beda-beda per kategori lomba
+  const req = karyaRequirements(kategoriFromEventName(participant.eventNama));
+  const needTurnitin = req.fileTurnitin === "required";
 
   return (
     <div className="adm-bg min-h-screen p-4">
@@ -205,18 +247,70 @@ export default function SubmitKaryaPage() {
             </div>
 
             <div>
-              <label className="adm-label fb">File Karya (PDF/ZIP/DOC, maks. 10MB)</label>
+              <label className="adm-label fb">{req.fileLabel}</label>
               <input
                 type="file" required className="adm-input"
-                accept=".pdf,.zip,.doc,.docx"
+                accept="application/pdf,.pdf"
                 onChange={(e) => setFile(e.target.files?.[0] ?? null)}
               />
+              <p className="fb text-[11px] font-semibold mt-1.5" style={{ color: C.muted }}>{req.fileHelp}</p>
               {file && file.size > MAX_KARYA_BYTES && (
                 <p className="fb text-[11px] font-black mt-1.5" style={{ color: C.coral }}>
-                  {(file.size / 1024 / 1024).toFixed(1)}MB — kelebihan dari batas 10MB.
+                  {(file.size / 1024 / 1024).toFixed(1)}MB — kelebihan dari batas {MAX_KARYA_BYTES / 1024 / 1024}MB.
                 </p>
               )}
             </div>
+
+            {needTurnitin && (
+              <div>
+                <label className="adm-label fb">Laporan Turnitin (PDF)</label>
+                <input
+                  type="file" required className="adm-input"
+                  accept="application/pdf,.pdf"
+                  onChange={(e) => setTurnitinFile(e.target.files?.[0] ?? null)}
+                />
+                <p className="fb text-[11px] font-semibold mt-1.5" style={{ color: C.muted }}>
+                  Hasil cek plagiarisme, similarity maksimal 30%. PDF maksimal {MAX_KARYA_BYTES / 1024 / 1024}MB.
+                </p>
+                {turnitinFile && turnitinFile.size > MAX_KARYA_BYTES && (
+                  <p className="fb text-[11px] font-black mt-1.5" style={{ color: C.coral }}>
+                    {(turnitinFile.size / 1024 / 1024).toFixed(1)}MB — kelebihan dari batas {MAX_KARYA_BYTES / 1024 / 1024}MB.
+                  </p>
+                )}
+              </div>
+            )}
+
+            {req.linkRepo !== "off" && (
+              <div>
+                <label className="adm-label fb">Link Repository{req.linkRepo === "optional" && " (opsional)"}</label>
+                <input
+                  type="url" className="adm-input"
+                  required={req.linkRepo === "required"}
+                  placeholder="https://github.com/tim/proyek"
+                  value={form.linkRepo}
+                  onChange={(e) => setForm((f) => ({ ...f, linkRepo: e.target.value }))}
+                />
+                <p className="fb text-[11px] font-semibold mt-1.5" style={{ color: C.muted }}>
+                  Pastikan repo bisa diakses publik saat penjurian.
+                </p>
+              </div>
+            )}
+
+            {req.linkVideo !== "off" && (
+              <div>
+                <label className="adm-label fb">Link Video Demo{req.linkVideo === "optional" && " (opsional)"}</label>
+                <input
+                  type="url" className="adm-input"
+                  required={req.linkVideo === "required"}
+                  placeholder="https://drive.google.com/... atau YouTube"
+                  value={form.linkVideo}
+                  onChange={(e) => setForm((f) => ({ ...f, linkVideo: e.target.value }))}
+                />
+                <p className="fb text-[11px] font-semibold mt-1.5" style={{ color: C.muted }}>
+                  Video diunggah ke Google Drive / YouTube, di sini cukup linknya. Set akses “siapa saja yang punya link”.
+                </p>
+              </div>
+            )}
 
             {error && (
               <div className="stamp-in adm-card px-4 py-3" style={{ borderColor: C.coral, boxShadow: `4px 4px 0 ${C.coral}` }} role="alert">
@@ -257,6 +351,22 @@ function SubmissionResult({ data, onRefresh }) {
       >
         <span className="text-lg">{sc.emoji}</span>
         <span className="fb text-sm font-extrabold">{sc.tag}</span>
+      </div>
+
+      <div className="flex flex-wrap gap-2">
+        {[
+          { label: "📄 Berkas", href: data.fileKaryaUrl },
+          { label: "🔍 Turnitin", href: data.fileTurnitinUrl },
+          { label: "💻 Repository", href: data.linkRepo },
+          { label: "🎬 Video Demo", href: data.linkVideo },
+        ]
+          .filter((l) => l.href)
+          .map((l) => (
+            <a key={l.label} href={l.href} target="_blank" rel="noopener noreferrer"
+              className="adm-btn adm-btn-sm text-xs px-3 py-2" style={{ background: "#fff" }}>
+              {l.label}
+            </a>
+          ))}
       </div>
 
       {/* Hasil final — cuma tampil kalau kategori udah dipublish panitia */}

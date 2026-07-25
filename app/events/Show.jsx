@@ -18,6 +18,7 @@ import SiteFooter from "../components/SiteFooter";
 import { createClient } from "@/lib/supabase/client";
 import { eventSlug } from "../../lib/kategori";
 import { getFormSchema, isFileField } from "../../lib/formSchema";
+import { getPesertaConfig, defaultJenisPeserta } from "../../lib/pesertaConfig";
 
 const ACCENTS = [
   { bg: "#EB3C6B", btn: "#EB3C6B", bar: "#FED245", tag: "rgba(0,0,0,0.18)", tagText: "#fff" },
@@ -186,7 +187,7 @@ export default function ShowEvent({
   const [step, setStep] = useState("detail");
   // Field struktural (di luar form-builder)
   const [formData, setFormData] = useState({
-    jenisPeserta: "individu", // "individu" | "kelompok"
+    jenisPeserta: defaultJenisPeserta(getPesertaConfig(event)), // "individu" | "kelompok"
     password: "", // akun login peserta (buat pantau verifikasi + upload karya)
     passwordConfirm: "",
     setujuSyaratKti: false, // khusus event KTI
@@ -211,7 +212,10 @@ export default function ShowEvent({
   const [showKtiTerms, setShowKtiTerms] = useState(false);
   const [loggedIn, setLoggedIn] = useState(false);
 
-  const MAX_MEMBERS = 3;
+  // Blok data peserta ngikut pengaturan admin per event
+  const pesertaCfg = getPesertaConfig(event);
+  const MAX_MEMBERS = pesertaCfg.maxAnggota;
+  const showNim = pesertaCfg.nim !== "off";
   // ponytail: batas aman body request Vercel (4.5MB). Naikkan kalau limit project sudah dinaikkan.
   const MAX_UPLOAD_BYTES = 4 * 1024 * 1024;
 
@@ -388,7 +392,8 @@ export default function ShowEvent({
       newErrors.members = "Minimal nama ketua/peserta harus diisi";
     }
     members.forEach((m, i) => {
-      if (m.nama.trim() && !m.nim.trim()) newErrors[`nim_${i}`] = "NIM wajib diisi";
+      if (pesertaCfg.nim === "required" && m.nama.trim() && !m.nim.trim())
+        newErrors[`nim_${i}`] = "NIM wajib diisi";
       if (!m.nama.trim() && m.nim.trim()) newErrors[`nama_${i}`] = "Nama wajib diisi";
     });
 
@@ -653,8 +658,8 @@ export default function ShowEvent({
               </div>
             )}
             <div className="space-y-3.5">
-              {/* 1. Jenis Peserta */}
-              <div>
+              {/* 1. Jenis Peserta — cuma tampil kalau admin ngizinin dua-duanya */}
+              <div className={pesertaCfg.mode === "both" ? "" : "hidden"}>
                 <label className={labelCls}>
                   Jenis Peserta<span className="text-red-500 ml-0.5">*</span>
                 </label>
@@ -682,7 +687,7 @@ export default function ShowEvent({
                 </div>
                 {formData.jenisPeserta === "kelompok" && (
                   <p className="text-[10px] font-bold text-slate-400 mt-1.5">
-                    Maksimal 3 orang dalam 1 kelompok.
+                    Maksimal {MAX_MEMBERS} orang dalam 1 kelompok.
                   </p>
                 )}
               </div>
@@ -749,14 +754,16 @@ export default function ShowEvent({
                         className={inputBase + " mb-2"}
                         style={sh(errors[`nama_${i}`])}
                       />
-                      <input
-                        type="text"
-                        value={m.nim}
-                        onChange={(e) => updateMember(i, "nim", e.target.value)}
-                        placeholder="NIM"
-                        className={inputBase}
-                        style={sh(errors[`nim_${i}`])}
-                      />
+                      {showNim && (
+                        <input
+                          type="text"
+                          value={m.nim}
+                          onChange={(e) => updateMember(i, "nim", e.target.value)}
+                          placeholder={pesertaCfg.nim === "optional" ? "NIM (opsional)" : "NIM"}
+                          className={inputBase}
+                          style={sh(errors[`nim_${i}`])}
+                        />
+                      )}
                     </div>
                   ))}
                 </div>

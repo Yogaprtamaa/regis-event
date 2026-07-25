@@ -64,6 +64,9 @@ model Event {
 
   // Form-builder: skema kolom formulir pendaftaran. null = pakai DEFAULT_FORM_SCHEMA (lib/formSchema.js)
   formSchema Json?
+  // Pengaturan blok data peserta (individu/kelompok, batas anggota, kolom NIM).
+  // null = DEFAULT_PESERTA_CONFIG (lib/pesertaConfig.js)
+  pesertaConfig Json?
 
   createdAt    DateTime      @default(now())
   participants Participant[]
@@ -140,6 +143,9 @@ model Submission {
   judulKarya   String
   deskripsi    String?
   fileKaryaUrl String
+  fileTurnitinUrl String? // KTI: laporan cek plagiarisme (PDF)
+  linkRepo     String? // Hackathon: link repository
+  linkVideo    String? // link video demo (bukan file, kegedean)
   status       SubmissionStatus @default(SUBMITTED)
 
   createdAt DateTime @default(now())

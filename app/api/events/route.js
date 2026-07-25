@@ -1,6 +1,7 @@
 export const dynamic = "force-dynamic";
 
 import { prisma } from "../../../lib/prisma";
+import { getPesertaConfig } from "../../../lib/pesertaConfig";
 
 export async function GET() {
   try {
@@ -38,6 +39,8 @@ export async function POST(req) {
         isPaidEvent: body.isPaidEvent ?? false,
         // Kolom formulir pendaftaran (form-builder). null → pakai DEFAULT_FORM_SCHEMA.
         formSchema: Array.isArray(body.formSchema) && body.formSchema.length ? body.formSchema : undefined,
+        // Pengaturan data peserta (individu/kelompok, batas anggota, kolom NIM)
+        pesertaConfig: body.pesertaConfig ? getPesertaConfig({ pesertaConfig: body.pesertaConfig }) : undefined,
       },
       include: {
         participants: true,

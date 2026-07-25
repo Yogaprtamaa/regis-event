@@ -134,13 +134,33 @@ function SubmissionCard({ submission, criteria, index }) {
             Tim {submission.namaTim} — {submission.ketuaNama}
           </p>
         </div>
-        <a
-          href={submission.fileKaryaUrl} target="_blank" rel="noopener noreferrer"
-          className="adm-btn adm-btn-sm"
-          style={{ background: "#fff" }}
-        >
-          <DocumentArrowDownIcon className="h-4 w-4" /> Lihat Karya
-        </a>
+        <div className="flex flex-wrap gap-2">
+          <a
+            href={submission.fileKaryaUrl} target="_blank" rel="noopener noreferrer"
+            className="adm-btn adm-btn-sm"
+            style={{ background: "#fff" }}
+          >
+            <DocumentArrowDownIcon className="h-4 w-4" /> Lihat Karya
+          </a>
+          {submission.fileTurnitinUrl && (
+            <a href={submission.fileTurnitinUrl} target="_blank" rel="noopener noreferrer"
+              className="adm-btn adm-btn-sm" style={{ background: "#fff" }}>
+              🔍 Turnitin
+            </a>
+          )}
+          {submission.linkRepo && (
+            <a href={submission.linkRepo} target="_blank" rel="noopener noreferrer"
+              className="adm-btn adm-btn-sm" style={{ background: "#fff" }}>
+              💻 Repository
+            </a>
+          )}
+          {submission.linkVideo && (
+            <a href={submission.linkVideo} target="_blank" rel="noopener noreferrer"
+              className="adm-btn adm-btn-sm" style={{ background: "#fff" }}>
+              🎬 Video Demo
+            </a>
+          )}
+        </div>
       </div>
 
       {submission.deskripsi && (

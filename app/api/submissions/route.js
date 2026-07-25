@@ -2,12 +2,12 @@ export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 import { prisma } from "@/lib/prisma";
-import { createAdminClient } from "@/lib/supabase/admin";
 import { getRequester, unauthorized, forbidden } from "@/lib/auth-role";
-import { kategoriFromEventName } from "@/lib/kategori";
+import { kategoriFromEventName, karyaRequirements } from "@/lib/kategori";
 
 const KARYA_BUCKET = "karya-submissions";
-const MAX_KARYA_BYTES = 10 * 1024 * 1024; // 10MB
+
+const isHttpUrl = (v) => typeof v === "string" && /^https?:\/\/\S+$/i.test(v.trim());
 
 /* =======================
    GET → panitia: list semua submission (filter kategori/status bebas)
@@ -59,26 +59,43 @@ export async function POST(req) {
   }
 
   try {
-    const formData = await req.formData();
+    // File PDF-nya diupload klien langsung ke Supabase (lihat api/submissions/upload-url),
+    // yang dikirim ke sini cuma URL hasilnya + link-link.
+    const { judulKarya, deskripsi, fileKaryaUrl, fileTurnitinUrl, linkRepo, linkVideo } = await req.json();
 
-    const judulKarya = formData.get("judulKarya");
-    const deskripsi = formData.get("deskripsi");
-    const file = formData.get("fileKarya");
-
-    if (!judulKarya || !file) {
+    if (!judulKarya || !fileKaryaUrl) {
       return Response.json({ error: "Judul karya & file wajib diisi" }, { status: 400 });
-    }
-    if (file.size > MAX_KARYA_BYTES) {
-      return Response.json(
-        { error: "Ukuran file maksimal 10MB. Kompres dulu file kamu ya." },
-        { status: 400 },
-      );
     }
 
     // Data tim diturunkan dari akun peserta (gak percaya input klien).
     const kategori = kategoriFromEventName(participant.event?.nama_event);
     if (!kategori) {
       return Response.json({ error: "Kategori lomba tidak dikenali" }, { status: 400 });
+    }
+
+    // URL file wajib dari bucket kita sendiri — jangan mau nampung link asing.
+    const prefix = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/${KARYA_BUCKET}/${kategori}/`;
+    if (!fileKaryaUrl.startsWith(prefix)) {
+      return Response.json({ error: "File karya tidak valid" }, { status: 400 });
+    }
+    if (fileTurnitinUrl && !fileTurnitinUrl.startsWith(prefix)) {
+      return Response.json({ error: "File Turnitin tidak valid" }, { status: 400 });
+    }
+
+    const req_ = karyaRequirements(kategori);
+    if (req_.fileTurnitin === "required" && !fileTurnitinUrl) {
+      return Response.json({ error: "Laporan Turnitin wajib diunggah" }, { status: 400 });
+    }
+    if (req_.linkRepo === "required" && !isHttpUrl(linkRepo)) {
+      return Response.json({ error: "Link repository wajib diisi (http/https)" }, { status: 400 });
+    }
+    if (req_.linkVideo === "required" && !isHttpUrl(linkVideo)) {
+      return Response.json({ error: "Link video demo wajib diisi (http/https)" }, { status: 400 });
+    }
+    for (const [label, v] of [["repository", linkRepo], ["video demo", linkVideo]]) {
+      if (v && !isHttpUrl(v)) {
+        return Response.json({ error: `Link ${label} harus diawali http:// atau https://` }, { status: 400 });
+      }
     }
     const anggota = participant.anggota || null;
     const ketua = Array.isArray(anggota) && anggota[0] ? anggota[0] : null;
@@ -98,25 +115,6 @@ export async function POST(req) {
       );
     }
 
-    const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
-    const ext = file.name?.split(".").pop() || "bin";
-    const path = `${kategori}/karya-${Date.now()}-${Math.round(Math.random() * 1e4)}.${ext}`;
-
-    const admin = createAdminClient();
-    const { error: uploadError } = await admin.storage
-      .from(KARYA_BUCKET)
-      .upload(path, buffer, { contentType: file.type || "application/octet-stream" });
-
-    if (uploadError) {
-      return Response.json(
-        { error: "Gagal mengunggah file karya", message: uploadError.message },
-        { status: 500 },
-      );
-    }
-
-    const { data: publicUrlData } = admin.storage.from(KARYA_BUCKET).getPublicUrl(path);
-
     const submission = await prisma.submission.create({
       data: {
         kategori,
@@ -127,7 +125,10 @@ export async function POST(req) {
         anggota,
         judulKarya,
         deskripsi: deskripsi || null,
-        fileKaryaUrl: publicUrlData.publicUrl,
+        fileKaryaUrl,
+        fileTurnitinUrl: fileTurnitinUrl || null,
+        linkRepo: linkRepo || null,
+        linkVideo: linkVideo || null,
       },
     });
 
