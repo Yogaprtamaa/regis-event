@@ -282,6 +282,13 @@ export default function EditEventPage() {
                 return elements;
               })()}
 
+              {/* Upload PDF panduan — hasilnya ngisi panduanUrl di atas */}
+              <PanduanUpload
+                eventId={eventId}
+                url={formData.panduanUrl}
+                onUploaded={(url) => setFormData(prev => ({ ...prev, panduanUrl: url }))}
+              />
+
               {/* Divider */}
               <div className="border-t-2 border-dashed border-slate-200" />
 
@@ -323,6 +330,55 @@ export default function EditEventPage() {
           </div>
         </div>
       </div>
+    </div>
+  );
+}
+
+// Upload PDF panduan lomba. Route-nya langsung nyimpen ke Event.panduanUrl,
+// jadi link di atas ikut keisi tanpa harus Simpan dulu.
+function PanduanUpload({ eventId, url, onUploaded }) {
+  const [uploading, setUploading] = useState(false);
+  const [err, setErr] = useState('');
+
+  const handleFile = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setErr('');
+    setUploading(true);
+    try {
+      const body = new FormData();
+      body.append('file', file);
+      const res = await fetch(`/api/events/${eventId}/panduan`, { method: 'POST', body });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Gagal upload panduan');
+      onUploaded(data.url);
+    } catch (e2) {
+      setErr(e2.message);
+    } finally {
+      setUploading(false);
+      e.target.value = '';
+    }
+  };
+
+  return (
+    <div>
+      <label className="flex items-center gap-1.5 text-[11px] font-black text-slate-600 uppercase tracking-wider mb-2">
+        <BookOpenIcon className="w-3.5 h-3.5" strokeWidth={2.5} />
+        Upload PDF Panduan
+      </label>
+      <input
+        type="file"
+        accept="application/pdf"
+        onChange={handleFile}
+        disabled={uploading}
+        className="w-full px-3.5 py-2.5 rounded-xl text-sm font-bold b-border bg-white text-slate-900 disabled:opacity-50"
+        style={{ boxShadow: "3px 3px 0 #1a1a1a" }}
+      />
+      <p className="text-[11px] font-black mt-2 text-slate-400">
+        {uploading ? 'Mengupload...' : err ? <span className="text-red-600">{err}</span>
+          : url ? '✅ Panduan tersimpan — peserta bisa unduh dari halaman event'
+          : 'PDF maksimal 10MB. Atau isi link manual di kolom di atas.'}
+      </p>
     </div>
   );
 }
