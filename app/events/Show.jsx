@@ -40,11 +40,23 @@ const KTI_TERMS = [
     body: "Tim terdiri dari 1-4 orang mahasiswa aktif dari perguruan tinggi yang sama, dibuktikan dengan KTM yang masih berlaku.",
   },
   {
-    title: "4. Hak Panitia",
+    title: "4. Cek Plagiarisme",
+    body: "Karya wajib melalui pengecekan plagiarisme dengan tingkat kemiripan (similarity) maksimal 30%. Karya di atas batas tersebut tidak diproses ke tahap seleksi.",
+  },
+  {
+    title: "5. Publikasi Jurnal",
+    body: "Peserta KTI wajib mempublikasikan karyanya di jurnal Program Studi Teknik Informatika Universitas Paramadina.",
+  },
+  {
+    title: "6. Sanksi Tidak Publikasi",
+    body: "Apabila karya tidak dipublikasikan di jurnal Program Studi Teknik Informatika Universitas Paramadina, kampus asal peserta akan di-blacklist dari lomba IT Fest berikutnya.",
+  },
+  {
+    title: "7. Hak Panitia",
     body: "Panitia berhak mendiskualifikasi karya yang terbukti plagiat atau melanggar ketentuan di atas kapan pun ditemukan, termasuk setelah pengumuman finalis.",
   },
   {
-    title: "5. Batas Waktu",
+    title: "8. Batas Waktu",
     body: "Karya wajib dikumpulkan sebelum tenggat yang ditentukan panitia. Karya yang terlambat tidak akan diproses ke tahap seleksi.",
   },
 ];
