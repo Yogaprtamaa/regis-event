@@ -156,8 +156,10 @@ const CSS = `
   .ticker-track:hover { animation-play-state: paused; }
 
   /* ── Grids ── */
-  .acara-grid { display: grid; grid-template-columns: repeat(5,1fr); gap: 16px; }
+  .acara-grid { display: grid; grid-template-columns: repeat(6,1fr); gap: 16px; }
   .lomba-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 26px; }
+  /* kartu terakhir yang kesisa sendirian dilebarin 2 kolom biar barisnya gak nyeplak */
+  .lomba-grid > :last-child:nth-child(odd) { grid-column: 1 / -1; }
   .about-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 52px; align-items: center; }
   .footer-grid { display: grid; grid-template-columns: 1.4fr 1fr 1fr; gap: 48px; }
   .hero-grid { display: grid; grid-template-columns: 1.15fr .85fr; gap: 40px; align-items: flex-end; }
@@ -254,10 +256,11 @@ const CSS = `
 /* ── Data ─────────────────────────────────────────────────────────────── */
 const ACARA = [
   { Icon: TrophyIcon, label: "Lomba", sub: "27 Jul – 14 Agt", color: C.coral, tc: "#fff" },
+  { Icon: FlagIcon, label: "Final Day", sub: "12 Okt", color: C.navy, tc: "#fff" },
   { Icon: MicrophoneIcon, label: "Talkshow", sub: "13–14 Okt", color: C.blue, tc: "#fff" },
   { Icon: RocketLaunchIcon, label: "Expo", sub: "13–14 Okt", color: C.lime, tc: C.navy },
-  { Icon: PuzzlePieceIcon, label: "Fun Game", sub: "13–14 Okt", color: C.orange, tc: "#fff" },
-  { Icon: ShoppingBagIcon, label: "Bazzar", sub: "Coming Soon", color: C.yellow, tc: C.navy },
+  { Icon: PuzzlePieceIcon, label: "Fun Game", sub: "14 Okt", color: C.orange, tc: "#fff" },
+  { Icon: ShoppingBagIcon, label: "Bazzar", sub: "13–14 Okt", color: C.yellow, tc: C.navy },
 ];
 
 const LOMBA = [
@@ -274,10 +277,10 @@ const HASIL_KATEGORI = [
 
 const TIMELINE = [
   { Icon: PencilSquareIcon, label: "Pendaftaran & Pelaksanaan Lomba", date: "27 Jul – 12 Okt 2026", note: "Hackathon, IoT & KTI", color: C.coral },
-  { Icon: FlagIcon, label: "Final Day (Online)", date: "12 Oktober 2026", note: "Babak final seluruh kategori lomba", color: C.orange },
+  { Icon: FlagIcon, label: "Final Day", date: "12 Oktober 2026", note: "Babak final seluruh kategori lomba", color: C.orange },
   { Icon: MicrophoneIcon, label: "Talkshow & Expo", date: "13–14 Oktober 2026", note: "Link pendaftaran segera dibuka", color: C.blue },
-  { Icon: PuzzlePieceIcon, label: "Fun Game", date: "13–14 Oktober 2026", note: "Link pendaftaran segera dibuka", color: C.lime },
-  { Icon: ShoppingBagIcon, label: "Tenant Bazzar", date: "Coming Soon", note: "Bazar produk, kuliner & merchandise", color: C.yellow },
+  { Icon: PuzzlePieceIcon, label: "Fun Game", date: "14 Oktober 2026", note: "Link pendaftaran segera dibuka", color: C.lime },
+  { Icon: ShoppingBagIcon, label: "Tenant Bazzar", date: "13–14 Oktober 2026", note: "Bazar produk, kuliner & merchandise", color: C.yellow },
 ];
 
 /* ── Gelembung deterministik (hindari hydration mismatch) ──────────── */
@@ -835,7 +838,7 @@ function Acara() {
             tag="Menyelam Lebih Dalam"
             tagColor={C.yellow}
             tagTextColor={C.navy}
-            headline={<>Lima <span style={{ color: C.yellow }}>Ombak Acara</span> IT FEST</>}
+            headline={<>Enam <span style={{ color: C.yellow }}>Ombak Acara</span> IT FEST</>}
             sub="Rangkaian kegiatan utama festival — masing-masing punya panggungnya sendiri."
           />
           <div className="acara-grid">
@@ -950,7 +953,7 @@ function Bazzar() {
               Jadilah bagian dari Bazzar IT FEST 6.0! Informasi ketentuan dan biaya tenant akan segera diumumkan.
             </p>
             <span className="fd k-tag" style={{ background: C.orange, color: "#fff", fontSize: 12, transform: "rotate(-1deg)" }}>
-              Coming Soon
+              13–14 Oktober 2026
             </span>
           </div>
         </div>

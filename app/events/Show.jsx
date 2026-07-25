@@ -14,6 +14,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { CheckBadgeIcon } from "@heroicons/react/24/solid";
 import { useState } from "react";
+import SiteFooter from "../components/SiteFooter";
 import { eventSlug } from "../../lib/kategori";
 import { getFormSchema, isFileField } from "../../lib/formSchema";
 
@@ -37,7 +38,7 @@ const KTI_TERMS = [
   },
   {
     title: "3. Ketentuan Tim",
-    body: "Tim terdiri dari 1-4 orang mahasiswa aktif dari perguruan tinggi yang sama, dibuktikan dengan KTM yang masih berlaku.",
+    body: "Tim terdiri dari 1-3 orang mahasiswa aktif dari perguruan tinggi yang sama, dibuktikan dengan KTM yang masih berlaku.",
   },
   {
     title: "4. Cek Plagiarisme",
@@ -202,13 +203,15 @@ export default function ShowEvent({
     setAnswers((prev) => ({ ...prev, [id]: value }));
     if (errors[id]) setErrors((prev) => ({ ...prev, [id]: "" }));
   };
-  // Anggota: ketua di index 0; maksimal 4 orang dalam 1 kelompok
+  // Anggota: ketua di index 0; maksimal 3 orang dalam 1 kelompok
   const [members, setMembers] = useState([{ nama: "", nim: "" }]);
   const [errors, setErrors] = useState({});
   const [processing, setProcessing] = useState(false);
   const [showKtiTerms, setShowKtiTerms] = useState(false);
 
-  const MAX_MEMBERS = 4;
+  const MAX_MEMBERS = 3;
+  // ponytail: batas aman body request Vercel (4.5MB). Naikkan kalau limit project sudah dinaikkan.
+  const MAX_UPLOAD_BYTES = 4 * 1024 * 1024;
 
   // Guard: return early if event is not available
   if (!event) {
@@ -429,14 +432,34 @@ export default function ShowEvent({
         }
       }
 
+      // Vercel nolak body kegedean sebelum sampai ke route → cek dulu di sini
+      // biar pesannya jelas, bukan 413 "Request Entity Too Large" yang bukan JSON.
+      let totalBytes = 0;
+      for (const [, v] of form.entries()) if (v instanceof File) totalBytes += v.size;
+      if (totalBytes > MAX_UPLOAD_BYTES) {
+        throw new Error(
+          `Total ukuran file ${(totalBytes / 1024 / 1024).toFixed(1)}MB, maksimal ${MAX_UPLOAD_BYTES / 1024 / 1024}MB. Kompres dulu file/gambarnya.`,
+        );
+      }
+
       const response = await fetch("/api/participants", {
         method: "POST",
         body: form,
       });
 
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || "Gagal mendaftar");
+        // Error dari proxy (413, 502, dsb) bukan JSON — jangan dipaksa parse.
+        const raw = await response.text();
+        let message;
+        try {
+          message = JSON.parse(raw).message;
+        } catch {
+          message =
+            response.status === 413
+              ? `File terlalu besar (maksimal ${MAX_UPLOAD_BYTES / 1024 / 1024}MB total). Kompres dulu file/gambarnya.`
+              : `Gagal mendaftar (${response.status})`;
+        }
+        throw new Error(message || "Gagal mendaftar");
       }
 
       setStep("success");
@@ -618,7 +641,7 @@ export default function ShowEvent({
                 </div>
                 {formData.jenisPeserta === "kelompok" && (
                   <p className="text-[10px] font-bold text-slate-400 mt-1.5">
-                    Maksimal 4 orang dalam 1 kelompok.
+                    Maksimal 3 orang dalam 1 kelompok.
                   </p>
                 )}
               </div>
@@ -1396,65 +1419,7 @@ export default function ShowEvent({
           </div>
         </header>
         <main className="flex-1">{pageBody}</main>
-        <footer className="mt-8 py-10 bg-white border-t-4 border-black">
-          <div className="max-w-7xl mx-auto px-6 flex flex-col items-center text-center">
-            <div className="flex items-center gap-2.5 mb-3">
-              <div
-                className="w-10 h-10 b-border rounded-xl flex items-center justify-center overflow-hidden"
-                style={{ background: "#082E4B", boxShadow: "3px 3px 0 #1a1a1a" }}
-              >
-                <img src="/itfest-logo.png" alt="IT FEST 6.0" className="object-contain w-7 h-7" />
-              </div>
-              <span className="font-fredoka text-2xl font-bold tracking-tight text-black">
-                IT FEST 6.0
-              </span>
-            </div>
-            <p className="text-slate-400 font-bold text-sm mb-4 max-w-md">
-              Diselenggarakan oleh Himpunan Mahasiswa Teknik Informatika dan
-              Prodi Teknik Informatika Universitas Paramadina.
-            </p>
-            <div className="flex items-center gap-4 mb-4">
-              <a
-                href="https://www.instagram.com/itfest.paramadina"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center justify-center w-10 h-10 transition-colors bg-white rounded-full cursor-pointer text-pink-600 b-border-2 hover:bg-pink-100"
-                style={{ boxShadow: "2px 2px 0 #1a1a1a" }}
-                title="Instagram IT FEST"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 24 24"
-                  fill="currentColor"
-                  className="w-5 h-5"
-                >
-                  <path d="M12 2c2.717 0 3.056.01 4.122.06 1.065.05 1.79.217 2.428.465.66.254 1.216.598 1.772 1.153a4.908 4.908 0 0 1 1.153 1.772c.247.637.415 1.363.465 2.428.047 1.066.06 1.405.06 4.122 0 2.717-.01 3.056-.06 4.122-.05 1.065-.218 1.79-.465 2.428a4.883 4.883 0 0 1-1.153 1.772 4.915 4.915 0 0 1-1.772 1.153c-.637.247-1.363.415-2.428.465-1.066.047-1.405.06-4.122.06-2.717 0-3.056-.01-4.122-.06-1.065-.05-1.79-.218-2.428-.465a4.89 4.89 0 0 1-1.772-1.153 4.904 4.904 0 0 1-1.153-1.772c-.248-.637-.415-1.363-.465-2.428C2.013 15.056 2 14.717 2 12c0-2.717.01-3.056.06-4.122.05-1.066.217-1.79.465-2.428a4.88 4.88 0 0 1 1.153-1.772A4.897 4.897 0 0 1 5.45 2.525c.638-.248 1.362-.415 2.428-.465C8.944 2.013 9.283 2 12 2zm0 5a5 5 0 1 0 0 10 5 5 0 0 0 0-10zm6.5-.25a1.25 1.25 0 1 0-2.5 0 1.25 1.25 0 0 0 2.5 0zM12 9a3 3 0 1 1 0 6 3 3 0 0 1 0-6z" />
-                </svg>
-              </a>
-              <a
-                href="https://www.tiktok.com/@itfestparamadina"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center justify-center w-10 h-10 transition-colors bg-white rounded-full cursor-pointer text-black b-border-2 hover:bg-gray-100"
-                style={{ boxShadow: "2px 2px 0 #1a1a1a" }}
-                title="TikTok IT FEST"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 24 24"
-                  fill="currentColor"
-                  className="w-5 h-5"
-                >
-                  <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z" />
-                </svg>
-              </a>
-            </div>
-            <p className="text-slate-900 font-black text-xs uppercase tracking-widest">
-              &copy; 2026 IT FEST 6.0 · Himpunan Mahasiswa Teknik Informatika
-              &amp; Prodi Teknik Informatika Universitas Paramadina
-            </p>
-          </div>
-        </footer>
+        <SiteFooter className="mt-8" />
       </div>
     </>
   );
