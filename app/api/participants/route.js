@@ -2,7 +2,6 @@ export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 import { prisma } from "../../../lib/prisma";
-import { sendConfirmationEmail } from "../../../lib/mail";
 import { createAdminClient } from "../../../lib/supabase/admin";
 import { eventSlug } from "../../../lib/kategori";
 import {
@@ -251,20 +250,8 @@ export async function POST(req) {
       include: { event: true },
     });
 
-    /* ===== KIRIM EMAIL ===== */
-    try {
-      await sendConfirmationEmail(
-        email,
-        {
-          ...participant,
-          divisi,
-          instansi,
-        },
-        participant.event,
-      );
-    } catch (emailError) {
-      console.error("Warning: Email gagal terkirim:", emailError.message);
-    }
+    // ponytail: email konfirmasi pendaftaran dimatiin — peserta langsung login
+    // setelah daftar. Mau diaktifin lagi? panggil sendConfirmationEmail di sini.
 
     return Response.json(participant, { status: 201 });
   } catch (err) {

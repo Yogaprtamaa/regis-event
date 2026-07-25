@@ -124,6 +124,8 @@ export default function SubmitKaryaPage() {
 
   const st = STATUS_CFG[participant.paymentStatus] || STATUS_CFG.PENDING;
   const verified = participant.paymentStatus === "APPROVED";
+  const isPaid = participant.isPaidEvent;
+  const rejected = participant.paymentStatus === "REJECTED";
 
   return (
     <div className="adm-bg min-h-screen p-4">
@@ -153,7 +155,9 @@ export default function SubmitKaryaPage() {
             style={{ background: st.color, color: st.text, boxShadow: "3px 3px 0 #000" }}
           >
             <span className="text-lg">{st.emoji}</span>
-            <span className="fb text-sm font-extrabold">Status akun: {st.tag}</span>
+            <span className="fb text-sm font-extrabold">
+              Status akun: {rejected && !isPaid ? "Pendaftaran Ditolak" : st.tag}
+            </span>
           </div>
         </div>
 
@@ -162,14 +166,14 @@ export default function SubmitKaryaPage() {
           <div className="pop-in adm-card sh-navy px-6 py-8 sm:px-8 text-center" style={{ "--d": "100ms" }}>
             <p className="text-4xl mb-3">{st.emoji}</p>
             <h2 className="fd text-2xl font-bold" style={{ color: C.navy }}>
-              {participant.paymentStatus === "REJECTED"
-                ? "Pembayaran ditolak"
+              {rejected
+                ? isPaid ? "Pembayaran ditolak" : "Pendaftaran ditolak"
                 : "Menunggu verifikasi panitia"}
             </h2>
             <p className="fb text-sm font-semibold mt-3" style={{ color: C.muted }}>
-              {participant.paymentStatus === "REJECTED"
-                ? "Bukti pembayaran kamu ditolak. Hubungi panitia untuk info lanjutan."
-                : "Upload karya kebuka setelah panitia memverifikasi pembayaran kamu. Cek halaman ini lagi nanti."}
+              {rejected
+                ? `${isPaid ? "Bukti pembayaran" : "Berkas pendaftaran"} kamu ditolak. Hubungi panitia untuk info lanjutan.`
+                : `Upload karya kebuka setelah panitia memverifikasi ${isPaid ? "pembayaran" : "pendaftaran"} kamu. Cek halaman ini lagi nanti.`}
             </p>
           </div>
         ) : loadingSubmission ? (

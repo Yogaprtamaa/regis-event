@@ -15,6 +15,7 @@ import {
 import { CheckBadgeIcon } from "@heroicons/react/24/solid";
 import { useState } from "react";
 import SiteFooter from "../components/SiteFooter";
+import { createClient } from "@/lib/supabase/client";
 import { eventSlug } from "../../lib/kategori";
 import { getFormSchema, isFileField } from "../../lib/formSchema";
 
@@ -208,6 +209,7 @@ export default function ShowEvent({
   const [errors, setErrors] = useState({});
   const [processing, setProcessing] = useState(false);
   const [showKtiTerms, setShowKtiTerms] = useState(false);
+  const [loggedIn, setLoggedIn] = useState(false);
 
   const MAX_MEMBERS = 3;
   // ponytail: batas aman body request Vercel (4.5MB). Naikkan kalau limit project sudah dinaikkan.
@@ -418,13 +420,30 @@ export default function ShowEvent({
       form.append("password", formData.password);
       form.append("setujuSyaratKti", isKti && formData.setujuSyaratKti ? "true" : "false");
 
+      // Safari iOS sering gagal kirim File dari Photos apa adanya (error WebKit
+      // "The string did not match the expected pattern"), apalagi foto iCloud yang
+      // belum ke-download. Dibaca dulu jadi Blob biar multipart-nya bener.
+      const appendFile = async (key, file) => {
+        if (!file) return;
+        let buf;
+        try {
+          buf = await file.arrayBuffer();
+        } catch {
+          throw new Error(`Gagal membaca file "${file.name || key}". Coba pilih ulang fotonya dari galeri.`);
+        }
+        if (!buf.byteLength) {
+          throw new Error(`File "${file.name || key}" kosong atau belum selesai diunduh dari iCloud. Pilih ulang fotonya.`);
+        }
+        form.append(key, new Blob([buf], { type: file.type || "application/octet-stream" }), file.name || `${key}.jpg`);
+      };
+
       // Field formulir → dikirim per id
       for (const f of schema) {
         const v = answers[f.id];
         if (f.type === "files") {
-          (v || []).forEach((file) => form.append(f.id, file));
+          for (const file of v || []) await appendFile(f.id, file);
         } else if (isFileField(f)) {
-          if (v) form.append(f.id, v);
+          if (v) await appendFile(f.id, v);
         } else if (f.type === "checkbox") {
           form.append(f.id, v ? "true" : "false");
         } else {
@@ -435,7 +454,7 @@ export default function ShowEvent({
       // Vercel nolak body kegedean sebelum sampai ke route → cek dulu di sini
       // biar pesannya jelas, bukan 413 "Request Entity Too Large" yang bukan JSON.
       let totalBytes = 0;
-      for (const [, v] of form.entries()) if (v instanceof File) totalBytes += v.size;
+      for (const [, v] of form.entries()) if (v instanceof Blob) totalBytes += v.size;
       if (totalBytes > MAX_UPLOAD_BYTES) {
         throw new Error(
           `Total ukuran file ${(totalBytes / 1024 / 1024).toFixed(1)}MB, maksimal ${MAX_UPLOAD_BYTES / 1024 / 1024}MB. Kompres dulu file/gambarnya.`,
@@ -462,9 +481,22 @@ export default function ShowEvent({
         throw new Error(message || "Gagal mendaftar");
       }
 
+      // Langsung login pakai akun yang barusan dibuat — peserta gak perlu ke /login lagi.
+      const email = answers.email;
+      const { error: signInError } = await createClient().auth.signInWithPassword({
+        email,
+        password: formData.password,
+      });
+      if (signInError) console.error("Auto-login gagal:", signInError.message);
+      setLoggedIn(!signInError);
+
       setStep("success");
     } catch (error) {
-      setErrors({ submit: error.message });
+      // Pesan mentah WebKit gak ngasih tau apa-apa ke peserta — diterjemahin.
+      const msg = /did not match the expected pattern/i.test(error.message || "")
+        ? "Gagal mengirim file dari perangkat ini. Coba pilih ulang foto dari galeri (bukan langsung dari iCloud), atau daftar lewat laptop."
+        : error.message;
+      setErrors({ submit: msg });
     } finally {
       setProcessing(false);
     }
@@ -559,10 +591,19 @@ export default function ShowEvent({
             <div className="flex items-center gap-2.5 b-border rounded-2xl px-4 py-3" style={{ background: "#fff7e6" }}>
               <EnvelopeIcon className="w-4 h-4 flex-shrink-0" strokeWidth={2.5} style={{ color: "#EB3C6B" }} />
               <p className="text-xs font-black" style={{ color: "#EB3C6B" }}>
-                Konfirmasi dikirim ke email kamu
+                {loggedIn
+                  ? "Kamu sudah otomatis login — pantau status & upload karya di halaman peserta."
+                  : "Login pakai email & password yang barusan kamu isi."}
               </p>
             </div>
             <EventLinks event={event} />
+            <Link
+              href={loggedIn ? "/submit-karya" : "/login"}
+              className="b-btn b-border flex items-center justify-center w-full gap-2 py-3.5 text-sm font-black text-white rounded-2xl uppercase tracking-widest"
+              style={{ background: acc.bg }}
+            >
+              {loggedIn ? "Ke Halaman Peserta" : "Login Sekarang"}
+            </Link>
             <Link
               href="/events"
               className="b-btn b-border flex items-center justify-center w-full gap-2 py-3.5 text-sm font-black text-white rounded-2xl uppercase tracking-widest"

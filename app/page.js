@@ -733,7 +733,7 @@ function Hero() {
 
 /* ── Ticker (papan tepi dermaga) ───────────────────────────────────── */
 function Ticker() {
-  const items = ["IT FEST 6.0", "Ride the Wave of Creativity", "Universitas Paramadina", "Hackathon · IoT · Game · KTI", "27 Juli – 14 Oktober 2026", "Human-Centered AI"];
+  const items = ["IT FEST 6.0", "Ride the Wave of Creativity", "Universitas Paramadina", "Hackathon · IoT · KTI", "27 Juli – 14 Oktober 2026", "Human-Centered AI"];
   const d = [...items, ...items];
   return (
     <div className="ticker-wrap fb" style={{ background: C.yellow, borderTop: "3px solid #000", borderBottom: "3px solid #000", padding: "12px 0" }}>

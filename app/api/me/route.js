@@ -23,6 +23,8 @@ export async function GET() {
           jenisPeserta: participant.jenisPeserta,
           anggota: participant.anggota,
           eventNama: participant.event?.nama_event ?? null,
+          // Event gratis → teks status jangan nyebut pembayaran
+          isPaidEvent: participant.event?.isPaidEvent ?? false,
         }
       : null,
   });
