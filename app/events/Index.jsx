@@ -297,13 +297,18 @@ function EventCard({ event, idx, showAdminActions = false }) {
                         Lihat Detail
                         <ArrowRightIcon className="w-3.5 h-3.5 hidden sm:block" strokeWidth={3} />
                     </Link>
-                    {showAdminActions && (
+                    {showAdminActions && (<>
+                        <Link href={`/participants?event=${event.id}`}
+                            className="b-btn b-border px-3 sm:px-4 py-3 sm:py-3.5 rounded-xl sm:rounded-2xl text-[10px] sm:text-xs font-black text-white uppercase tracking-wider flex items-center gap-1.5"
+                            style={{ background: '#1a1a1a', boxShadow: '4px 4px 0 #000' }}>
+                            <UsersIcon className="w-3.5 h-3.5" strokeWidth={3} /> Peserta
+                        </Link>
                         <Link href={`/events/${event.id}/edit`}
                             className="b-btn b-border px-3 sm:px-4 py-3 sm:py-3.5 rounded-xl sm:rounded-2xl text-[10px] sm:text-xs font-black bg-white text-slate-700 uppercase tracking-wider"
                             style={{ boxShadow: '4px 4px 0 #000' }}>
                             Edit
                         </Link>
-                    )}
+                    </>)}
                 </div>
             </div>
         </div>
@@ -354,6 +359,16 @@ export default function EventsIndex({ auth, events, filters }) {
     ];
 
     const publishedCount = (events || []).filter(e => e.status === 'PUBLISHED').length;
+
+    // Ringkasan buat panel manajemen admin
+    const totalPeserta = (events || []).reduce((n, e) => n + (e._count?.participants || 0), 0);
+    const penuhCount = (events || []).filter(e => e.quota && (e._count?.participants || 0) >= e.quota).length;
+    const adminSummary = [
+        { label: 'Total Event', value: (events || []).length, Icon: CalendarIcon, bg: '#1a1a1a' },
+        { label: 'Dibuka', value: publishedCount, Icon: BoltIcon, bg: '#2DD4BF' },
+        { label: 'Kuota Penuh', value: penuhCount, Icon: TrophyIcon, bg: '#EB3C6B' },
+        { label: 'Total Peserta', value: totalPeserta, Icon: UsersIcon, bg: '#FBBF24' },
+    ];
 
     if (!isAuthenticated) return (
         <>
@@ -663,6 +678,8 @@ export default function EventsIndex({ auth, events, filters }) {
             <div style={{ background: '#FEFEFE' }}>
                 <div className="fixed inset-0 bg-dots" />
                 
+                {/* Hero + Ticker — cuma guest/peserta. Admin fokus ke panel manajemen. */}
+                {!isAdmin && (<>
                 {/* Hero Section */}
                 <div className="relative pt-8 pb-12 sm:pb-16 lg:pb-20">
                     <div className="px-4 mx-auto max-w-7xl sm:px-6 lg:px-8">
@@ -757,6 +774,35 @@ export default function EventsIndex({ auth, events, filters }) {
                 <div className="mb-8 sm:mb-12">
                     <Ticker events={(events||[]).filter(e => e.status === 'PUBLISHED')} />
                 </div>
+                </>)}
+
+                {/* Panel manajemen — cuma admin */}
+                {isAdmin && (
+                    <div className="pt-6 sm:pt-8 pb-2">
+                        <div className="px-4 mx-auto max-w-7xl sm:px-6 lg:px-8">
+                            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4">
+                                {adminSummary.map((s, i) => (
+                                    <div key={s.label}
+                                        className="bg-white b-border rounded-2xl p-4 sm:p-5"
+                                        style={{ boxShadow: '5px 5px 0 #000' }}>
+                                        <div className="flex items-center justify-between">
+                                            <p className="font-fredoka font-bold text-slate-900 tabular-nums text-3xl sm:text-4xl" style={{ lineHeight: 1 }}>
+                                                {s.value}
+                                            </p>
+                                            <div className="flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 rounded-xl b-border-2"
+                                                style={{ background: s.bg, boxShadow: '2px 2px 0 #000' }}>
+                                                <s.Icon className="w-4 h-4 sm:w-5 sm:h-5 text-white" strokeWidth={2.5} />
+                                            </div>
+                                        </div>
+                                        <p className="text-[9px] sm:text-[10px] font-black uppercase tracking-widest text-slate-400 mt-2">
+                                            {s.label}
+                                        </p>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                )}
 
                 {/* Events Section */}
                 <div className="py-8 sm:py-16" style={{ background: '#FEFEFE' }}>

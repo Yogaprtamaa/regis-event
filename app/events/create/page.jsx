@@ -11,6 +11,8 @@ import {
 } from "@heroicons/react/24/outline";
 import { CheckBadgeIcon } from "@heroicons/react/24/solid";
 import { useRouter } from "next/navigation";
+import FormBuilder from "@/app/components/FormBuilder";
+import { DEFAULT_FORM_SCHEMA } from "@/lib/formSchema";
 
 const CSS = `
   @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Plus+Jakarta+Sans:wght@700;800&display=swap');
@@ -130,6 +132,8 @@ export default function CreateEventPage() {
     status: "DRAFT",
     isPaidEvent: false,
   });
+  // Form-builder: kolom formulir pendaftaran
+  const [fields, setFields] = useState(DEFAULT_FORM_SCHEMA);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -179,6 +183,7 @@ export default function CreateEventPage() {
           lokasi: formData.lokasi,
           kapasitas: parseInt(formData.kapasitas, 10),
           isPaidEvent: formData.isPaidEvent,
+          formSchema: fields,
         }),
       });
 
@@ -391,6 +396,15 @@ export default function CreateEventPage() {
                   </span>
                 </label>
               </div>
+
+              {/* Divider */}
+              <div className="border-t-2 border-dashed border-slate-200" />
+
+              {/* ── Form-builder: kolom formulir pendaftaran ── */}
+              <FormBuilder fields={fields} setFields={setFields} />
+
+              {/* Divider */}
+              <div className="border-t-2 border-dashed border-slate-200" />
 
               {/* Submit button */}
               <button

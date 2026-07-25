@@ -1043,7 +1043,7 @@ export default function ShowEvent({
           )}
           {isAdmin && (
             <Link
-              href={`/events/${event.id}/participants`}
+              href={`/participants?event=${event.id}`}
               className="b-btn b-border flex items-center justify-center w-full gap-2 py-4 rounded-2xl font-black text-sm text-white uppercase tracking-widest"
               style={{ background: acc.btn }}
             >
@@ -1324,7 +1324,7 @@ export default function ShowEvent({
                     Edit Event
                   </Link>
                   <Link
-                    href={`/events/${event.id}/participants`}
+                    href={`/participants?event=${event.id}`}
                     className="b-btn b-border inline-flex items-center gap-2 px-4 py-2.5 text-sm font-black text-white rounded-2xl uppercase tracking-wider"
                     style={{ background: acc.btn }}
                   >

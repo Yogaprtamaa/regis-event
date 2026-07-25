@@ -215,7 +215,8 @@ function ReviewModal({ participant, onClose, onAction }) {
 
           <div className="grid sm:grid-cols-3 gap-4">
             <Evidence label="Bukti Pembayaran" url={participant.buktiPembayaran} />
-            <Evidence label="Bukti Follow IG" url={participant.buktiFollow} />
+            <Evidence label="Follow IG @himti" url={participant.buktiFollow} />
+            <Evidence label="Follow IG @itfest" url={participant.formData?.buktiFollowItfest} />
             {fotoKtm.length > 0 ? (
               fotoKtm.map((url, i) => (
                 <Evidence key={url} label={`Foto KTM ${fotoKtm.length > 1 ? i + 1 : ""}`} url={url} />
@@ -327,6 +328,11 @@ export default function ParticipantsPage() {
   const [tab, setTab] = useState("verifikasi"); // "verifikasi" | "semua"
   const [statusFilter, setStatusFilter] = useState("all");
   const [eventFilter, setEventFilter] = useState("all");
+  // Prefill dari ?event=<id> (link "Kelola Peserta" dari halaman event)
+  useEffect(() => {
+    const ev = new URLSearchParams(window.location.search).get("event");
+    if (ev) setEventFilter(ev);
+  }, []);
   const [paymentFilter, setPaymentFilter] = useState("all");
   const [loading, setLoading] = useState(true);
   const [events, setEvents] = useState([]);
@@ -378,6 +384,16 @@ export default function ParticipantsPage() {
     }),
     [participants],
   );
+
+  // Event yang lagi dipilih di filter → tampil status kuota (buat "Kelola Peserta")
+  const selectedEvent = eventFilter === "all" ? null : events.find((e) => e.id === eventFilter);
+  const selectedFill = selectedEvent
+    ? participants.filter((p) => p.eventId === selectedEvent.id).length
+    : 0;
+  const selectedPct = selectedEvent?.kapasitas
+    ? Math.min(Math.round((selectedFill / selectedEvent.kapasitas) * 100), 100)
+    : 0;
+  const selectedFull = selectedEvent?.kapasitas ? selectedFill >= selectedEvent.kapasitas : false;
 
   const filtered = useMemo(() => {
     let list = participants;
@@ -650,6 +666,51 @@ export default function ParticipantsPage() {
             Menampilkan {filtered.length} peserta
           </p>
         </div>
+
+        {/* Status kuota event terpilih */}
+        {selectedEvent && (
+          <div
+            className="pop-in adm-card p-5 sm:p-6 mb-8"
+            style={{
+              "--d": "320ms",
+              boxShadow: `6px 6px 0 ${selectedFull ? C.coral : C.navy}`,
+            }}
+          >
+            <div className="flex items-center justify-between gap-3 flex-wrap">
+              <div>
+                <p className="fb text-[10px] font-extrabold uppercase tracking-[.14em]" style={{ color: C.muted }}>
+                  Kuota Event
+                </p>
+                <h3 className="fd text-xl font-bold mt-0.5" style={{ color: C.navy }}>
+                  {selectedEvent.nama_event}
+                </h3>
+              </div>
+              <div className="text-right">
+                <p className="fd text-3xl font-bold tabular-nums" style={{ color: selectedFull ? C.coral : C.navy }}>
+                  {selectedFill}
+                  {selectedEvent.kapasitas ? ` / ${selectedEvent.kapasitas}` : ""}
+                </p>
+                <span
+                  className="fb inline-block mt-1 px-3 py-0.5 text-[10px] font-extrabold uppercase tracking-wide rounded-full border-2 border-black"
+                  style={{ background: selectedFull ? C.coral : C.lime, color: selectedFull ? "#fff" : C.navy }}
+                >
+                  {!selectedEvent.kapasitas ? "Tanpa Batas" : selectedFull ? "Penuh" : `${selectedPct}% terisi`}
+                </span>
+              </div>
+            </div>
+            {selectedEvent.kapasitas ? (
+              <div className="adm-track mt-4">
+                <div
+                  className="adm-fill"
+                  style={{
+                    width: `${selectedPct}%`,
+                    background: selectedFull ? C.coral : selectedPct >= 80 ? C.orange : C.lime,
+                  }}
+                />
+              </div>
+            ) : null}
+          </div>
+        )}
 
         {/* Table */}
         <div className="pop-in adm-card sh-navy overflow-hidden" style={{ "--d": "380ms" }}>

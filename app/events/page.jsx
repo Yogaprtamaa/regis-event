@@ -6,9 +6,18 @@ import Loading from "@/app/loading";
 
 export default function EventsPage() {
   const [events, setEvents] = useState([]);
+  const [auth, setAuth] = useState({ user: null });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // Panitia (role ADMIN) → tampil UI "Kelola Event" (quota + edit). Selain itu guest.
+    fetch("/api/me")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((me) => {
+        if (me?.role === "ADMIN") setAuth({ user: { role: "admin", email: me.email } });
+      })
+      .catch(() => {});
+
     const fetchEvents = async () => {
       try {
         const res = await fetch("/api/events");
@@ -46,5 +55,5 @@ export default function EventsPage() {
 
   if (loading) return <Loading />;
 
-  return <EventsIndex auth={{ user: null }} events={events} filters={{}} />;
+  return <EventsIndex auth={auth} events={events} filters={{}} />;
 }

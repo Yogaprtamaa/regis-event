@@ -36,6 +36,8 @@ export async function POST(req) {
         lokasi: body.lokasi,
         kapasitas: body.kapasitas,
         isPaidEvent: body.isPaidEvent ?? false,
+        // Kolom formulir pendaftaran (form-builder). null → pakai DEFAULT_FORM_SCHEMA.
+        formSchema: Array.isArray(body.formSchema) && body.formSchema.length ? body.formSchema : undefined,
       },
       include: {
         participants: true,

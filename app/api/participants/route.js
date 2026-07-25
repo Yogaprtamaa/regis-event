@@ -106,6 +106,9 @@ export async function POST(req) {
     });
 
     if (existing) {
+      console.log(
+        `[participants] Duplicate — peserta sudah terdaftar (${JSON.stringify(checkDuplicateFilter)}), participantId=${existing.id}`,
+      );
       return Response.json(
         { message: "Kamu sudah terdaftar di event ini" },
         { status: 400 },
@@ -161,6 +164,7 @@ export async function POST(req) {
         // ponytail: 1 email = 1 akun. Kalau mau reuse akun buat multi-event,
         // upgrade: lookup user by email lalu link supabaseId-nya.
         const dup = /already|registered|exists/i.test(authError.message || "");
+        if (dup) console.log(`[participants] Duplicate — akun Supabase sudah ada untuk email=${email}`);
         return Response.json(
           {
             message: dup

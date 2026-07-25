@@ -9,9 +9,18 @@ export default function ShowEventPage() {
   const params = useParams();
   const eventId = params.id;  // UUID string, no parseInt
   const [event, setEvent] = useState(null);
+  const [auth, setAuth] = useState({ user: null });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // Panitia (role ADMIN) → Show tampil aksi kelola (Kelola Peserta). Selain itu guest.
+    fetch("/api/me")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((me) => {
+        if (me?.role === "ADMIN") setAuth({ user: { role: "admin", email: me.email } });
+      })
+      .catch(() => {});
+
     async function fetchEvent() {
       try {
         const res = await fetch(`/api/events/${eventId}`);
@@ -70,7 +79,7 @@ export default function ShowEventPage() {
 
   return (
     <Show
-      auth={{ user: null }}
+      auth={auth}
       event={eventWithCount}
       remainingQuota={remainingQuota}
       canRegister={canRegister}
