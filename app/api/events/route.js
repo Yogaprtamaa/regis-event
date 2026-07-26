@@ -2,7 +2,7 @@ export const dynamic = "force-dynamic";
 
 import { prisma } from "../../../lib/prisma";
 import { getPesertaConfig } from "../../../lib/pesertaConfig";
-import { getRequester, isAdmin } from "../../../lib/auth-role";
+import { getRequester, isAdmin, requireAdmin } from "../../../lib/auth-role";
 
 export async function GET() {
   try {
@@ -23,9 +23,7 @@ export async function GET() {
 
     if (admin) return Response.json(events);
 
-    return Response.json(
-      events.map(({ waGroupLink, panduanUrl, ...publik }) => publik),
-    );
+    return Response.json(events.map(({ waGroupLink, ...publik }) => publik));
   } catch (error) {
     console.error("Error fetching events:", error.message);
     return Response.json(
@@ -36,6 +34,10 @@ export async function GET() {
 }
 
 export async function POST(req) {
+  // Bikin event — panitia saja.
+  const gate = await requireAdmin();
+  if (gate) return gate;
+
   try {
     const body = await req.json();
 

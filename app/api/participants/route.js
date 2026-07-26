@@ -2,6 +2,7 @@ export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 import { prisma } from "../../../lib/prisma";
+import { requireAdmin } from "../../../lib/auth-role";
 import { createAdminClient } from "../../../lib/supabase/admin";
 import { eventSlug } from "../../../lib/kategori";
 import {
@@ -16,6 +17,10 @@ const PARTICIPANT_BUCKET = "participant-uploads";
    GET → ambil semua peserta
 ======================= */
 export async function GET() {
+  // Daftar seluruh peserta — data pribadi, panitia saja.
+  const gate = await requireAdmin();
+  if (gate) return gate;
+
   try {
     const data = await prisma.participant.findMany({
       include: { event: true },
@@ -47,7 +52,10 @@ export async function POST(req) {
     const instansi = formData.get("instansi");
     const angkatan = formData.get("angkatan");
     const status = formData.get("status");
-    const role = formData.get("role");
+    // Pendaftaran terbuka untuk umum, jadi role gak boleh nurut kiriman klien —
+    // tanpa daftar putih siapa pun bisa nandain dirinya PANITIA/DOSEN.
+    const ROLE_BOLEH = ["PESERTA", "MAHASISWA"];
+    const role = ROLE_BOLEH.includes(formData.get("role")) ? formData.get("role") : "PESERTA";
     const eventId = formData.get("eventId");
     const file = formData.get("bukti_pembayaran");
     const password = formData.get("password");
@@ -151,6 +159,14 @@ export async function POST(req) {
     // Tanpa password = alur lama (event tanpa login), tetap jalan.
     let supabaseId = null;
     if (password) {
+      // Panjang minimum juga dicek di klien; di sini biar gak bisa dilewat
+      // dengan nembak endpoint langsung.
+      if (String(password).length < 6) {
+        return Response.json(
+          { message: "Password minimal 6 karakter" },
+          { status: 400 },
+        );
+      }
       const { data: authData, error: authError } =
         await admin.auth.admin.createUser({
           email,
@@ -234,7 +250,7 @@ export async function POST(req) {
         nim,
         angkatan,
         status: status || "terdaftar",
-        role: role || "PESERTA",
+        role,
         event: {
           connect: { id: eventId },
         },

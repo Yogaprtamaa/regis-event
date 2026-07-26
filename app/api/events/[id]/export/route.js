@@ -2,6 +2,7 @@ export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 import { prisma } from "../../../../../lib/prisma";
+import { requireAdmin } from "../../../../../lib/auth-role";
 import * as XLSX from "xlsx";
 import {
   getFormSchema,
@@ -14,6 +15,10 @@ import {
  * Export data peserta event ke format XLSX (Excel)
  */
 export async function GET(req, { params }) {
+  // Ekspor seluruh data pribadi peserta — panitia saja.
+  const gate = await requireAdmin();
+  if (gate) return gate;
+
   try {
     const { id } = await params;
 

@@ -1,6 +1,7 @@
 export const dynamic = "force-dynamic";
 
 import { prisma } from "../../../../lib/prisma";
+import { requireAdmin } from "../../../../lib/auth-role";
 
 /* =======================
    PUT → update peserta
@@ -66,6 +67,10 @@ import { prisma } from "../../../../lib/prisma";
 // }
 
 export async function PUT(req, { params }) {
+  // Ubah data & status verifikasi peserta — panitia saja.
+  const gate = await requireAdmin();
+  if (gate) return gate;
+
   try {
     // ✅ WAJIB await params di Next.js terbaru
     const { id } = await params;
@@ -144,6 +149,10 @@ export async function PUT(req, { params }) {
    DELETE → hapus peserta
 ======================= */
 export async function DELETE(req, { params }) {
+  // Hapus peserta — panitia saja.
+  const gate = await requireAdmin();
+  if (gate) return gate;
+
   try {
     const { id } = await params;
 

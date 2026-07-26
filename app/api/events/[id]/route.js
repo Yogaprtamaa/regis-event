@@ -2,7 +2,7 @@ export const dynamic = "force-dynamic"
 
 import { prisma } from "@/lib/prisma";
 import { getPesertaConfig } from "@/lib/pesertaConfig";
-import { getRequester, isAdmin } from "@/lib/auth-role";
+import { getRequester, isAdmin, requireAdmin } from "@/lib/auth-role";
 
 export async function GET(req, { params }) {
   try {
@@ -31,7 +31,9 @@ export async function GET(req, { params }) {
 
     if (admin) return Response.json(event);
 
-    const { waGroupLink, panduanUrl, ...publik } = event;
+    // panduanUrl tetap publik — calon peserta perlu baca sebelum daftar.
+    // waGroupLink enggak: grupnya cuma buat yang sudah diverifikasi.
+    const { waGroupLink, ...publik } = event;
     return Response.json(publik);
   } catch (error) {
     console.error('Error fetching event:', error.message);
@@ -43,6 +45,10 @@ export async function GET(req, { params }) {
 }
 
 export async function PUT(req, { params }) {
+  // Ubah event — panitia saja.
+  const gate = await requireAdmin();
+  if (gate) return gate;
+
   try {
     const { id } = await params;
     const body = await req.json();
@@ -80,6 +86,10 @@ export async function PUT(req, { params }) {
 }
 
 export async function DELETE(req, { params }) {
+  // Hapus event beserta pesertanya — panitia saja.
+  const gate = await requireAdmin();
+  if (gate) return gate;
+
   try {
     const { id } = await params;
     
