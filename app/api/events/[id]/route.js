@@ -2,14 +2,23 @@ export const dynamic = "force-dynamic"
 
 import { prisma } from "@/lib/prisma";
 import { getPesertaConfig } from "@/lib/pesertaConfig";
+import { getRequester, isAdmin } from "@/lib/auth-role";
 
 export async function GET(req, { params }) {
   try {
     const { id } = await params;
+
+    // Halaman event boleh dibuka siapa saja, jadi baris peserta (email, NIM,
+    // no WA, bukti bayar, KTM) serta lampiran panitia cuma dikirim ke panitia.
+    // Publik cukup dapat jumlahnya buat hitung sisa kuota.
+    const { user, juri, participant } = await getRequester();
+    const admin = !!user && isAdmin({ juri, participant });
+
     const event = await prisma.event.findUnique({
       where: { id },
       include: {
-        participants: true,
+        _count: { select: { participants: true } },
+        ...(admin ? { participants: true } : {}),
       },
     });
 
@@ -20,7 +29,10 @@ export async function GET(req, { params }) {
       );
     }
 
-    return Response.json(event);
+    if (admin) return Response.json(event);
+
+    const { waGroupLink, panduanUrl, ...publik } = event;
+    return Response.json(publik);
   } catch (error) {
     console.error('Error fetching event:', error.message);
     return Response.json(

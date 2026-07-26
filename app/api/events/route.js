@@ -2,18 +2,30 @@ export const dynamic = "force-dynamic";
 
 import { prisma } from "../../../lib/prisma";
 import { getPesertaConfig } from "../../../lib/pesertaConfig";
+import { getRequester, isAdmin } from "../../../lib/auth-role";
 
 export async function GET() {
   try {
+    // Sama seperti /api/events/[id]: daftar event terbuka untuk publik, tapi
+    // baris peserta dan lampiran panitia cuma buat panitia.
+    const { user, juri, participant } = await getRequester();
+    const admin = !!user && isAdmin({ juri, participant });
+
     const events = await prisma.event.findMany({
       include: {
-        participants: true,
+        _count: { select: { participants: true } },
+        ...(admin ? { participants: true } : {}),
       },
       orderBy: {
         tanggal: "asc",
       },
     });
-    return Response.json(events);
+
+    if (admin) return Response.json(events);
+
+    return Response.json(
+      events.map(({ waGroupLink, panduanUrl, ...publik }) => publik),
+    );
   } catch (error) {
     console.error("Error fetching events:", error.message);
     return Response.json(

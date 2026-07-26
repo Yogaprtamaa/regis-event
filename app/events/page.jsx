@@ -36,7 +36,7 @@ export default function EventsPage() {
               poster: event.poster || null,
               isPaidEvent: event.isPaidEvent ?? false,
               _count: {
-                participants: event.participants?.length || 0,
+                participants: event._count?.participants ?? event.participants?.length ?? 0,
               },
             }))
           : [];

@@ -111,36 +111,10 @@ function KtiTermsModal({ open, onClose, onAgree }) {
   );
 }
 
-// Buku panduan + grup WA yang dilampirkan admin. Muncul kalau diisi.
-function EventLinks({ event }) {
-  if (!event.panduanUrl && !event.waGroupLink) return null;
-  return (
-    <div className="space-y-2">
-      {event.panduanUrl && (
-        <a
-          href={event.panduanUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="b-btn b-border flex items-center justify-center gap-2 w-full py-3 rounded-2xl text-sm font-black text-white uppercase tracking-wide"
-          style={{ background: "#082E4B" }}
-        >
-          📘 Buku Panduan
-        </a>
-      )}
-      {event.waGroupLink && (
-        <a
-          href={event.waGroupLink}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="b-btn b-border flex items-center justify-center gap-2 w-full py-3 rounded-2xl text-sm font-black text-white uppercase tracking-wide"
-          style={{ background: "#25D366" }}
-        >
-          💬 Gabung Grup WA
-        </a>
-      )}
-    </div>
-  );
-}
+// Buku panduan + grup WA sengaja TIDAK ditampilkan di halaman event maupun
+// layar sukses pendaftaran — dua-duanya bisa dilihat siapa saja, termasuk yang
+// belum daftar. Tombolnya ada di /submit-karya, di balik gate paymentStatus
+// APPROVED (lihat app/submit-karya/page.js).
 
 const STATUS_CFG = {
   PUBLISHED: { color: "#B5D948", textColor: "#082E4B", label: "Open Now" },
@@ -606,7 +580,6 @@ export default function ShowEvent({
                   : "Login pakai email & password yang barusan kamu isi."}
               </p>
             </div>
-            <EventLinks event={event} />
             <Link
               href={loggedIn ? "/submit-karya" : "/login"}
               className="b-btn b-border flex items-center justify-center w-full gap-2 py-3.5 text-sm font-black text-white rounded-2xl uppercase tracking-widest"
@@ -1162,8 +1135,6 @@ export default function ShowEvent({
               <UsersIcon className="w-4 h-4" strokeWidth={3} /> Kelola Peserta
             </Link>
           )}
-
-          <EventLinks event={event} />
 
           <p className="text-[11px] text-center text-slate-400 font-black uppercase tracking-wider">
             Event HIMTI Terbuka Umum Email Konfirmasi

@@ -65,8 +65,8 @@ export default function ShowEventPage() {
     );
   }
 
-  // Count participants for this event
-  const participantCount = event.participants?.length || 0;
+  // Publik cuma dikirim jumlahnya; panitia tetap dapat barisnya.
+  const participantCount = event._count?.participants ?? event.participants?.length ?? 0;
   const remainingQuota = (event.kapasitas || 0) - participantCount;
   const canRegister = remainingQuota > 0;
 
