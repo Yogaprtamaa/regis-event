@@ -88,6 +88,7 @@ model Participant {
 
   // ── IT FEST 6.0 — pendaftaran lomba ──
   jenisPeserta String?  // "individu" | "kelompok"
+  namaTim      String?  // diisi kalau kelompok; individu pakai nama ketua
   universitas  String?
   fakultas     String?
   kotaDomisili String?

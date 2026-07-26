@@ -21,6 +21,7 @@ export async function GET() {
       ? {
           id: participant.id,
           nama: participant.nama,
+          namaTim: participant.namaTim,
           email: participant.email,
           paymentStatus: participant.paymentStatus,
           jenisPeserta: participant.jenisPeserta,
@@ -28,6 +29,9 @@ export async function GET() {
           eventNama: participant.event?.nama_event ?? null,
           // Event gratis → teks status jangan nyebut pembayaran
           isPaidEvent: participant.event?.isPaidEvent ?? false,
+          // Lampiran admin — tombolnya baru dibuka setelah peserta diverifikasi
+          waGroupLink: participant.event?.waGroupLink ?? null,
+          panduanUrl: participant.event?.panduanUrl ?? null,
         }
       : null,
   });

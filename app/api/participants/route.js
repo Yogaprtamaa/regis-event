@@ -53,6 +53,8 @@ export async function POST(req) {
     const password = formData.get("password");
     const setujuSyaratKti = formData.get("setujuSyaratKti") === "true";
     const jenisPeserta = formData.get("jenisPeserta");
+    // Kelompok punya nama tim sendiri; individu dibiarkan null → pakai nama ketua.
+    const namaTim = (formData.get("namaTim") || "").trim() || null;
     const anggotaRaw = formData.get("anggota");
 
     let anggota = null;
@@ -241,6 +243,7 @@ export async function POST(req) {
         instansi,
         divisi,
         jenisPeserta,
+        namaTim,
         ...cols, // email, no_wa, jurusan, universitas, fakultas, kotaDomisili, provinsi, buktiFollow, fotoKtm
         anggota: anggota ?? undefined,
         formData: Object.keys(extraData).length ? extraData : undefined,

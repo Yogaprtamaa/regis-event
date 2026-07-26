@@ -182,7 +182,7 @@ function ReviewModal({ participant, onClose, onAction }) {
           <div>
             <h2 className="fd text-xl font-bold text-white">Review Berkas</h2>
             <p className="fb text-xs font-semibold text-white/80 mt-0.5">
-              {participant.jenisPeserta === "kelompok" ? `Tim ${participant.nama}` : participant.nama} · {participant.event?.nama_event}
+              {participant.jenisPeserta === "kelompok" ? participant.namaTim || `Tim ${participant.nama}` : participant.nama} · {participant.event?.nama_event}
             </p>
           </div>
           <button
@@ -285,6 +285,7 @@ function DetailRow({ participant }) {
     ["Kota Domisili", participant.kotaDomisili],
     ["Provinsi", participant.provinsi],
     ["Jenis Peserta", participant.jenisPeserta === "kelompok" ? "Kelompok" : participant.jenisPeserta === "individu" ? "Individu" : null],
+    ["Nama Tim", participant.namaTim],
     ["Terdaftar", participant.createdAt ? new Date(participant.createdAt).toLocaleDateString("id-ID", { dateStyle: "medium" }) : null],
   ].filter(([, v]) => v);
 
@@ -761,7 +762,7 @@ export default function ParticipantsPage() {
                               </div>
                               <div className="min-w-[160px]">
                                 <div className="fb text-sm font-extrabold flex items-center gap-1.5" style={{ color: C.navy }}>
-                                  {participant.jenisPeserta === "kelompok" ? `Tim ${participant.nama}` : participant.nama}
+                                  {participant.jenisPeserta === "kelompok" ? participant.namaTim || `Tim ${participant.nama}` : participant.nama}
                                   <ChevronDownIcon
                                     className="w-3.5 h-3.5 transition-transform"
                                     style={{ transform: isExpanded ? "rotate(180deg)" : "none", color: C.muted }}

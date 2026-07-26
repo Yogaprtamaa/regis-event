@@ -191,10 +191,11 @@ export default function SubmitKaryaPage() {
                 IT FEST 6.0 · Peserta
               </span>
               <h1 className="fd text-3xl font-bold mt-3" style={{ color: C.navy, lineHeight: 0.95 }}>
-                Halo, {participant.nama} 👋
+                Halo, {participant.namaTim || participant.nama} 👋
               </h1>
               <p className="fb text-sm font-semibold mt-1" style={{ color: C.muted }}>
                 {participant.eventNama}
+                {participant.namaTim && ` · Ketua: ${participant.nama}`}
               </p>
             </div>
             <button onClick={handleLogout} className="adm-btn text-xs px-3 py-2" style={{ background: "#fff" }}>
@@ -211,6 +212,34 @@ export default function SubmitKaryaPage() {
               Status akun: {rejected && !isPaid ? "Pendaftaran Ditolak" : st.tag}
             </span>
           </div>
+
+          {/* Lampiran panitia — sengaja baru muncul setelah akun diverifikasi */}
+          {verified && (participant.waGroupLink || participant.panduanUrl) && (
+            <div className="mt-3 flex flex-wrap gap-2">
+              {participant.waGroupLink && (
+                <a
+                  href={participant.waGroupLink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="adm-btn adm-btn-sm text-xs px-4 py-2.5"
+                  style={{ background: "#25D366", color: "#fff" }}
+                >
+                  💬 Gabung Grup WhatsApp
+                </a>
+              )}
+              {participant.panduanUrl && (
+                <a
+                  href={participant.panduanUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="adm-btn adm-btn-sm text-xs px-4 py-2.5"
+                  style={{ background: "#fff" }}
+                >
+                  📘 Buku Panduan
+                </a>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Gate upload / hasil */}

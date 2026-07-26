@@ -93,6 +93,7 @@ function generateExcel(event) {
   const participantsData = [
     [
       "No",
+      "Nama Tim",
       "Nama",
       "Email",
       "NIM",
@@ -117,6 +118,7 @@ function generateExcel(event) {
 
       return [
         index + 1,
+        normalizeCell(participant.namaTim),
         normalizeCell(participant.nama),
         normalizeCell(participant.email),
         normalizeCell(participant.nim),
@@ -154,6 +156,7 @@ function generateExcel(event) {
 
   participantsSheet["!cols"] = [
     { wch: 5 }, // No
+    { wch: 25 }, // Nama Tim
     { wch: 25 }, // Nama
     { wch: 30 }, // Email
     { wch: 15 }, // NIM

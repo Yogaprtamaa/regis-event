@@ -188,6 +188,7 @@ export default function ShowEvent({
   // Field struktural (di luar form-builder)
   const [formData, setFormData] = useState({
     jenisPeserta: defaultJenisPeserta(getPesertaConfig(event)), // "individu" | "kelompok"
+    namaTim: "", // wajib kalau kelompok — dipakai sebagai identitas karya
     password: "", // akun login peserta (buat pantau verifikasi + upload karya)
     passwordConfirm: "",
     setujuSyaratKti: false, // khusus event KTI
@@ -397,6 +398,9 @@ export default function ShowEvent({
       if (!m.nama.trim() && m.nim.trim()) newErrors[`nama_${i}`] = "Nama wajib diisi";
     });
 
+    if (formData.jenisPeserta === "kelompok" && !formData.namaTim.trim())
+      newErrors.namaTim = "Nama tim wajib diisi";
+
     if (!formData.password || formData.password.length < 6)
       newErrors.password = "Password minimal 6 karakter";
     if (formData.password !== formData.passwordConfirm)
@@ -416,6 +420,7 @@ export default function ShowEvent({
       const cleanMembers = members.filter((m) => m.nama.trim());
 
       form.append("jenisPeserta", formData.jenisPeserta);
+      form.append("namaTim", formData.jenisPeserta === "kelompok" ? formData.namaTim.trim() : "");
       form.append("kategori", event.nama_event);
       form.append("nama", cleanMembers[0].nama); // ketua
       form.append("nim", cleanMembers[0].nim);
@@ -691,6 +696,30 @@ export default function ShowEvent({
                   </p>
                 )}
               </div>
+
+              {/* 1b. Nama Tim — identitas karya di penjurian & pengumuman */}
+              {formData.jenisPeserta === "kelompok" && (
+                <div>
+                  <label className={labelCls}>
+                    Nama Tim<span className="text-red-500 ml-0.5">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    className={inputBase}
+                    style={sh(errors.namaTim)}
+                    placeholder="Contoh: Tim Nusantara"
+                    value={formData.namaTim}
+                    onChange={(e) => handleInputChange("namaTim", e.target.value)}
+                  />
+                  {errors.namaTim ? (
+                    <p className="text-[10px] font-black text-red-500 mt-1.5">{errors.namaTim}</p>
+                  ) : (
+                    <p className="text-[10px] font-bold text-slate-400 mt-1.5">
+                      Dipakai sebagai identitas karya saat penjurian dan pengumuman finalis.
+                    </p>
+                  )}
+                </div>
+              )}
 
               {/* 2. Kategori Lomba (sesuai halaman) */}
               <div>

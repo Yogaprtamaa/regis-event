@@ -107,7 +107,8 @@ export async function POST(req) {
     }
     const anggota = participant.anggota || null;
     const ketua = Array.isArray(anggota) && anggota[0] ? anggota[0] : null;
-    const namaTim = participant.nama;
+    // Peserta individu gak punya nama tim — pakai nama ketua sebagai identitas.
+    const namaTim = participant.namaTim || participant.nama;
     const ketuaNama = ketua?.nama || participant.nama;
     const ketuaNim = ketua?.nim || participant.nim || null;
     const ketuaEmail = participant.email;
