@@ -20,7 +20,8 @@ function isProtectedApi(pathname, method) {
     return true;
 
   // ── Alur penjurian lomba ──
-  if (pathname === "/api/me") return true;
+  // /api/me sengaja gak diproteksi: dipanggil halaman publik buat cek role,
+  // guest dapat 200 role: null. Data sensitif tetap dijaga getRequester di route-nya.
   if (pathname === "/api/submissions" && method === "GET") return true;
   if (/^\/api\/submissions\/[^/]+$/.test(pathname) && method === "PATCH") return true;
   if (pathname === "/api/criteria") return true; // GET (baca) + POST (buat), keduanya butuh login
@@ -51,9 +52,8 @@ export async function middleware(req) {
   if (user) {
     // Peserta login boleh, tapi gak boleh masuk area panitia/juri.
     // Role dibaca dari JWT (app_metadata) — gak perlu query DB di edge.
-    // /api/me dikecualiin karena peserta butuh buat pantau status sendiri.
     const isPeserta = user.app_metadata?.role === "peserta";
-    if (isPeserta && pathname !== "/api/me") {
+    if (isPeserta) {
       if (isApi) {
         return NextResponse.json({ message: "Forbidden" }, { status: 403 });
       }

@@ -1,10 +1,13 @@
 export const dynamic = "force-dynamic";
 
-import { getRequester, unauthorized } from "@/lib/auth-role";
+import { getRequester } from "@/lib/auth-role";
 
 export async function GET() {
   const { user, juri, participant } = await getRequester();
-  if (!user) return unauthorized();
+  // Halaman publik (/events, /events/[id]) nanya endpoint ini buat cek apakah
+  // pengunjung panitia. Guest dijawab 200 role: null — bukan 401 — biar console
+  // pengunjung gak penuh error yang sebetulnya bukan kesalahan.
+  if (!user) return Response.json({ email: null, role: null, participant: null });
 
   const role = juri ? "JURI" : participant ? "PESERTA" : "ADMIN";
 
