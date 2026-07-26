@@ -308,10 +308,10 @@ function RankingTab({ kategori }) {
 
   useEffect(() => { load(); }, [load]);
 
-  async function patch(body) {
+  async function kirim(url, body) {
     setPublishing(true);
     try {
-      const res = await fetch(`/api/finalists/${kategori}`, {
+      const res = await fetch(url, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
@@ -327,6 +327,13 @@ function RankingTab({ kategori }) {
     }
   }
 
+  // Tanggal pengumuman berlaku serentak buat semua kategori — satu endpoint,
+  // bukan per kategori. Publish tetap dipisah per kategori.
+  const simpanTanggal = () =>
+    kirim("/api/finalists", { announceAt: tanggal ? new Date(tanggal).toISOString() : null });
+
+  const patch = (body) => kirim(`/api/finalists/${kategori}`, body);
+
   if (loading || !data) return <p className="fb font-semibold" style={{ color: C.muted }}>Memuat ranking...</p>;
 
   const tanggalTersimpan = data.announceAt
@@ -338,12 +345,13 @@ function RankingTab({ kategori }) {
       <div className="adm-card p-4 mb-5 space-y-3">
         <p className="fb text-sm font-semibold" style={{ color: C.muted }}>
           Ranking dihitung otomatis dari total nilai seluruh juri (3 juri × maks 100 = 300). Hasil baru tampil di landing &
-          halaman peserta setelah tanggal pengumuman lewat.
+          halaman peserta setelah tanggal pengumuman lewat. Tanggalnya satu untuk semua kategori;
+          tombol publish tetap per kategori.
         </p>
 
         <div className="flex flex-wrap items-end gap-3">
           <label className="fb text-xs font-bold" style={{ color: C.navy }}>
-            Tanggal pengumuman
+            Tanggal pengumuman — berlaku semua kategori
             <input
               type="datetime-local"
               value={tanggal}
@@ -352,7 +360,7 @@ function RankingTab({ kategori }) {
             />
           </label>
           <button
-            onClick={() => patch({ announceAt: tanggal ? new Date(tanggal).toISOString() : null })}
+            onClick={() => simpanTanggal()}
             disabled={publishing || toLocalInput(data.announceAt) === tanggal}
             className="adm-btn adm-btn-sm"
             style={{ background: C.yellow, color: C.navy }}

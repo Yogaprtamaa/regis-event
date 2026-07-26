@@ -336,37 +336,6 @@ function Ticker({ events }) {
     );
 }
 
-// ponytail: video statis dari /public, bukan upload — taruh file di public/tutorial-daftar.mp4.
-// Ganti path di sini kalau nama filenya beda.
-const TUTORIAL_VIDEO = '/tutorial-daftar.mp4';
-
-function TutorialVideo() {
-    return (
-        <div className="mb-16 sm:mb-20">
-            <div className="mb-5 text-center sm:mb-7">
-                <span className="inline-block px-3 py-1 mb-3 text-[10px] sm:text-xs font-black tracking-widest text-black uppercase b-border-2 rounded-xl"
-                    style={{ background: '#FED245', boxShadow: '3px 3px 0 #000' }}>
-                    Panduan
-                </span>
-                <h2 className="text-2xl font-bold sm:text-3xl font-fredoka text-slate-900">Tata Cara Pendaftaran</h2>
-                <p className="mt-1 text-xs font-bold sm:text-sm text-slate-400">
-                    Tonton dulu biar gak salah langkah waktu daftar lomba.
-                </p>
-            </div>
-            <div className="bg-white b-border rounded-[2rem] overflow-hidden" style={{ boxShadow: '6px 6px 0 #000' }}>
-                <video
-                    src={TUTORIAL_VIDEO}
-                    controls
-                    preload="metadata"
-                    playsInline
-                    poster="/itfest-logo-hero.png"
-                    className="w-full aspect-video bg-black"
-                />
-            </div>
-        </div>
-    );
-}
-
 export default function EventsIndex({ auth, events, filters }) {
     const [statusFilter, setStatusFilter] = useState(filters?.status || '');
     const [search, setSearch]             = useState('');
@@ -560,8 +529,6 @@ export default function EventsIndex({ auth, events, filters }) {
                     <div className="mt-8 mb-16 sm:mt-10 sm:mb-20">
                         <Ticker events={(events||[]).filter(e => e.status === 'PUBLISHED')} />
                     </div>
-
-                    <TutorialVideo />
 
                     <div id="events" className="flex flex-col justify-between gap-5 mb-8 md:flex-row md:items-end md:mb-12">
                         <div className="text-center md:text-left">

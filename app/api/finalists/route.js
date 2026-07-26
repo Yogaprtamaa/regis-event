@@ -4,6 +4,10 @@ import { prisma } from "@/lib/prisma";
 import { getRequester, unauthorized, forbidden } from "@/lib/auth-role";
 import { rankSubmissions, isAnnounced } from "@/lib/scoring";
 
+// Tanggal pengumuman berlaku serentak, jadi satu simpanan menyentuh semua
+// kategori sekaligus. Publish tetap per kategori.
+const SEMUA_KATEGORI = ["HACKATHON", "KTI", "IOT"];
+
 /* =======================
    GET → panitia: ranking lengkap 1 kategori (buat direview sebelum publish)
 ======================= */
@@ -51,6 +55,41 @@ export async function GET(req) {
     console.error("Error computing ranking:", error.message);
     return Response.json(
       { error: "Failed to compute ranking", message: error.message },
+      { status: 500 },
+    );
+  }
+}
+
+/* =======================
+   PATCH → panitia: set tanggal pengumuman untuk SEMUA kategori sekaligus
+======================= */
+export async function PATCH(req) {
+  const { user, juri } = await getRequester();
+  if (!user) return unauthorized();
+  if (juri) return forbidden("Admin only");
+
+  try {
+    const { announceAt } = await req.json();
+    const tanggal = announceAt ? new Date(announceAt) : null;
+    if (tanggal && Number.isNaN(tanggal.getTime())) {
+      return Response.json({ error: "Tanggal pengumuman tidak valid" }, { status: 400 });
+    }
+
+    await Promise.all(
+      SEMUA_KATEGORI.map((kategori) =>
+        prisma.finalistPublish.upsert({
+          where: { kategori },
+          create: { kategori, published: false, announceAt: tanggal },
+          update: { announceAt: tanggal },
+        }),
+      ),
+    );
+
+    return Response.json({ announceAt: tanggal, kategori: SEMUA_KATEGORI });
+  } catch (error) {
+    console.error("Error setting announce date:", error.message);
+    return Response.json(
+      { error: "Failed to set announce date", message: error.message },
       { status: 500 },
     );
   }
