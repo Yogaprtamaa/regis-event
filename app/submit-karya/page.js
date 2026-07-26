@@ -26,7 +26,7 @@ export default function SubmitKaryaPage() {
   const [mySubmission, setMySubmission] = useState(null);
   const [loadingSubmission, setLoadingSubmission] = useState(true);
 
-  const [form, setForm] = useState({ judulKarya: "", deskripsi: "", linkRepo: "", linkVideo: "" });
+  const [form, setForm] = useState({ judulKarya: "", deskripsi: "", linkKarya: "", linkRepo: "", linkVideo: "" });
   const [file, setFile] = useState(null);
   const [turnitinFile, setTurnitinFile] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -63,17 +63,26 @@ export default function SubmitKaryaPage() {
   async function handleSubmit(e) {
     e.preventDefault();
     setError("");
-    if (!file) {
-      setError("File karya wajib diunggah.");
-      return;
-    }
-    if (file.type !== "application/pdf") {
-      setError("File karya harus PDF.");
-      return;
-    }
-    if (file.size > MAX_KARYA_BYTES) {
-      setError(`File terlalu besar (${(file.size / 1024 / 1024).toFixed(1)}MB). Maksimal ${MAX_KARYA_BYTES / 1024 / 1024}MB — kompres dulu ya.`);
-      return;
+    const pakaiDrive = req.fileKarya === "drive";
+
+    if (pakaiDrive) {
+      if (!/^https?:\/\/\S+$/i.test(form.linkKarya.trim())) {
+        setError("Link karya wajib diisi dan diawali http:// atau https://");
+        return;
+      }
+    } else {
+      if (!file) {
+        setError("File karya wajib diunggah.");
+        return;
+      }
+      if (file.type !== "application/pdf") {
+        setError("File karya harus PDF.");
+        return;
+      }
+      if (file.size > MAX_KARYA_BYTES) {
+        setError(`File terlalu besar (${(file.size / 1024 / 1024).toFixed(1)}MB). Maksimal ${MAX_KARYA_BYTES / 1024 / 1024}MB — kompres dulu ya.`);
+        return;
+      }
     }
     if (needTurnitin && !turnitinFile) {
       setError("Laporan Turnitin wajib diunggah.");
@@ -103,7 +112,7 @@ export default function SubmitKaryaPage() {
         return urlData.publicUrl;
       };
 
-      const fileKaryaUrl = await uploadPdf(file, "karya");
+      const fileKaryaUrl = pakaiDrive ? form.linkKarya.trim() : await uploadPdf(file, "karya");
       const fileTurnitinUrl = turnitinFile ? await uploadPdf(turnitinFile, "turnitin") : null;
 
       const res = await fetch("/api/submissions", {
@@ -249,16 +258,33 @@ export default function SubmitKaryaPage() {
 
             <div>
               <label className="adm-label fb">{req.fileLabel}</label>
-              <input
-                type="file" required className="adm-input"
-                accept="application/pdf,.pdf"
-                onChange={(e) => setFile(e.target.files?.[0] ?? null)}
-              />
-              <p className="fb text-[11px] font-semibold mt-1.5" style={{ color: C.muted }}>{req.fileHelp}</p>
-              {file && file.size > MAX_KARYA_BYTES && (
-                <p className="fb text-[11px] font-black mt-1.5" style={{ color: C.coral }}>
-                  {(file.size / 1024 / 1024).toFixed(1)}MB — kelebihan dari batas {MAX_KARYA_BYTES / 1024 / 1024}MB.
-                </p>
+              {req.fileKarya === "drive" ? (
+                <>
+                  <input
+                    type="url" required className="adm-input"
+                    placeholder="https://drive.google.com/drive/folders/..."
+                    value={form.linkKarya}
+                    onChange={(e) => setForm((f) => ({ ...f, linkKarya: e.target.value }))}
+                  />
+                  <p className="fb text-[11px] font-semibold mt-1.5" style={{ color: C.muted }}>
+                    {req.fileHelp} Set akses “siapa saja yang punya link” dan jangan diubah sampai
+                    penjurian selesai.
+                  </p>
+                </>
+              ) : (
+                <>
+                  <input
+                    type="file" required className="adm-input"
+                    accept="application/pdf,.pdf"
+                    onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+                  />
+                  <p className="fb text-[11px] font-semibold mt-1.5" style={{ color: C.muted }}>{req.fileHelp}</p>
+                  {file && file.size > MAX_KARYA_BYTES && (
+                    <p className="fb text-[11px] font-black mt-1.5" style={{ color: C.coral }}>
+                      {(file.size / 1024 / 1024).toFixed(1)}MB — kelebihan dari batas {MAX_KARYA_BYTES / 1024 / 1024}MB.
+                    </p>
+                  )}
+                </>
               )}
             </div>
 

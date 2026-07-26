@@ -3,7 +3,7 @@ export const runtime = "nodejs";
 
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getRequester, forbidden } from "@/lib/auth-role";
-import { kategoriFromEventName } from "@/lib/kategori";
+import { kategoriFromEventName, karyaRequirements } from "@/lib/kategori";
 
 const KARYA_BUCKET = "karya-submissions";
 
@@ -19,6 +19,13 @@ export async function POST(req) {
   const kategori = kategoriFromEventName(participant.event?.nama_event);
   if (!kategori) {
     return Response.json({ error: "Kategori lomba tidak dikenali" }, { status: 400 });
+  }
+  // Kategori non-KTI ngumpulin lewat link Drive — gak boleh nitip file di bucket.
+  if (karyaRequirements(kategori).fileKarya !== "upload") {
+    return Response.json(
+      { error: "Kategori ini mengumpulkan karya lewat link Google Drive" },
+      { status: 400 },
+    );
   }
 
   try {

@@ -73,16 +73,24 @@ export async function POST(req) {
       return Response.json({ error: "Kategori lomba tidak dikenali" }, { status: 400 });
     }
 
-    // URL file wajib dari bucket kita sendiri — jangan mau nampung link asing.
+    const req_ = karyaRequirements(kategori);
+
+    // Kategori mode "drive" cuma nyimpen link; mode "upload" wajib URL dari
+    // bucket kita sendiri — jangan mau nampung link asing yang nyamar jadi file.
     const prefix = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/${KARYA_BUCKET}/${kategori}/`;
-    if (!fileKaryaUrl.startsWith(prefix)) {
+    if (req_.fileKarya === "drive") {
+      if (!isHttpUrl(fileKaryaUrl)) {
+        return Response.json(
+          { error: "Link karya harus diawali http:// atau https://" },
+          { status: 400 },
+        );
+      }
+    } else if (!fileKaryaUrl.startsWith(prefix)) {
       return Response.json({ error: "File karya tidak valid" }, { status: 400 });
     }
     if (fileTurnitinUrl && !fileTurnitinUrl.startsWith(prefix)) {
       return Response.json({ error: "File Turnitin tidak valid" }, { status: 400 });
     }
-
-    const req_ = karyaRequirements(kategori);
     if (req_.fileTurnitin === "required" && !fileTurnitinUrl) {
       return Response.json({ error: "Laporan Turnitin wajib diunggah" }, { status: 400 });
     }

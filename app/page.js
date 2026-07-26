@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Image from "next/image";
 import Loading from "./loading";
 import { formatTanggalPengumuman } from "@/lib/scoring";
+import { youtubeEmbedUrl } from "@/lib/youtube";
 import {
   TrophyIcon,
   MicrophoneIcon,
@@ -274,6 +275,83 @@ const HASIL_KATEGORI = [
   { value: "HACKATHON", label: "Hackathon", color: C.lime, tc: C.navy },
   { value: "IOT", label: "Internet of Things", color: C.blue, tc: "#fff" },
   { value: "KTI", label: "Karya Tulis Ilmiah", color: C.yellow, tc: C.navy },
+];
+
+// Langkahnya diturunkan dari alur asli di /events/[id] dan /submit-karya —
+// kalau syarat berkas di lib/kategori.js berubah, teks di sini ikut disesuaikan.
+const TATA_CARA = [
+  {
+    value: "DAFTAR",
+    label: "Pendaftaran Peserta",
+    Icon: PencilSquareIcon,
+    color: C.coral,
+    tc: "#fff",
+    ringkas: "Berlaku untuk semua kategori lomba.",
+    video: "", // tempel link YouTube di sini — kosong = tampil placeholder
+
+    langkah: [
+      "Buka halaman Lomba, pilih kategori yang mau kamu ikuti.",
+      "Klik “Bergabunglah Sekarang”, lalu isi data ketua beserta seluruh anggota tim.",
+      "Unggah screenshot follow @himti dan @itfest, foto KTM tiap anggota, dan bukti pembayaran bila lombanya berbayar.",
+      "Buat password akun peserta (minimal 6 karakter). Password ini dipakai untuk memantau verifikasi dan mengumpulkan karya.",
+      "Kirim formulir. Kamu langsung masuk sebagai peserta, tidak perlu login ulang.",
+      "Tunggu panitia memverifikasi. Status berubah jadi “Terverifikasi” di halaman peserta, dan setelah itu tombol pengumpulan karya terbuka.",
+    ],
+  },
+  {
+    value: "KTI",
+    label: "Pengumpulan KTI",
+    Icon: DocumentTextIcon,
+    color: C.yellow,
+    tc: C.navy,
+    ringkas: "Naskah diunggah langsung, bukan lewat Drive.",
+    video: "",
+
+    langkah: [
+      "Login di halaman peserta, pastikan status akun sudah Terverifikasi.",
+      "Isi judul karya dan deskripsi singkat.",
+      "Unggah naskah karya tulis dalam format PDF, maksimal 10MB.",
+      "Unggah laporan Turnitin dalam format PDF (maksimal 10MB) dengan similarity maksimal 30%.",
+      "Link video presentasi bersifat opsional — boleh dikosongkan.",
+      "Klik Kirim Karya. Satu tim hanya bisa mengumpulkan satu kali, jadi periksa lagi sebelum mengirim.",
+    ],
+  },
+  {
+    value: "HACKATHON",
+    label: "Pengumpulan Hackathon",
+    Icon: CodeBracketIcon,
+    color: C.lime,
+    tc: C.navy,
+    ringkas: "Berkas karya dikumpulkan lewat Google Drive.",
+    video: "",
+
+    langkah: [
+      "Login di halaman peserta, pastikan status akun sudah Terverifikasi.",
+      "Isi judul karya dan deskripsi singkat.",
+      "Kumpulkan seluruh berkas karya dalam satu folder Google Drive, lalu set aksesnya ke “siapa saja yang punya link”.",
+      "Tempel link folder Drive tadi di kolom Link Google Drive Karya.",
+      "Isi link repository. Pastikan repo bisa diakses publik selama penjurian.",
+      "Isi link video demo (Google Drive atau YouTube), lalu klik Kirim Karya. Jangan ubah isi folder sampai penjurian selesai.",
+    ],
+  },
+  {
+    value: "IOT",
+    label: "Pengumpulan IoT",
+    Icon: CpuChipIcon,
+    color: C.blue,
+    tc: "#fff",
+    ringkas: "Berkas karya dikumpulkan lewat Google Drive.",
+    video: "",
+
+    langkah: [
+      "Login di halaman peserta, pastikan status akun sudah Terverifikasi.",
+      "Isi judul karya dan deskripsi singkat.",
+      "Kumpulkan laporan dan seluruh berkas pendukung dalam satu folder Google Drive, lalu set aksesnya ke “siapa saja yang punya link”.",
+      "Tempel link folder Drive tadi di kolom Link Google Drive Karya.",
+      "Isi link video demo (Google Drive atau YouTube).",
+      "Klik Kirim Karya. Jangan ubah isi folder sampai penjurian selesai.",
+    ],
+  },
 ];
 
 const TIMELINE = [
@@ -583,6 +661,7 @@ function Navbar({ open, setOpen }) {
     { l: "Tentang", h: "#about" },
     { l: "Acara", h: "#acara" },
     { l: "Lomba", h: "#lomba" },
+    { l: "Tata Cara", h: "#tatacara" },
     { l: "Jadwal", h: "#timeline" },
     { l: "Hasil", h: "#hasil" },
   ];
@@ -964,6 +1043,108 @@ function Bazzar() {
 }
 
 /* ══════════════════════════════════════════════════════════════════════
+   5.5 TATA CARA — filter per tahap, masih di air dangkal
+   ══════════════════════════════════════════════════════════════════════ */
+function TataCara() {
+  const [active, setActive] = useState(TATA_CARA[0].value);
+  const current = TATA_CARA.find((t) => t.value === active);
+  const embedUrl = youtubeEmbedUrl(current.video);
+
+  return (
+    <section id="tatacara" className="sec" style={{ background: "#7FD6EA", padding: "16px 0 72px", position: "relative", overflow: "hidden" }}>
+      <div className="container" style={{ position: "relative", zIndex: 1 }}>
+        <SectionHead
+          center
+          tag="Sebelum Menyelam"
+          tagColor={C.navy}
+          tagTextColor="#fff"
+          headline={<>Tata Cara <span style={{ color: C.coral }}>Pendaftaran</span></>}
+          sub="Pilih tahap yang mau kamu baca. Pendaftaran sama untuk semua kategori, cara pengumpulan karyanya berbeda-beda."
+        />
+
+        <div style={{ display: "flex", justifyContent: "center", gap: 10, flexWrap: "wrap", marginBottom: 30 }} data-reveal>
+          {TATA_CARA.map((t) => (
+            <button
+              key={t.value}
+              onClick={() => setActive(t.value)}
+              className="fd k-tag"
+              aria-pressed={active === t.value}
+              style={{
+                cursor: "pointer", border: "2.5px solid #000", transform: "none",
+                background: active === t.value ? t.color : "#fff",
+                color: active === t.value ? t.tc : C.navy,
+              }}
+            >
+              {t.label}
+            </button>
+          ))}
+        </div>
+
+        <div className="booth" data-reveal style={{ maxWidth: 640, margin: "0 auto", background: "#fff" }}>
+          <div className="awning" style={awningStyle(current.color).awning}>
+            <div className="awning-scallop" style={awningStyle(current.color).scallop} />
+          </div>
+          <div style={{ padding: "34px 28px 30px" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 13, marginBottom: 22 }}>
+              <div style={{ width: 48, height: 48, borderRadius: 14, background: current.color, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, border: "2.5px solid #000", boxShadow: "3px 3px 0 #000" }}>
+                <current.Icon width={24} height={24} strokeWidth={2.2} style={{ color: current.tc }} />
+              </div>
+              <div style={{ minWidth: 0 }}>
+                <h3 className="fd" style={{ color: C.navy, fontSize: 20, fontWeight: 600, lineHeight: 1.15 }}>{current.label}</h3>
+                <p className="fb" style={{ color: C.muted, fontSize: 12, fontWeight: 600, marginTop: 2 }}>{current.ringkas}</p>
+              </div>
+            </div>
+
+            {embedUrl ? (
+              <div style={{ position: "relative", aspectRatio: "16 / 9", borderRadius: 14, overflow: "hidden", border: "2.5px solid #000", boxShadow: "4px 4px 0 #000", marginBottom: 22, background: "#000" }}>
+                <iframe
+                  src={embedUrl}
+                  title={`Video ${current.label}`}
+                  loading="lazy"
+                  allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                  style={{ position: "absolute", inset: 0, width: "100%", height: "100%", border: 0 }}
+                />
+              </div>
+            ) : (
+              <div style={{ aspectRatio: "16 / 9", borderRadius: 14, border: "2.5px dashed #000", marginBottom: 22, background: C.sand, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 6, textAlign: "center", padding: 16 }}>
+                <ClockIcon width={26} height={26} strokeWidth={2} style={{ color: C.navy }} />
+                <p className="fd" style={{ color: C.navy, fontSize: 15, fontWeight: 600 }}>Video panduan menyusul</p>
+                <p className="fb" style={{ color: C.muted, fontSize: 12, fontWeight: 500 }}>Sementara ikuti langkah tertulis di bawah ini.</p>
+              </div>
+            )}
+
+            <ol style={{ display: "flex", flexDirection: "column", gap: 14, listStyle: "none", margin: 0, padding: 0 }}>
+              {current.langkah.map((teks, i) => (
+                <li key={i} style={{ display: "flex", gap: 13, alignItems: "flex-start" }}>
+                  <span
+                    className="fd"
+                    style={{
+                      width: 28, height: 28, flexShrink: 0, borderRadius: 9, background: current.color, color: current.tc,
+                      border: "2px solid #000", boxShadow: "2px 2px 0 #000",
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                      fontSize: 13, fontWeight: 700, marginTop: 1,
+                    }}
+                  >
+                    {i + 1}
+                  </span>
+                  <p className="fb" style={{ color: C.navy, fontSize: 13.5, fontWeight: 500, lineHeight: 1.75 }}>{teks}</p>
+                </li>
+              ))}
+            </ol>
+
+            <a href="/events" className="k-btn fd" style={{ background: current.color, color: current.tc, fontSize: 14, padding: "12px 20px", borderRadius: 14, marginTop: 24 }}>
+              {current.value === "DAFTAR" ? "Mulai Daftar" : "Ke Halaman Lomba"}{" "}
+              <ArrowRightIcon width={16} height={16} strokeWidth={2.5} />
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ══════════════════════════════════════════════════════════════════════
    6. MENEPI KE PANTAI (timeline) — pasir basah → kering
    ══════════════════════════════════════════════════════════════════════ */
 function Timeline() {
@@ -1243,6 +1424,7 @@ export default function Page() {
           <Acara />
           <Lomba />
           <Bazzar />
+          <TataCara />
           <Timeline />
           <Hasil />
         </main>
