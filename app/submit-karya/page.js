@@ -407,9 +407,9 @@ function SubmissionResult({ data, onRefresh }) {
             <p className="fd text-xl font-bold" style={{ color: C.navy }}>
               Selamat! Kamu Finalis #{data.rank}
             </p>
-            {data.avgScore != null && (
+            {data.totalScore != null && (
               <p className="fb text-sm font-bold mt-1" style={{ color: C.navy }}>
-                Skor akhir: {data.avgScore.toFixed(1)}
+                Skor akhir: {data.totalScore.toFixed(1)} / 300
               </p>
             )}
           </div>
@@ -418,9 +418,9 @@ function SubmissionResult({ data, onRefresh }) {
             <p className="fb text-sm font-bold" style={{ color: C.navy }}>
               Hasil resmi udah keluar — karya kamu belum masuk 5 besar kali ini.
             </p>
-            {data.avgScore != null && (
+            {data.totalScore != null && (
               <p className="fb text-xs font-semibold mt-1" style={{ color: C.muted }}>
-                Skor akhir: {data.avgScore.toFixed(1)}
+                Skor akhir: {data.totalScore.toFixed(1)} / 300
               </p>
             )}
           </div>

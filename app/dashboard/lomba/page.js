@@ -337,7 +337,7 @@ function RankingTab({ kategori }) {
     <div>
       <div className="adm-card p-4 mb-5 space-y-3">
         <p className="fb text-sm font-semibold" style={{ color: C.muted }}>
-          Ranking dihitung otomatis dari rata-rata nilai semua juri. Hasil baru tampil di landing &
+          Ranking dihitung otomatis dari total nilai seluruh juri (3 juri × maks 100 = 300). Hasil baru tampil di landing &
           halaman peserta setelah tanggal pengumuman lewat.
         </p>
 
@@ -391,8 +391,8 @@ function RankingTab({ kategori }) {
               </div>
             </div>
             <div className="text-right">
-              <p className="fd font-bold" style={{ color: C.navy }}>{r.avgScore != null ? r.avgScore.toFixed(1) : "—"}</p>
-              <p className="fb text-xs font-semibold" style={{ color: C.muted }}>{r.juriCount} juri menilai</p>
+              <p className="fd font-bold" style={{ color: C.navy }}>{r.totalScore != null ? r.totalScore.toFixed(1) : "—"}</p>
+              <p className="fb text-xs font-semibold" style={{ color: C.muted }}>{r.juriCount} dari 3 juri menilai</p>
             </div>
           </div>
         ))}

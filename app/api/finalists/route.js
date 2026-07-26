@@ -33,7 +33,7 @@ export async function GET(req) {
       id: s.id,
       namaTim: s.namaTim,
       judulKarya: s.judulKarya,
-      avgScore: s.avgScore,
+      totalScore: s.totalScore,
       juriCount: s.juriCount,
       isTop5: i < 5,
     }));

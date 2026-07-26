@@ -66,7 +66,7 @@ export async function GET() {
       published: true,
       publishedAt: publishState.publishedAt,
       rank: mine === -1 ? null : mine + 1,
-      avgScore: mine === -1 ? null : ranked[mine].avgScore,
+      totalScore: mine === -1 ? null : ranked[mine].totalScore,
       isTop5: mine !== -1 && mine < 5,
     });
   } catch (error) {

@@ -210,12 +210,21 @@ async function main() {
   // ── Akun juri (Supabase auth + role di DB) ──────────────────────
   console.log("⚖️  Membuat akun juri...");
 
-  const juriList = [
-    { nama: "Juri Hackathon", email: "juri.hackathon@itfest.test", kategori: "HACKATHON" },
-    { nama: "Juri IoT", email: "juri.iot@itfest.test", kategori: "IOT" },
-    { nama: "Juri Game Making", email: "juri.game@itfest.test", kategori: "GAME_MAKING" },
-    { nama: "Juri KTI", email: "juri.kti@itfest.test", kategori: "KTI" },
+  // 3 juri per kategori — skor akhir = jumlah nilai ketiganya (maks 300).
+  const juriPerKategori = [
+    { label: "Hackathon", slug: "hackathon", kategori: "HACKATHON" },
+    { label: "IoT", slug: "iot", kategori: "IOT" },
+    { label: "Game Making", slug: "game", kategori: "GAME_MAKING" },
+    { label: "KTI", slug: "kti", kategori: "KTI" },
   ];
+
+  const juriList = juriPerKategori.flatMap(({ label, slug, kategori }) =>
+    [1, 2, 3].map((n) => ({
+      nama: `Juri ${label} ${n}`,
+      email: `juri${n}.${slug}@itfest.test`,
+      kategori,
+    })),
+  );
 
   for (const j of juriList) {
     const supabaseUser = await getOrCreateSupabaseUser(j.email, JURI_PASSWORD);
