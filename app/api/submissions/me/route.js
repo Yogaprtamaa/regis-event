@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { getRequester, unauthorized, forbidden } from "@/lib/auth-role";
 import { kategoriFromEventName } from "@/lib/kategori";
 import { rankSubmissions, isAnnounced } from "@/lib/scoring";
+import { tandatanganiBerkas } from "@/lib/storage";
 
 /* =======================
    GET → peserta: status karya sendiri + hasil (nilai/rank) kalau kategori
@@ -32,11 +33,17 @@ export async function GET() {
 
     const publishState = await prisma.finalistPublish.findUnique({ where: { kategori } });
 
+    // Bucket privat — berkas dikirim sebagai URL bertanda tangan.
+    const berkas = await tandatanganiBerkas({
+      fileKaryaUrl: submission.fileKaryaUrl,
+      fileTurnitinUrl: submission.fileTurnitinUrl,
+    });
+
     const base = {
       hasSubmission: true,
       judulKarya: submission.judulKarya,
-      fileKaryaUrl: submission.fileKaryaUrl,
-      fileTurnitinUrl: submission.fileTurnitinUrl,
+      fileKaryaUrl: berkas.fileKaryaUrl,
+      fileTurnitinUrl: berkas.fileTurnitinUrl,
       linkRepo: submission.linkRepo,
       linkVideo: submission.linkVideo,
       status: submission.status,

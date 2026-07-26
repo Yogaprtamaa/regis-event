@@ -3,6 +3,7 @@ export const runtime = "nodejs";
 
 import { prisma } from "../../../lib/prisma";
 import { requireAdmin } from "../../../lib/auth-role";
+import { tandatanganiBerkas } from "../../../lib/storage";
 import { createAdminClient } from "../../../lib/supabase/admin";
 import { eventSlug } from "../../../lib/kategori";
 import {
@@ -27,7 +28,8 @@ export async function GET() {
       orderBy: { createdAt: "desc" },
     });
 
-    return Response.json(data);
+    // Bucket privat — lampiran dikirim sebagai URL bertanda tangan, bukan link tetap.
+    return Response.json(await tandatanganiBerkas(data));
   } catch (error) {
     console.error("Error fetching participants:", error.message);
     return Response.json(

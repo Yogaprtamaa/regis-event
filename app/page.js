@@ -1052,6 +1052,16 @@ function TataCara() {
 
   return (
     <section id="tatacara" className="sec" style={{ background: "#7FD6EA", padding: "16px 0 72px", position: "relative", overflow: "hidden" }}>
+      <Bubbles count={16} tint="rgba(255,255,255,.5)" />
+      <Fish color={C.coral} size={36} top="12%" dur="34s" delay="1s" />
+      <Fish color={C.navy} size={28} top="52%" dur="44s" delay="9s" flip />
+      <Fish color={C.yellow} size={32} top="80%" dur="29s" delay="4s" />
+      <Dolphin color="#fff" size={44} top="66%" dur="38s" delay="6s" flip />
+      <div className="bob" style={{ position: "absolute", top: "8%", left: "4%" }} aria-hidden="true"><Starfish size={40} color={C.orange} /></div>
+      <div className="bob" style={{ position: "absolute", top: "38%", right: "3.5%", animationDelay: "1.6s" }} aria-hidden="true"><Shell size={36} color={C.navy} /></div>
+      <div className="bob" style={{ position: "absolute", bottom: "22%", left: "6%", animationDelay: "2.8s" }} aria-hidden="true"><Hibiscus size={44} /></div>
+      <div style={{ position: "absolute", bottom: -6, left: "-10px" }} aria-hidden="true"><Coral size={58} color={C.lime} /></div>
+      <div style={{ position: "absolute", bottom: -6, right: "-10px" }} aria-hidden="true"><Coral size={66} color={C.coral} /></div>
       <div className="container" style={{ position: "relative", zIndex: 1 }}>
         <SectionHead
           center

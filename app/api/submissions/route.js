@@ -3,6 +3,7 @@ export const runtime = "nodejs";
 
 import { prisma } from "@/lib/prisma";
 import { getRequester, unauthorized, forbidden } from "@/lib/auth-role";
+import { tandatanganiBerkas } from "@/lib/storage";
 import { kategoriFromEventName, karyaRequirements } from "@/lib/kategori";
 
 const KARYA_BUCKET = "karya-submissions";
@@ -36,7 +37,8 @@ export async function GET(req) {
       include: { scores: { include: { items: true } } },
       orderBy: { createdAt: "desc" },
     });
-    return Response.json(data);
+    // Bucket privat — berkas karya dikirim sebagai URL bertanda tangan.
+    return Response.json(await tandatanganiBerkas(data));
   } catch (error) {
     console.error("Error fetching submissions:", error.message);
     return Response.json(

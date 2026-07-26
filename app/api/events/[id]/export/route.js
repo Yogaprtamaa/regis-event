@@ -3,6 +3,7 @@ export const runtime = "nodejs";
 
 import { prisma } from "../../../../../lib/prisma";
 import { requireAdmin } from "../../../../../lib/auth-role";
+import { tandatanganiBerkas, SEMINGGU } from "../../../../../lib/storage";
 import * as XLSX from "xlsx";
 import {
   getFormSchema,
@@ -39,8 +40,9 @@ export async function GET(req, { params }) {
       );
     }
 
-    // Generate Excel file
-    const excelBuffer = generateExcel(event);
+    // Link di dalam Excel ditandatangani dengan masa berlaku seminggu — panitia
+    // biasanya membuka berkasnya beberapa hari setelah mengunduh.
+    const excelBuffer = generateExcel(await tandatanganiBerkas(event, SEMINGGU));
 
     // Return Excel response
     return new Response(excelBuffer, {

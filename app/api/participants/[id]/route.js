@@ -2,6 +2,7 @@ export const dynamic = "force-dynamic";
 
 import { prisma } from "../../../../lib/prisma";
 import { requireAdmin } from "../../../../lib/auth-role";
+import { tandatanganiBerkas } from "../../../../lib/storage";
 
 /* =======================
    PUT → update peserta
@@ -135,7 +136,7 @@ export async function PUT(req, { params }) {
       include: { event: true },
     });
 
-    return Response.json(participant);
+    return Response.json(await tandatanganiBerkas(participant));
   } catch (error) {
     console.error("PUT participant error:", error);
     return Response.json(
