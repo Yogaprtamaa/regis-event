@@ -197,10 +197,13 @@ model ScoreItem {
   @@unique([scoreId, criteriaId])
 }
 
-// Gerbang publikasi finalis per kategori — ranking kehitung otomatis, publish manual
+// Gerbang publikasi finalis per kategori — ranking kehitung otomatis, publish manual.
+// Hasil baru kebuka ke publik kalau published = true DAN sekarang >= announceAt,
+// jadi panitia wajib set tanggal pengumuman duluan (lihat isAnnounced di lib/scoring.js).
 model FinalistPublish {
   id          String        @id @default(cuid())
   kategori    LombaKategori @unique
   published   Boolean       @default(false)
   publishedAt DateTime?
+  announceAt  DateTime?
 }

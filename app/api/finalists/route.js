@@ -2,7 +2,7 @@ export const dynamic = "force-dynamic";
 
 import { prisma } from "@/lib/prisma";
 import { getRequester, unauthorized, forbidden } from "@/lib/auth-role";
-import { rankSubmissions } from "@/lib/scoring";
+import { rankSubmissions, isAnnounced } from "@/lib/scoring";
 
 /* =======================
    GET → panitia: ranking lengkap 1 kategori (buat direview sebelum publish)
@@ -42,6 +42,9 @@ export async function GET(req) {
       kategori,
       published: publishState?.published ?? false,
       publishedAt: publishState?.publishedAt ?? null,
+      announceAt: publishState?.announceAt ?? null,
+      // true = udah beneran kebuka ke publik (published + tanggal lewat)
+      announced: isAnnounced(publishState),
       ranking: ranked,
     });
   } catch (error) {

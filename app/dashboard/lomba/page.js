@@ -284,29 +284,43 @@ function JuriTab() {
 }
 
 /* ── Tab: ranking & finalis ── */
+// ISO → nilai <input type="datetime-local"> di zona waktu browser panitia.
+function toLocalInput(iso) {
+  if (!iso) return "";
+  const d = new Date(iso);
+  return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+}
+
 function RankingTab({ kategori }) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [publishing, setPublishing] = useState(false);
+  const [tanggal, setTanggal] = useState("");
 
   const load = useCallback(async () => {
     setLoading(true);
     const res = await fetch(`/api/finalists?kategori=${kategori}`);
     const json = await res.json();
     setData(Array.isArray(json.ranking) ? json : { ranking: [], published: false });
+    setTanggal(toLocalInput(json.announceAt));
     setLoading(false);
   }, [kategori]);
 
   useEffect(() => { load(); }, [load]);
 
-  async function togglePublish() {
+  async function patch(body) {
     setPublishing(true);
     try {
-      await fetch(`/api/finalists/${kategori}`, {
+      const res = await fetch(`/api/finalists/${kategori}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ published: !data.published }),
+        body: JSON.stringify(body),
       });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        alert(err.error || "Gagal menyimpan");
+        return;
+      }
       await load();
     } finally {
       setPublishing(false);
@@ -315,15 +329,55 @@ function RankingTab({ kategori }) {
 
   if (loading || !data) return <p className="fb font-semibold" style={{ color: C.muted }}>Memuat ranking...</p>;
 
+  const tanggalTersimpan = data.announceAt
+    ? new Date(data.announceAt).toLocaleString("id-ID", { dateStyle: "long", timeStyle: "short" })
+    : null;
+
   return (
     <div>
-      <div className="flex items-center justify-between mb-5">
+      <div className="adm-card p-4 mb-5 space-y-3">
         <p className="fb text-sm font-semibold" style={{ color: C.muted }}>
-          Ranking dihitung otomatis dari rata-rata nilai semua juri.
+          Ranking dihitung otomatis dari rata-rata nilai semua juri. Hasil baru tampil di landing &
+          halaman peserta setelah tanggal pengumuman lewat.
         </p>
-        <button onClick={togglePublish} disabled={publishing} className="adm-btn adm-btn-sm" style={{ background: data.published ? C.coral : C.lime, color: data.published ? "#fff" : C.navy }}>
-          {publishing ? "..." : data.published ? "Batalkan Publish" : "Publish Top 5"}
-        </button>
+
+        <div className="flex flex-wrap items-end gap-3">
+          <label className="fb text-xs font-bold" style={{ color: C.navy }}>
+            Tanggal pengumuman
+            <input
+              type="datetime-local"
+              value={tanggal}
+              onChange={(e) => setTanggal(e.target.value)}
+              className="adm-input block mt-1"
+            />
+          </label>
+          <button
+            onClick={() => patch({ announceAt: tanggal ? new Date(tanggal).toISOString() : null })}
+            disabled={publishing || toLocalInput(data.announceAt) === tanggal}
+            className="adm-btn adm-btn-sm"
+            style={{ background: C.yellow, color: C.navy }}
+          >
+            Simpan Tanggal
+          </button>
+          <button
+            onClick={() => patch({ published: !data.published })}
+            disabled={publishing}
+            className="adm-btn adm-btn-sm"
+            style={{ background: data.published ? C.coral : C.lime, color: data.published ? "#fff" : C.navy }}
+          >
+            {publishing ? "..." : data.published ? "Batalkan Publish" : "Publish Top 5"}
+          </button>
+        </div>
+
+        <p className="fb text-xs font-bold" style={{ color: data.announced ? C.navy : C.muted }}>
+          {data.announced
+            ? `🟢 Sudah tayang ke publik sejak ${tanggalTersimpan}.`
+            : data.published && tanggalTersimpan
+              ? `⏳ Terjadwal — otomatis tayang ${tanggalTersimpan}.`
+              : tanggalTersimpan
+                ? `📌 Tanggal diset ${tanggalTersimpan}, belum dipublish.`
+                : "⚠️ Tanggal pengumuman belum diset — publish belum bisa dilakukan."}
+        </p>
       </div>
 
       <div className="space-y-2">

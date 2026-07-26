@@ -3,12 +3,13 @@ export const dynamic = "force-dynamic";
 import { prisma } from "@/lib/prisma";
 import { getRequester, unauthorized, forbidden } from "@/lib/auth-role";
 import { kategoriFromEventName } from "@/lib/kategori";
-import { rankSubmissions } from "@/lib/scoring";
+import { rankSubmissions, isAnnounced } from "@/lib/scoring";
 
 /* =======================
    GET → peserta: status karya sendiri + hasil (nilai/rank) kalau kategori
-   udah di-publish panitia. Nilai/rank sengaja ditahan sebelum publish biar
-   gak bocor keputusan juri duluan — status seleksi berkas tetap kelihatan.
+   udah di-publish panitia DAN tanggal pengumuman lewat. Nilai/rank sengaja
+   ditahan sebelum itu biar gak bocor keputusan juri duluan — status seleksi
+   berkas tetap kelihatan.
 ======================= */
 export async function GET() {
   const { user, participant } = await getRequester();
@@ -29,6 +30,8 @@ export async function GET() {
       return Response.json({ hasSubmission: false });
     }
 
+    const publishState = await prisma.finalistPublish.findUnique({ where: { kategori } });
+
     const base = {
       hasSubmission: true,
       judulKarya: submission.judulKarya,
@@ -39,10 +42,10 @@ export async function GET() {
       status: submission.status,
       createdAt: submission.createdAt,
       published: false,
+      announceAt: publishState?.announceAt ?? null,
     };
 
-    const publishState = await prisma.finalistPublish.findUnique({ where: { kategori } });
-    if (!publishState?.published) {
+    if (!isAnnounced(publishState)) {
       return Response.json(base);
     }
 

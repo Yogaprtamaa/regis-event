@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import RetroAdminStyles, { C } from "@/app/components/RetroAdminStyles";
 import { kategoriFromEventName, karyaRequirements, MAX_KARYA_BYTES } from "@/lib/kategori";
+import { formatTanggalPengumuman } from "@/lib/scoring";
 
 const STATUS_CFG = {
   APPROVED: { tag: "Terverifikasi", color: C.lime, text: C.navy, emoji: "✅" },
@@ -398,10 +399,18 @@ function SubmissionResult({ data, onRefresh }) {
             )}
           </div>
         ) : null
-      ) : (
-        <p className="fb text-xs font-semibold text-center" style={{ color: C.muted }}>
-          Nilai & pengumuman final tampil di sini begitu panitia resmi mengumumkan hasil kategori ini.
-        </p>
+      ) : data.status === "TIDAK_LOLOS" ? null : (
+        <div className="rounded-2xl border-[3px] border-black p-5 text-center" style={{ background: C.sand }}>
+          <p className="text-2xl mb-1">🎉</p>
+          <p className="fb text-sm font-bold" style={{ color: C.navy }}>
+            Selamat, karya kamu sudah terkirim dan akan dinilai oleh juri.
+          </p>
+          <p className="fb text-xs font-semibold mt-1.5" style={{ color: C.muted, lineHeight: 1.7 }}>
+            {data.announceAt
+              ? <>Pengumuman akan diinfokan melalui website ini pada tanggal <strong style={{ color: C.navy }}>{formatTanggalPengumuman(data.announceAt)}</strong>.</>
+              : "Pengumuman akan diinfokan melalui website ini. Pantau terus halaman ini ya!"}
+          </p>
+        </div>
       )}
     </div>
   );

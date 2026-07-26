@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import Loading from "./loading";
+import { formatTanggalPengumuman } from "@/lib/scoring";
 import {
   TrophyIcon,
   MicrophoneIcon,
@@ -1091,7 +1092,12 @@ function Hasil() {
                 </div>
                 <p className="fd" style={{ color: C.navy, fontSize: 17, fontWeight: 600, marginBottom: 6 }}>Belum diumumkan</p>
                 <p className="fb" style={{ color: C.muted, fontSize: 13, fontWeight: 500, lineHeight: 1.7 }}>
-                  Hasil {current.label} lagi diseleksi panitia & dinilai juri. Pantau terus halaman ini ya!
+                  {result?.announceAt ? (
+                    <>Hasil {current.label} lagi dinilai juri. Pengumuman diinfokan lewat website ini pada tanggal{" "}
+                      <strong style={{ color: C.navy }}>{formatTanggalPengumuman(result.announceAt)}</strong>.</>
+                  ) : (
+                    <>Hasil {current.label} lagi diseleksi panitia & dinilai juri. Pantau terus halaman ini ya!</>
+                  )}
                 </p>
               </div>
             ) : (
