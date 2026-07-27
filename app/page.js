@@ -4,7 +4,6 @@ import { useState, useEffect } from "react";
 import Image from "next/image";
 import Loading from "./loading";
 import { formatTanggalPengumuman } from "@/lib/scoring";
-import { youtubeEmbedUrl } from "@/lib/youtube";
 import {
   TrophyIcon,
   MicrophoneIcon,
@@ -287,7 +286,7 @@ const TATA_CARA = [
     color: C.coral,
     tc: "#fff",
     ringkas: "Berlaku untuk semua kategori lomba.",
-    video: "", // tempel link YouTube di sini — kosong = tampil placeholder
+    video: "/pendaftaran.mp4", // kosong = tampil placeholder
 
     langkah: [
       "Buka halaman Lomba, pilih kategori yang mau kamu ikuti.",
@@ -305,7 +304,7 @@ const TATA_CARA = [
     color: C.yellow,
     tc: C.navy,
     ringkas: "Naskah diunggah langsung, bukan lewat Drive.",
-    video: "",
+    video: "/pengumpulankti.mp4",
 
     langkah: [
       "Login di halaman peserta, pastikan status akun sudah Terverifikasi.",
@@ -323,7 +322,7 @@ const TATA_CARA = [
     color: C.lime,
     tc: C.navy,
     ringkas: "Berkas karya dikumpulkan lewat Google Drive.",
-    video: "",
+    video: "/Pengumpulanhackton.mp4",
 
     langkah: [
       "Login di halaman peserta, pastikan status akun sudah Terverifikasi.",
@@ -341,7 +340,7 @@ const TATA_CARA = [
     color: C.blue,
     tc: "#fff",
     ringkas: "Berkas karya dikumpulkan lewat Google Drive.",
-    video: "",
+    video: "/pengumpulanoit.mp4",
 
     langkah: [
       "Login di halaman peserta, pastikan status akun sudah Terverifikasi.",
@@ -1048,7 +1047,6 @@ function Bazzar() {
 function TataCara() {
   const [active, setActive] = useState(TATA_CARA[0].value);
   const current = TATA_CARA.find((t) => t.value === active);
-  const embedUrl = youtubeEmbedUrl(current.video);
 
   return (
     <section id="tatacara" className="sec" style={{ background: "#7FD6EA", padding: "16px 0 72px", position: "relative", overflow: "hidden" }}>
@@ -1105,15 +1103,19 @@ function TataCara() {
               </div>
             </div>
 
-            {embedUrl ? (
-              <div style={{ position: "relative", aspectRatio: "16 / 9", borderRadius: 14, overflow: "hidden", border: "2.5px solid #000", boxShadow: "4px 4px 0 #000", marginBottom: 22, background: "#000" }}>
-                <iframe
-                  src={embedUrl}
+            {current.video ? (
+              // Tanpa autoplay: preload="metadata" cuma narik beberapa KB sampai
+              // pengunjung benar-benar menekan play. key bikin sumbernya ikut
+              // berganti waktu pindah tab.
+              <div style={{ borderRadius: 14, overflow: "hidden", border: "2.5px solid #000", boxShadow: "4px 4px 0 #000", marginBottom: 22, background: "#000" }}>
+                <video
+                  key={current.video}
+                  src={current.video}
                   title={`Video ${current.label}`}
-                  loading="lazy"
-                  allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                  style={{ position: "absolute", inset: 0, width: "100%", height: "100%", border: 0 }}
+                  controls
+                  playsInline
+                  preload="metadata"
+                  style={{ display: "block", width: "100%", aspectRatio: "16 / 9", background: "#000" }}
                 />
               </div>
             ) : (
