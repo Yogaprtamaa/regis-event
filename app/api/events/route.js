@@ -3,6 +3,7 @@ export const dynamic = "force-dynamic";
 import { prisma } from "../../../lib/prisma";
 import { getPesertaConfig } from "../../../lib/pesertaConfig";
 import { getRequester, isAdmin, requireAdmin } from "../../../lib/auth-role";
+import { tandatanganiBerkas } from "../../../lib/storage";
 
 export async function GET() {
   try {
@@ -21,9 +22,11 @@ export async function GET() {
       },
     });
 
-    if (admin) return Response.json(events);
+    if (admin) return Response.json(await tandatanganiBerkas(events));
 
-    return Response.json(events.map(({ waGroupLink, ...publik }) => publik));
+    return Response.json(
+      await tandatanganiBerkas(events.map(({ waGroupLink, ...publik }) => publik)),
+    );
   } catch (error) {
     console.error("Error fetching events:", error.message);
     return Response.json(
@@ -46,6 +49,7 @@ export async function POST(req) {
         nama_event: body.nama_event,
         deskripsi: body.deskripsi,
         tanggal: new Date(body.tanggal),
+        tanggal_berakhir: body.tanggal_berakhir ? new Date(body.tanggal_berakhir) : null,
         jam_mulai: body.jam_mulai,
         jam_berakhir: body.jam_berakhir,
         lokasi: body.lokasi,

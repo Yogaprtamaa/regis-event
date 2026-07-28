@@ -222,7 +222,15 @@ export default function ShowEvent({
   const isAuthenticated = !!auth.user;
   const isAdmin = auth.user?.role === "admin";
   const eventDate = new Date(event.tanggal);
-  const isUpcoming = eventDate > new Date();
+  // Acara multi-hari: tampilkan rentang. null → tetap satu tanggal seperti dulu.
+  const endDate = event.tanggal_berakhir ? new Date(event.tanggal_berakhir) : null;
+  const tanggalTeks = (opts) => {
+    if (!endDate) return eventDate.toLocaleDateString("id-ID", opts);
+    // Nama hari dibuang di rentang — "Senin, 27 Juli – Jumat, 14 Agustus" kepanjangan.
+    const { weekday, ...rentang } = opts;
+    return `${eventDate.toLocaleDateString("id-ID", rentang)} – ${endDate.toLocaleDateString("id-ID", rentang)}`;
+  };
+  const isUpcoming = (endDate ?? eventDate) > new Date();
   const filled = event._count?.participants || 0;
   const fillPct = Math.min(Math.round((filled / event.kapasitas) * 100), 100);
 
@@ -556,7 +564,7 @@ export default function ShowEvent({
               {[
                 {
                   label: "Tanggal",
-                  val: eventDate.toLocaleDateString("id-ID", {
+                  val: tanggalTeks({
                     day: "numeric",
                     month: "short",
                     year: "numeric",
@@ -1057,7 +1065,7 @@ export default function ShowEvent({
             {
               Icon: CalendarIcon,
               label: "Tanggal",
-              val: eventDate.toLocaleDateString("id-ID", { dateStyle: "long" }),
+              val: tanggalTeks({ dateStyle: "long" }),
             },
             {
               Icon: ClockIcon,
@@ -1227,7 +1235,7 @@ export default function ShowEvent({
               {[
                 {
                   Icon: CalendarIcon,
-                  text: eventDate.toLocaleDateString("id-ID", {
+                  text: tanggalTeks({
                     weekday: "long",
                     day: "numeric",
                     month: "long",
@@ -1305,7 +1313,7 @@ export default function ShowEvent({
                       Tanggal
                     </p>
                     <p className="text-sm font-black text-slate-900 mt-0.5 leading-snug">
-                      {eventDate.toLocaleDateString("id-ID", {
+                      {tanggalTeks({
                         weekday: "long",
                         day: "numeric",
                         month: "long",

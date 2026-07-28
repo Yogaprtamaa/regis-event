@@ -3,6 +3,7 @@ export const dynamic = "force-dynamic"
 import { prisma } from "@/lib/prisma";
 import { getPesertaConfig } from "@/lib/pesertaConfig";
 import { getRequester, isAdmin, requireAdmin } from "@/lib/auth-role";
+import { tandatanganiBerkas, bentukSimpan } from "@/lib/storage";
 
 export async function GET(req, { params }) {
   try {
@@ -29,12 +30,13 @@ export async function GET(req, { params }) {
       );
     }
 
-    if (admin) return Response.json(event);
+    if (admin) return Response.json(await tandatanganiBerkas(event));
 
-    // panduanUrl tetap publik — calon peserta perlu baca sebelum daftar.
+    // panduanUrl tetap dibuka buat publik — calon peserta perlu baca sebelum
+    // daftar — tapi bucket-nya privat, jadi tetap harus ditandatangani.
     // waGroupLink enggak: grupnya cuma buat yang sudah diverifikasi.
     const { waGroupLink, ...publik } = event;
-    return Response.json(publik);
+    return Response.json(await tandatanganiBerkas(publik));
   } catch (error) {
     console.error('Error fetching event:', error.message);
     return Response.json(
@@ -59,11 +61,14 @@ export async function PUT(req, { params }) {
         nama_event: body.nama_event,
         deskripsi: body.deskripsi,
         tanggal: body.tanggal ? new Date(body.tanggal) : undefined,
+        tanggal_berakhir: body.tanggal_berakhir !== undefined
+          ? (body.tanggal_berakhir ? new Date(body.tanggal_berakhir) : null)
+          : undefined,
         jam_mulai: body.jam_mulai,
         jam_berakhir: body.jam_berakhir,
         lokasi: body.lokasi,
         kapasitas: body.kapasitas ? parseInt(body.kapasitas) : null,
-        panduanUrl: body.panduanUrl !== undefined ? (body.panduanUrl || null) : undefined,
+        panduanUrl: body.panduanUrl !== undefined ? (bentukSimpan(body.panduanUrl) || null) : undefined,
         waGroupLink: body.waGroupLink !== undefined ? (body.waGroupLink || null) : undefined,
         formSchema: body.formSchema !== undefined ? body.formSchema : undefined,
         pesertaConfig: body.pesertaConfig !== undefined

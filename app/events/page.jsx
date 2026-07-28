@@ -29,6 +29,7 @@ export default function EventsPage() {
               title: event.nama_event,
               description: event.deskripsi,
               date: event.tanggal,
+              dateEnd: event.tanggal_berakhir,
               time: `${event.jam_mulai} - ${event.jam_berakhir}`,
               location: event.lokasi,
               quota: event.kapasitas,

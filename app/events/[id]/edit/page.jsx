@@ -43,9 +43,10 @@ const CSS = `
 const FORM_FIELDS = [
   { key: "nama_event", label: "Judul Event", placeholder: "Workshop Web Development", type: "text", icon: PencilSquareIcon, required: true, fullWidth: true },
   { key: "deskripsi", label: "Deskripsi", placeholder: "Jelaskan tentang event yang akan diselenggarakan...", type: "textarea", icon: null, required: true, fullWidth: true },
-  { key: "tanggal", label: "Tanggal", placeholder: "", type: "date", icon: CalendarIcon, required: true },
+  { key: "tanggal", label: "Tanggal Mulai", placeholder: "", type: "date", icon: CalendarIcon, required: true },
+  { key: "tanggal_berakhir", label: "Tanggal Berakhir", placeholder: "", type: "date", icon: CalendarIcon, required: false },
   { key: "jam_mulai", label: "Jam Mulai", placeholder: "", type: "time", icon: ClockIcon, required: true },
-  { key: "jam_berakhir", label: "Jam Berakhir", placeholder: "", type: "time", icon: ClockIcon, required: true, fullWidth: true },
+  { key: "jam_berakhir", label: "Jam Berakhir", placeholder: "", type: "time", icon: ClockIcon, required: true },
   { key: "lokasi", label: "Lokasi", placeholder: "Auditorium Kampus", type: "text", icon: MapPinIcon, required: true, fullWidth: true },
   { key: "kapasitas", label: "Kuota Peserta", placeholder: "50", type: "number", icon: UsersIcon, required: true },
   { key: "status", label: "Status", placeholder: "", type: "select", icon: null, required: false, options: [{ value: "DRAFT", label: "Draft" }, { value: "PUBLISHED", label: "Published" }, { value: "CLOSED", label: "Closed" }] },
@@ -61,6 +62,7 @@ export default function EditEventPage() {
     nama_event: '',
     deskripsi: '',
     tanggal: '',
+    tanggal_berakhir: '',
     jam_mulai: '',
     jam_berakhir: '',
     lokasi: '',
@@ -87,6 +89,7 @@ export default function EditEventPage() {
           nama_event: event.nama_event || '',
           deskripsi: event.deskripsi || '',
           tanggal: event.tanggal ? event.tanggal.split('T')[0] : '',
+          tanggal_berakhir: event.tanggal_berakhir ? event.tanggal_berakhir.split('T')[0] : '',
           jam_mulai: event.jam_mulai || '',
           jam_berakhir: event.jam_berakhir || '',
           lokasi: event.lokasi || '',
@@ -148,6 +151,11 @@ export default function EditEventPage() {
         setSaving(false);
         return;
       }
+      if (formData.tanggal_berakhir && formData.tanggal_berakhir < formData.tanggal) {
+        setError("Tanggal berakhir tidak boleh sebelum tanggal mulai!");
+        setSaving(false);
+        return;
+      }
 
       const response = await fetch(`/api/events/${eventId}`, {
         method: 'PUT',
@@ -156,6 +164,7 @@ export default function EditEventPage() {
           nama_event: formData.nama_event,
           deskripsi: formData.deskripsi,
           tanggal: formData.tanggal,
+          tanggal_berakhir: formData.tanggal_berakhir,
           jam_mulai: formData.jam_mulai,
           jam_berakhir: formData.jam_berakhir,
           lokasi: formData.lokasi,
@@ -349,6 +358,8 @@ export default function EditEventPage() {
 function PanduanUpload({ eventId, url, onUploaded }) {
   const [uploading, setUploading] = useState(false);
   const [err, setErr] = useState('');
+  // Buku panduan ITFest biasanya satu untuk semua lomba.
+  const [semuaEvent, setSemuaEvent] = useState(false);
 
   const handleFile = async (e) => {
     const file = e.target.files?.[0];
@@ -358,6 +369,7 @@ function PanduanUpload({ eventId, url, onUploaded }) {
     try {
       const body = new FormData();
       body.append('file', file);
+      if (semuaEvent) body.append('semuaEvent', '1');
       const res = await fetch(`/api/events/${eventId}/panduan`, { method: 'POST', body });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Gagal upload panduan');
@@ -384,9 +396,19 @@ function PanduanUpload({ eventId, url, onUploaded }) {
         className="w-full px-3.5 py-2.5 rounded-xl text-sm font-bold b-border bg-white text-slate-900 disabled:opacity-50"
         style={{ boxShadow: "3px 3px 0 #1a1a1a" }}
       />
+      <label className="flex items-center gap-2 mt-2 text-[11px] font-black text-slate-600">
+        <input
+          type="checkbox"
+          checked={semuaEvent}
+          onChange={(e) => setSemuaEvent(e.target.checked)}
+          disabled={uploading}
+          className="w-4 h-4"
+        />
+        Berlaku untuk semua lomba (timpa panduan event lain)
+      </label>
       <p className="text-[11px] font-black mt-2 text-slate-400">
         {uploading ? 'Mengupload...' : err ? <span className="text-red-600">{err}</span>
-          : url ? '✅ Panduan tersimpan — peserta bisa unduh dari halaman event'
+          : url ? `✅ Panduan tersimpan${semuaEvent ? ' untuk semua lomba' : ''} — peserta bisa unduh dari halaman event`
           : 'PDF maksimal 10MB. Atau isi link manual di kolom di atas.'}
       </p>
     </div>

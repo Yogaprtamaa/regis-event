@@ -1,6 +1,7 @@
 export const dynamic = "force-dynamic";
 
 import { getRequester } from "@/lib/auth-role";
+import { tandatanganiBerkas } from "@/lib/storage";
 
 export async function GET() {
   const { user, juri, participant } = await getRequester();
@@ -11,7 +12,8 @@ export async function GET() {
 
   const role = juri ? "JURI" : participant ? "PESERTA" : "ADMIN";
 
-  return Response.json({
+  // panduanUrl nunjuk ke bucket privat, jadi ditandatangani dulu sebelum keluar.
+  return Response.json(await tandatanganiBerkas({
     email: user.email,
     role,
     kategori: juri?.kategori ?? null,
@@ -34,5 +36,5 @@ export async function GET() {
           panduanUrl: participant.event?.panduanUrl ?? null,
         }
       : null,
-  });
+  }));
 }

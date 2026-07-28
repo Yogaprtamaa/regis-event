@@ -51,6 +51,8 @@ model Event {
   nama_event   String
   deskripsi    String?
   tanggal      DateTime
+  // Diisi kalau lomba berlangsung lebih dari sehari. null = acara sehari.
+  tanggal_berakhir DateTime?
   jam_mulai    String
   jam_berakhir String
   lokasi       String

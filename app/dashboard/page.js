@@ -126,7 +126,8 @@ export default function Dashboard() {
       ).length;
 
       const upcomingEvents = eventsData.filter((event) => {
-        const eventDate = new Date(event.tanggal);
+        // Acara multi-hari masih "upcoming" sampai hari terakhirnya lewat.
+        const eventDate = new Date(event.tanggal_berakhir || event.tanggal);
         return eventDate >= now;
       });
 
@@ -207,6 +208,9 @@ export default function Dashboard() {
       deskripsi: event.deskripsi || "",
       tanggal: event.tanggal
         ? new Date(event.tanggal).toISOString().split("T")[0]
+        : "",
+      tanggal_berakhir: event.tanggal_berakhir
+        ? new Date(event.tanggal_berakhir).toISOString().split("T")[0]
         : "",
       jam_mulai: event.jam_mulai,
       jam_berakhir: event.jam_berakhir,
@@ -730,13 +734,25 @@ export default function Dashboard() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="adm-label fb">Tanggal</label>
+                  <label className="adm-label fb">Tanggal Mulai</label>
                   <input
                     type="date"
                     required
                     value={editFormData.tanggal || ""}
                     onChange={(e) =>
                       setEditFormData({ ...editFormData, tanggal: e.target.value })
+                    }
+                    className="adm-input"
+                  />
+                </div>
+                <div>
+                  <label className="adm-label fb">Tanggal Berakhir</label>
+                  <input
+                    type="date"
+                    min={editFormData.tanggal || undefined}
+                    value={editFormData.tanggal_berakhir || ""}
+                    onChange={(e) =>
+                      setEditFormData({ ...editFormData, tanggal_berakhir: e.target.value })
                     }
                     className="adm-input"
                   />

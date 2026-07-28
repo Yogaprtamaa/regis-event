@@ -67,12 +67,19 @@ const FORM_FIELDS = [
   },
   {
     key: "tanggal",
-    label: "Tanggal",
+    label: "Tanggal Mulai",
     placeholder: "",
     type: "date",
     icon: CalendarIcon,
     required: true,
-    fullWidth: true,
+  },
+  {
+    key: "tanggal_berakhir",
+    label: "Tanggal Berakhir",
+    placeholder: "",
+    type: "date",
+    icon: CalendarIcon,
+    required: false,
   },
   {
     key: "jam_mulai",
@@ -127,6 +134,7 @@ export default function CreateEventPage() {
     nama_event: "",
     deskripsi: "",
     tanggal: "",
+    tanggal_berakhir: "",
     jam_mulai: "",
     jam_berakhir: "",
     lokasi: "",
@@ -173,6 +181,11 @@ export default function CreateEventPage() {
         setLoading(false);
         return;
       }
+      if (formData.tanggal_berakhir && formData.tanggal_berakhir < formData.tanggal) {
+        setError("Tanggal berakhir tidak boleh sebelum tanggal mulai!");
+        setLoading(false);
+        return;
+      }
 
       const response = await fetch("/api/events", {
         method: "POST",
@@ -181,6 +194,7 @@ export default function CreateEventPage() {
           nama_event: formData.nama_event,
           deskripsi: formData.deskripsi,
           tanggal: formData.tanggal,
+          tanggal_berakhir: formData.tanggal_berakhir,
           jam_mulai: formData.jam_mulai,
           jam_berakhir: formData.jam_berakhir,
           lokasi: formData.lokasi,

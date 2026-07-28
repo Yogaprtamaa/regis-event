@@ -82,8 +82,15 @@ const STATUS_CFG = {
     CLOSED:    { color: '#fca5a5', textColor: '#7f1d1d', label: 'Closed' },
 };
 
+// Acara multi-hari ditulis sebagai rentang. dateEnd kosong → satu tanggal saja.
+const rentangTanggal = (mulai, akhir, opts) => {
+    const awal = new Date(mulai).toLocaleDateString('id-ID', opts);
+    return akhir ? `${awal} – ${new Date(akhir).toLocaleDateString('id-ID', opts)}` : awal;
+};
+
 function HeroCarousel({ events }) {
-    const upcoming = events.filter(e => e.status === 'PUBLISHED' && new Date(e.date) > new Date());
+    // Acara multi-hari baru lewat setelah tanggal berakhirnya, bukan hari pertama.
+    const upcoming = events.filter(e => e.status === 'PUBLISHED' && new Date(e.dateEnd || e.date) > new Date());
     const items    = upcoming.length > 0 ? upcoming : events.slice(0, 6);
     const [cur, setCur]       = useState(0);
     const [flipKey, setFlipKey] = useState(0);
@@ -174,7 +181,7 @@ function HeroCarousel({ events }) {
                             </p>
                             <p className="flex items-center gap-2.5 text-xs sm:text-sm font-bold text-slate-500">
                                 <CalendarIcon className="flex-shrink-0 w-4 h-4" strokeWidth={2.5} />
-                                {d.toLocaleDateString('id-ID', { day:'numeric', month:'long', year:'numeric' })}
+                                {rentangTanggal(item.date, item.dateEnd, { day:'numeric', month:'long', year:'numeric' })}
                             </p>
                         </div>
 
@@ -216,6 +223,7 @@ function EventCard({ event, idx, showAdminActions = false }) {
     const filled = event._count?.participants || 0;
     const pct    = Math.min(Math.round((filled / event.quota) * 100), 100);
     const d      = new Date(event.date);
+    const dEnd   = event.dateEnd ? new Date(event.dateEnd) : null;
     const isFull = pct >= 100;
 
     return (
@@ -248,12 +256,27 @@ function EventCard({ event, idx, showAdminActions = false }) {
                         style={{ background: status.color, color: status.textColor, boxShadow: '2px 2px 0 #000' }}>
                         {status.label}
                     </Badge>
+                    {/* Acara sehari: angka besar + bulan. Multi-hari: rentangnya,
+                        angka dikecilin biar dua tanggal tetap muat di badge. */}
                     <div className="bg-white b-border-2 rounded-2xl px-3 py-2 text-center min-w-[46px]"
                         style={{ boxShadow: '2px 2px 0 #000' }}>
-                        <p className="text-base font-black leading-none text-slate-900">{d.getDate()}</p>
-                        <p className="text-[9px] font-black text-slate-400 uppercase mt-0.5">
-                            {d.toLocaleDateString('id-ID', { month: 'short' })}
-                        </p>
+                        {dEnd ? (
+                            <>
+                                <p className="text-xs font-black leading-tight text-slate-900 whitespace-nowrap">
+                                    {d.getDate()} {d.toLocaleDateString('id-ID', { month: 'short' })}
+                                </p>
+                                <p className="text-xs font-black leading-tight text-slate-900 whitespace-nowrap">
+                                    – {dEnd.getDate()} {dEnd.toLocaleDateString('id-ID', { month: 'short' })}
+                                </p>
+                            </>
+                        ) : (
+                            <>
+                                <p className="text-base font-black leading-none text-slate-900">{d.getDate()}</p>
+                                <p className="text-[9px] font-black text-slate-400 uppercase mt-0.5">
+                                    {d.toLocaleDateString('id-ID', { month: 'short' })}
+                                </p>
+                            </>
+                        )}
                     </div>
                 </div>
 
