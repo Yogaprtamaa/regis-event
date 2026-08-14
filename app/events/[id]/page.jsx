@@ -4,6 +4,7 @@ import { useParams } from 'next/navigation';
 import Show from "../Show";
 import { useState, useEffect } from 'react';
 import Loading from "@/app/loading";
+import { pendaftaranDitutup } from "@/lib/eventStatus";
 
 export default function ShowEventPage() {
   const params = useParams();
@@ -68,7 +69,9 @@ export default function ShowEventPage() {
   // Publik cuma dikirim jumlahnya; panitia tetap dapat barisnya.
   const participantCount = event._count?.participants ?? event.participants?.length ?? 0;
   const remainingQuota = (event.kapasitas || 0) - participantCount;
-  const canRegister = remainingQuota > 0;
+  const canRegister =
+    remainingQuota > 0 &&
+    !pendaftaranDitutup(event.tanggal_berakhir || event.tanggal);
 
   const eventWithCount = {
     ...event,

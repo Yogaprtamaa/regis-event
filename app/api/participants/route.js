@@ -6,6 +6,7 @@ import { requireAdmin } from "../../../lib/auth-role";
 import { tandatanganiBerkas } from "../../../lib/storage";
 import { createAdminClient } from "../../../lib/supabase/admin";
 import { eventSlug } from "../../../lib/kategori";
+import { pendaftaranDitutup } from "../../../lib/eventStatus";
 import {
   getFormSchema,
   isFileField,
@@ -143,6 +144,14 @@ export async function POST(req) {
     if (event.kapasitas && event.participants.length >= event.kapasitas) {
       return Response.json(
         { message: "Kuota event sudah penuh" },
+        { status: 400 },
+      );
+    }
+
+    /* ===== CEK TANGGAL TUTUP ===== */
+    if (pendaftaranDitutup(event.tanggal_berakhir || event.tanggal)) {
+      return Response.json(
+        { message: "Pendaftaran event ini sudah ditutup" },
         { status: 400 },
       );
     }

@@ -17,6 +17,7 @@ import { useState } from "react";
 import SiteFooter from "../components/SiteFooter";
 import { createClient } from "@/lib/supabase/client";
 import { eventSlug } from "../../lib/kategori";
+import { pendaftaranDitutup } from "../../lib/eventStatus";
 import { getFormSchema, isFileField } from "../../lib/formSchema";
 import { getPesertaConfig, defaultJenisPeserta } from "../../lib/pesertaConfig";
 
@@ -247,7 +248,9 @@ export default function ShowEvent({
   };
 
   const acc = ACCENTS[hashUUID(event.id) % ACCENTS.length];
-  const status = STATUS_CFG[event.status] || STATUS_CFG.DRAFT;
+  const status = pendaftaranDitutup(event.tanggal_berakhir || event.tanggal)
+    ? STATUS_CFG.CLOSED
+    : STATUS_CFG[event.status] || STATUS_CFG.DRAFT;
   const isKti = eventSlug(event.nama_event) === "kti";
 
   const handleInputChange = (key, value) => {

@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Empty, EmptyHeader, EmptyTitle, EmptyDescription, EmptyMedia } from '@/components/ui/empty';
 import SiteFooter from '../components/SiteFooter';
 import { kategoriFromEventName } from '@/lib/kategori';
+import { pendaftaranDitutup } from '@/lib/eventStatus';
 
 const CSS = `
     @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@600;700&family=Plus+Jakarta+Sans:wght@500;700;800&display=swap');
@@ -219,7 +220,9 @@ function HeroCarousel({ events }) {
 
 function EventCard({ event, idx, showAdminActions = false }) {
     const acc    = CARD_ACCENT[idx % CARD_ACCENT.length];
-    const status = STATUS_CFG[event.status] || STATUS_CFG.DRAFT;
+    const status = pendaftaranDitutup(event.dateEnd || event.date)
+        ? STATUS_CFG.CLOSED
+        : STATUS_CFG[event.status] || STATUS_CFG.DRAFT;
     const filled = event._count?.participants || 0;
     const pct    = Math.min(Math.round((filled / event.quota) * 100), 100);
     const d      = new Date(event.date);
