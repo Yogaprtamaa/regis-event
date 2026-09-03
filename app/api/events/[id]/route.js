@@ -95,9 +95,9 @@ export async function PUT(req, { params }) {
 
     return Response.json(event);
   } catch (error) {
-    console.error('Error updating event:', error.message);
+    console.error('Error updating event:', error);
     return Response.json(
-      { error: 'Failed to update event', message: error.message },
+      { error: 'Failed to update event', message: error.message, stack: error.stack },
       { status: 500 }
     );
   }

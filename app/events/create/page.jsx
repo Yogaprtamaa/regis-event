@@ -15,7 +15,7 @@ import FormBuilder from "@/app/components/FormBuilder";
 import PesertaConfigFields from "@/app/components/PesertaConfigFields";
 import { DEFAULT_FORM_SCHEMA, BAZAAR_FORM_SCHEMA, BAZAAR_DEFAULT_PESERTA_CONFIG } from "@/lib/formSchema";
 import { DEFAULT_PESERTA_CONFIG } from "@/lib/pesertaConfig";
-import { createClient } from "@/lib/supabase/client";
+// QR upload sekarang lewat /api/upload/bazaar-qr (service_role) — lihat route.js
 
 const CSS = `
   @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Plus+Jakarta+Sans:wght@700;800&display=swap');
@@ -174,12 +174,11 @@ export default function CreateEventPage() {
     setQrUploading(true);
     setError("");
     try {
-      const supabase = createClient();
-      const ext = file.name.split(".").pop() || "png";
-      const path = `bazaar-qr/${Date.now()}-${Math.round(Math.random()*1e6)}.${ext}`;
-      const { error: upErr } = await supabase.storage.from("participant-uploads").upload(path, file, { contentType: file.type });
-      if (upErr) throw upErr;
-      const { data } = supabase.storage.from("participant-uploads").getPublicUrl(path);
+      const body = new FormData();
+      body.append("file", file);
+      const res = await fetch("/api/upload/bazaar-qr", { method: "POST", body });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || data.message || "Gagal upload QR");
       setFormData((prev) => ({ ...prev, paymentQrUrl: data.publicUrl }));
     } catch (err) {
       setError("Gagal upload QR: " + err.message);

@@ -11,6 +11,7 @@ import {
   BoltIcon,
   TrophyIcon,
   EnvelopeIcon,
+  ArrowDownTrayIcon,
 } from "@heroicons/react/24/outline";
 import { CheckBadgeIcon } from "@heroicons/react/24/solid";
 import { useState } from "react";
@@ -113,10 +114,36 @@ function KtiTermsModal({ open, onClose, onAgree }) {
 }
 
 function BazaarPaymentBox({ event }) {
+  const [downloading, setDownloading] = useState(false);
   if (!event?.isPaidEvent && !event?.isBazaar) return null;
   const hasRek = !!event.paymentRekening;
   const hasQr = !!event.paymentQrUrl;
   if (!hasRek && !hasQr) return null;
+
+  const handleDownloadQr = async () => {
+    if (!event.paymentQrUrl) return;
+    setDownloading(true);
+    try {
+      const res = await fetch(event.paymentQrUrl);
+      if (!res.ok) throw new Error("fetch failed");
+      const blob = await res.blob();
+      const ext = blob.type.split("/")[1]?.split(";")[0] || "png";
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `qr-${(event.nama_event || "pembayaran").replace(/\s+/g, "-").toLowerCase()}.${ext}`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    } catch {
+      // Fallback: buka di tab baru jika CORS / fetch gagal
+      window.open(event.paymentQrUrl, "_blank");
+    } finally {
+      setDownloading(false);
+    }
+  };
+
   return (
     <div className="b-border rounded-2xl p-4 bg-white" style={{ boxShadow: "3px 3px 0 #1a1a1a" }}>
       <p className="text-[11px] font-black uppercase tracking-widest text-slate-600 mb-2.5">💳 Info Pembayaran {event.isBazaar ? "— Bazaar Wajib Bayar" : ""}</p>
@@ -132,6 +159,25 @@ function BazaarPaymentBox({ event }) {
         <div className="mt-3">
           <p className="text-[11px] font-black uppercase tracking-widest text-slate-500 mb-1.5">QRIS / QR Bayar</p>
           <img src={event.paymentQrUrl} alt="QR Pembayaran" className="w-full max-w-[220px] mx-auto rounded-xl b-border object-contain bg-white" />
+          <button
+            type="button"
+            onClick={handleDownloadQr}
+            disabled={downloading}
+            className="b-btn b-border w-full mt-2.5 flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-black uppercase tracking-wide bg-white disabled:opacity-50"
+            style={{ boxShadow: "3px 3px 0 #1a1a1a" }}
+          >
+            {downloading ? (
+              <>
+                <span className="w-3.5 h-3.5 border-2 border-slate-300 border-t-slate-900 rounded-full animate-spin" />
+                Mendownload...
+              </>
+            ) : (
+              <>
+                <ArrowDownTrayIcon className="w-4 h-4" strokeWidth={2.5} />
+                Download QR
+              </>
+            )}
+          </button>
         </div>
       )}
       <p className="text-[11px] font-bold text-slate-500 mt-2.5">Simpan bukti transfer — upload di bawah sebagai bukti pembayaran.</p>

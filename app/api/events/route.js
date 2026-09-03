@@ -3,7 +3,7 @@ export const dynamic = "force-dynamic";
 import { prisma } from "../../../lib/prisma";
 import { getPesertaConfig } from "../../../lib/pesertaConfig";
 import { getRequester, isAdmin, requireAdmin } from "../../../lib/auth-role";
-import { tandatanganiBerkas } from "../../../lib/storage";
+import { tandatanganiBerkas, bentukSimpan } from "../../../lib/storage";
 
 export async function GET() {
   try {
