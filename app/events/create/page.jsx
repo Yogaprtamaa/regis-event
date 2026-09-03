@@ -13,8 +13,9 @@ import { CheckBadgeIcon } from "@heroicons/react/24/solid";
 import { useRouter } from "next/navigation";
 import FormBuilder from "@/app/components/FormBuilder";
 import PesertaConfigFields from "@/app/components/PesertaConfigFields";
-import { DEFAULT_FORM_SCHEMA } from "@/lib/formSchema";
+import { DEFAULT_FORM_SCHEMA, BAZAAR_FORM_SCHEMA, BAZAAR_DEFAULT_PESERTA_CONFIG } from "@/lib/formSchema";
 import { DEFAULT_PESERTA_CONFIG } from "@/lib/pesertaConfig";
+import { createClient } from "@/lib/supabase/client";
 
 const CSS = `
   @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Plus+Jakarta+Sans:wght@700;800&display=swap');
@@ -141,12 +142,52 @@ export default function CreateEventPage() {
     kapasitas: 50,
     status: "DRAFT",
     isPaidEvent: false,
+    isBazaar: false,
+    paymentRekening: "",
+    paymentBank: "",
+    paymentAtasNama: "",
+    paymentQrUrl: "",
+    paymentNominal: "",
   });
+  const [qrUploading, setQrUploading] = useState(false);
   // Form-builder: kolom formulir pendaftaran
   const [fields, setFields] = useState(DEFAULT_FORM_SCHEMA);
   const [pesertaConfig, setPesertaConfig] = useState(DEFAULT_PESERTA_CONFIG);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  const handleBazaarToggle = (checked) => {
+    setError("");
+    setFormData((prev) => ({ ...prev, isBazaar: checked, isPaidEvent: checked ? true : prev.isPaidEvent }));
+    if (checked) {
+      setFields(BAZAAR_FORM_SCHEMA);
+      setPesertaConfig(BAZAAR_DEFAULT_PESERTA_CONFIG);
+    } else {
+      setFields(DEFAULT_FORM_SCHEMA);
+      setPesertaConfig(DEFAULT_PESERTA_CONFIG);
+    }
+  };
+
+  const handleQrUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setQrUploading(true);
+    setError("");
+    try {
+      const supabase = createClient();
+      const ext = file.name.split(".").pop() || "png";
+      const path = `bazaar-qr/${Date.now()}-${Math.round(Math.random()*1e6)}.${ext}`;
+      const { error: upErr } = await supabase.storage.from("participant-uploads").upload(path, file, { contentType: file.type });
+      if (upErr) throw upErr;
+      const { data } = supabase.storage.from("participant-uploads").getPublicUrl(path);
+      setFormData((prev) => ({ ...prev, paymentQrUrl: data.publicUrl }));
+    } catch (err) {
+      setError("Gagal upload QR: " + err.message);
+    } finally {
+      setQrUploading(false);
+      e.target.value = "";
+    }
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -154,7 +195,7 @@ export default function CreateEventPage() {
     setFormData((prev) => ({
       ...prev,
       [name]:
-        name === "kapasitas"
+        name === "kapasitas" || name === "paymentNominal"
           ? value === ""
             ? ""
             : parseInt(value, 10) || 0
@@ -186,6 +227,16 @@ export default function CreateEventPage() {
         setLoading(false);
         return;
       }
+      if ((formData.isPaidEvent || formData.isBazaar) && !formData.paymentRekening.trim()) {
+        setError("Nomor rekening wajib diisi untuk event berbayar / bazaar");
+        setLoading(false);
+        return;
+      }
+      if (qrUploading) {
+        setError("Tunggu upload QR selesai dulu");
+        setLoading(false);
+        return;
+      }
 
       const response = await fetch("/api/events", {
         method: "POST",
@@ -200,6 +251,12 @@ export default function CreateEventPage() {
           lokasi: formData.lokasi,
           kapasitas: parseInt(formData.kapasitas, 10),
           isPaidEvent: formData.isPaidEvent,
+          isBazaar: formData.isBazaar,
+          paymentRekening: formData.paymentRekening,
+          paymentBank: formData.paymentBank,
+          paymentAtasNama: formData.paymentAtasNama,
+          paymentQrUrl: formData.paymentQrUrl,
+          paymentNominal: formData.paymentNominal ? parseInt(formData.paymentNominal, 10) : null,
           formSchema: fields,
           pesertaConfig,
         }),
@@ -383,6 +440,19 @@ export default function CreateEventPage() {
               {/* Divider */}
               <div className="border-t-2 border-dashed border-slate-200" />
 
+              {/* Bazaar toggle — khusus tenant */}
+              <div className="bg-[#FDF5E4] b-border rounded-2xl p-4 flex items-center justify-between" style={{ borderColor: formData.isBazaar ? "#F6890C" : "#1a1a1a" }}>
+                <div>
+                  <p className="text-xs font-black uppercase tracking-widest text-slate-500">Kategori Event</p>
+                  <p className="text-sm font-bold text-slate-800 mt-1">🛍️ Bazaar / Tenant</p>
+                  <p className="text-xs text-slate-500">Aktifkan kalau ini booth bazaar — form otomatis jadi khusus bazaar & berbayar</p>
+                </div>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input type="checkbox" checked={formData.isBazaar} onChange={(e) => handleBazaarToggle(e.target.checked)} className="w-5 h-5 accent-black" />
+                  <span className="text-sm font-black">{formData.isBazaar ? "BAZAAR" : "LOMBA"}</span>
+                </label>
+              </div>
+
               {/* Paid Event Toggle */}
               <div className="bg-yellow-50 b-border rounded-2xl p-4 flex items-center justify-between">
                 <div>
@@ -393,7 +463,7 @@ export default function CreateEventPage() {
                     Event Berbayar
                   </p>
                   <p className="text-xs text-slate-500">
-                    Jika aktif, peserta harus upload bukti pembayaran
+                    {formData.isBazaar ? "Bazaar wajib berbayar — otomatis aktif" : "Jika aktif, peserta harus upload bukti pembayaran"}
                   </p>
                 </div>
 
@@ -401,19 +471,58 @@ export default function CreateEventPage() {
                   <input
                     type="checkbox"
                     checked={formData.isPaidEvent}
+                    disabled={formData.isBazaar}
                     onChange={(e) =>
                       setFormData((prev) => ({
                         ...prev,
                         isPaidEvent: e.target.checked,
                       }))
                     }
-                    className="w-5 h-5 accent-black"
+                    className="w-5 h-5 accent-black disabled:opacity-40"
                   />
                   <span className="text-sm font-black">
                     {formData.isPaidEvent ? "BERBAYAR" : "GRATIS"}
                   </span>
                 </label>
               </div>
+
+              {/* Info pembayaran — rekening (wajib) + QR (optional) + nominal */}
+              {(formData.isPaidEvent || formData.isBazaar) && (
+                <div className="b-border rounded-2xl p-4 space-y-3" style={{ background: "#fff", boxShadow: "3px 3px 0 #1a1a1a" }}>
+                  <p className="text-[11px] font-black uppercase tracking-widest text-slate-600">Info Pembayaran — tampil di halaman daftar peserta</p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-[11px] font-black text-slate-600 uppercase tracking-wider mb-1.5">Nomor Rekening <span className="text-red-500">*</span></label>
+                      <input name="paymentRekening" value={formData.paymentRekening} onChange={handleChange} placeholder="1234567890" className="w-full px-3.5 py-2.5 rounded-xl text-sm font-bold b-border bg-white" style={{ boxShadow: "3px 3px 0 #1a1a1a" }} />
+                    </div>
+                    <div>
+                      <label className="block text-[11px] font-black text-slate-600 uppercase tracking-wider mb-1.5">Bank / E-Wallet</label>
+                      <input name="paymentBank" value={formData.paymentBank} onChange={handleChange} placeholder="BCA / Mandiri / GoPay" className="w-full px-3.5 py-2.5 rounded-xl text-sm font-bold b-border bg-white" style={{ boxShadow: "3px 3px 0 #1a1a1a" }} />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-[11px] font-black text-slate-600 uppercase tracking-wider mb-1.5">Atas Nama</label>
+                      <input name="paymentAtasNama" value={formData.paymentAtasNama} onChange={handleChange} placeholder="Nama pemilik rekening" className="w-full px-3.5 py-2.5 rounded-xl text-sm font-bold b-border bg-white" style={{ boxShadow: "3px 3px 0 #1a1a1a" }} />
+                    </div>
+                    <div>
+                      <label className="block text-[11px] font-black text-slate-600 uppercase tracking-wider mb-1.5">Nominal (Rp)</label>
+                      <input name="paymentNominal" type="number" min="0" value={formData.paymentNominal} onChange={handleChange} placeholder="50000" className="w-full px-3.5 py-2.5 rounded-xl text-sm font-bold b-border bg-white" style={{ boxShadow: "3px 3px 0 #1a1a1a" }} />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-black text-slate-600 uppercase tracking-wider mb-1.5">QRIS / QR Bayar (opsional)</label>
+                    <input type="file" accept="image/*" onChange={handleQrUpload} disabled={qrUploading} className="w-full px-3.5 py-2.5 rounded-xl text-sm font-bold b-border bg-white disabled:opacity-50" style={{ boxShadow: "3px 3px 0 #1a1a1a" }} />
+                    {qrUploading && <p className="text-[11px] font-bold text-slate-500 mt-1">Mengupload QR...</p>}
+                    {formData.paymentQrUrl && !qrUploading && (
+                      <div className="mt-2 flex items-center gap-3">
+                        <img src={formData.paymentQrUrl} alt="QR" className="w-24 h-24 rounded-xl b-border object-contain bg-white" />
+                        <button type="button" onClick={() => setFormData(prev=>({...prev,paymentQrUrl:""}))} className="text-xs font-black text-red-500 underline">Hapus QR</button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
 
               {/* Divider */}
               <div className="border-t-2 border-dashed border-slate-200" />

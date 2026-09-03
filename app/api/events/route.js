@@ -44,6 +44,13 @@ export async function POST(req) {
   try {
     const body = await req.json();
 
+    const isBazaar = !!body.isBazaar;
+    const isPaidEvent = isBazaar ? true : (body.isPaidEvent ?? false);
+
+    if (isPaidEvent && !body.paymentRekening) {
+      return Response.json({ message: "Nomor rekening wajib diisi untuk event berbayar / bazaar" }, { status: 400 });
+    }
+
     const event = await prisma.event.create({
       data: {
         nama_event: body.nama_event,
@@ -54,7 +61,13 @@ export async function POST(req) {
         jam_berakhir: body.jam_berakhir,
         lokasi: body.lokasi,
         kapasitas: body.kapasitas,
-        isPaidEvent: body.isPaidEvent ?? false,
+        isPaidEvent,
+        isBazaar,
+        paymentRekening: body.paymentRekening || null,
+        paymentBank: body.paymentBank || null,
+        paymentAtasNama: body.paymentAtasNama || null,
+        paymentQrUrl: body.paymentQrUrl ? bentukSimpan(body.paymentQrUrl) : null,
+        paymentNominal: body.paymentNominal ? parseInt(body.paymentNominal, 10) : null,
         // Kolom formulir pendaftaran (form-builder). null → pakai DEFAULT_FORM_SCHEMA.
         formSchema: Array.isArray(body.formSchema) && body.formSchema.length ? body.formSchema : undefined,
         // Pengaturan data peserta (individu/kelompok, batas anggota, kolom NIM)

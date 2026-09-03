@@ -190,6 +190,9 @@ const CSS = `
   .px-slow { transform: translateY(calc(var(--sy) * .04px)); }
   .px-mid  { transform: translateY(calc(var(--sy) * -.05px)); }
 
+  /* ── Sponsor wall — biar gak mojok, container sudah handle max-width ── */
+  @media (max-width: 600px) { .spw-item { font-size: 12px; } }
+
   /* ── Responsive ── */
   @media (max-width: 960px) {
     .acara-grid { grid-template-columns: repeat(3,1fr); }
@@ -201,6 +204,9 @@ const CSS = `
     .hero-sky { display: none; }
     .hero-cta-row { justify-content: center; }
     .fish { display: none; } /* ponytail: fixed top% drifts into reflowed content on narrower layouts */
+    .sponsor-grid-utama { grid-template-columns: repeat(2,1fr); }
+    .sponsor-grid-pendukung { grid-template-columns: repeat(3,1fr); }
+    .sponsor-grid-media { grid-template-columns: repeat(3,1fr); }
   }
   @media (max-width: 600px) {
     .acara-grid { grid-template-columns: repeat(2,1fr); gap: 12px; }
@@ -208,6 +214,10 @@ const CSS = `
     .container { padding: 0 16px; }
     section { padding-top: 56px !important; padding-bottom: 56px !important; }
     .px-slow, .px-mid { transform: none; }
+    .sponsor-grid-utama { grid-template-columns: 1fr; max-width: 360px; }
+    .sponsor-grid-pendukung { grid-template-columns: repeat(2,1fr); gap: 12px; }
+    .sponsor-grid-media { grid-template-columns: repeat(2,1fr); }
+    .sponsor-logo-box { height: 76px; }
   }
 
   /* ── Animasi ── */
@@ -351,6 +361,12 @@ const TATA_CARA = [
       "Klik Kirim Karya. Jangan ubah isi folder sampai penjurian selesai.",
     ],
   },
+];
+
+// Sponsor real — cuma 2 foto baru, sisanya dummy text. Nanti tinggal tambah file ke public/sponsor/
+const SPONSOR_LOGOS = [
+  { name: "Axioo", src: "/sponsor/axioo.png" },
+  { name: "Pongo", src: "/sponsor/pongo.png" },
 ];
 
 const TIMELINE = [
@@ -663,6 +679,7 @@ function Navbar({ open, setOpen }) {
     { l: "Tata Cara", h: "#tatacara" },
     { l: "Jadwal", h: "#timeline" },
     { l: "Hasil", h: "#hasil" },
+    { l: "Sponsor", h: "#sponsor" },
   ];
 
   return (
@@ -1322,6 +1339,117 @@ function Hasil() {
 }
 
 /* ══════════════════════════════════════════════════════════════════════
+   6.6 SPONSOR — rapi sesuai screenshot: card putih tebal + partnership di bawah
+   ══════════════════════════════════════════════════════════════════════ */
+function Sponsor() {
+  return (
+    <section id="sponsor" className="sec" style={{ background: C.sand, padding: "72px 0 84px", position: "relative", overflow: "hidden" }}>
+      <div className="sand-grain" aria-hidden="true" />
+      {/* dekor pantai — mirip screenshot */}
+      <div className="bob px-slow" style={{ position: "absolute", top: 28, left: "4%", opacity: 0.9 }} aria-hidden="true"><Shell size={32} color={C.blue} /></div>
+      <div className="bob px-slow" style={{ position: "absolute", top: 36, right: "6%", animationDelay: "1.4s", opacity: 0.9 }} aria-hidden="true"><Starfish size={34} color={C.yellow} /></div>
+      <div className="bob" style={{ position: "absolute", bottom: 92, left: "7%", animationDelay: "2s", opacity: 0.9 }} aria-hidden="true"><Shell size={32} color={C.coral} /></div>
+      <div className="bob" style={{ position: "absolute", bottom: 96, right: "8%", animationDelay: "1.8s", opacity: 0.9 }} aria-hidden="true"><Starfish size={44} color={C.orange} /></div>
+      <div className="footprint" style={{ position: "absolute", bottom: 44, right: "11%", opacity: .45 }} aria-hidden="true"><Footprint size={20} rotate={-6} /></div>
+      <div className="footprint" style={{ position: "absolute", bottom: 28, right: "7%", opacity: .4 }} aria-hidden="true"><Footprint size={18} rotate={8} /></div>
+
+      <div className="container" style={{ position: "relative", zIndex: 1 }}>
+        {/* ── Card putih tebal — Title Sponsor (sesuai screenshot, dirapihin) ── */}
+        <div
+          data-reveal
+          style={{
+            background: "#fff",
+            border: "3.5px solid #000",
+            borderRadius: 20,
+            boxShadow: "7px 7px 0 #000",
+            padding: "32px 28px 36px",
+            maxWidth: 860,
+            margin: "0 auto",
+            textAlign: "center",
+          }}
+        >
+          <span className="k-tag" style={{ background: C.yellow, color: C.navy, border: "2.5px solid #000", boxShadow: "3px 3px 0 #000", transform: "none", marginBottom: 18, display: "inline-flex", fontSize: 11 }}>
+            Para Pendukung Ombak
+          </span>
+          <h2 className="fd" style={{ fontSize: "clamp(1.9rem,3.2vw,2.45rem)", fontWeight: 700, color: C.navy, lineHeight: 1.1, letterSpacing: "-.02em" }}>
+            Our Title <span style={{ color: C.coral }}>Sponsor</span>
+          </h2>
+          <p className="fb" style={{ color: C.muted, fontSize: 13, fontWeight: 500, marginTop: 8, lineHeight: 1.7, maxWidth: 560, margin: "8px auto 0" }}>
+            IT FEST 6.0 · Universitas Paramadina — terima kasih para mitra yang bikin ombak makin gede
+          </p>
+
+          <div style={{ height: 1, background: "#E8E0C8", margin: "22px auto 26px", maxWidth: 560 }} />
+
+          {/* logo row — clean, rata tengah, breathing room (bukan marquee berulang) */}
+          <div style={{ display: "flex", gap: 28, justifyContent: "center", alignItems: "center", flexWrap: "wrap" }}>
+            {SPONSOR_LOGOS.map((s) => (
+              <div key={s.name} style={{ display: "flex", alignItems: "center", justifyContent: "center", padding: "6px 10px" }}>
+                <Image
+                  src={s.src}
+                  alt={s.name}
+                  width={220}
+                  height={72}
+                  style={{
+                    width: s.name === "Axioo" ? 200 : 92,
+                    height: 44,
+                    objectFit: "contain",
+                    filter: "grayscale(0)",
+                  }}
+                />
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* ── Partnership di bawah card ── */}
+        <div data-reveal style={{ "--reveal-delay": "120ms", maxWidth: 860, margin: "32px auto 0", textAlign: "center" }}>
+          <p className="fb" style={{ fontSize: 11, fontWeight: 800, letterSpacing: ".14em", textTransform: "uppercase", color: "rgba(8,46,75,.45)", marginBottom: 14 }}>
+            Partnership
+          </p>
+          <div
+            style={{
+              background: "rgba(255,255,255,.72)",
+              border: "2.5px dashed rgba(0,0,0,.22)",
+              borderRadius: 18,
+              padding: "28px 24px",
+              display: "flex",
+              gap: 16,
+              justifyContent: "center",
+              alignItems: "center",
+              flexWrap: "wrap",
+            }}
+          >
+            {[1, 2, 3].map((i) => (
+              <div
+                key={i}
+                style={{
+                  flex: "1 1 180px",
+                  maxWidth: 220,
+                  height: 72,
+                  background: "#fff",
+                  border: "2px dashed rgba(0,0,0,.18)",
+                  borderRadius: 14,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <span className="fb" style={{ fontSize: 11.5, fontWeight: 700, color: "rgba(8,46,75,.35)", letterSpacing: ".06em", textTransform: "uppercase" }}>
+                  Segera hadir
+                </span>
+              </div>
+            ))}
+          </div>
+          <p className="fb" style={{ fontSize: 11, fontWeight: 600, color: "rgba(8,46,75,.42)", marginTop: 10 }}>
+            Logo partnership akan tampil di sini — hubungi panitia untuk kolaborasi
+          </p>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ══════════════════════════════════════════════════════════════════════
    7. TIBA DI PANTAI (footer) — pasir + langit senja
    ══════════════════════════════════════════════════════════════════════ */
 function Footer() {
@@ -1439,6 +1567,7 @@ export default function Page() {
           <TataCara />
           <Timeline />
           <Hasil />
+          <Sponsor />
         </main>
         <Footer />
       </div>

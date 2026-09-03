@@ -59,6 +59,14 @@ model Event {
   kapasitas    Int?
 
   isPaidEvent Boolean @default(false)
+  isBazaar    Boolean @default(false)
+
+  // Info pembayaran — wajib kalau isPaidEvent/isBazaar. QR optional, rekening wajib.
+  paymentRekening String?
+  paymentBank     String?
+  paymentAtasNama String?
+  paymentQrUrl    String?
+  paymentNominal  Int? // nominal dalam rupiah, null = infokan manual
 
   // Dilampirkan admin setelah peserta daftar (buku panduan + grup WA)
   panduanUrl  String?

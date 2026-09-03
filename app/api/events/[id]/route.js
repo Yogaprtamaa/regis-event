@@ -55,6 +55,12 @@ export async function PUT(req, { params }) {
     const { id } = await params;
     const body = await req.json();
 
+    const isBazaar = body.isBazaar !== undefined ? !!body.isBazaar : undefined;
+    const isPaidResolved = isBazaar === true ? true : body.isPaidEvent;
+    if (isPaidResolved && body.paymentRekening !== undefined && !body.paymentRekening) {
+      return Response.json({ message: "Nomor rekening wajib diisi untuk event berbayar / bazaar" }, { status: 400 });
+    }
+
     const event = await prisma.event.update({
       where: { id },
       data: {
@@ -68,6 +74,13 @@ export async function PUT(req, { params }) {
         jam_berakhir: body.jam_berakhir,
         lokasi: body.lokasi,
         kapasitas: body.kapasitas ? parseInt(body.kapasitas) : null,
+        isPaidEvent: isPaidResolved !== undefined ? !!isPaidResolved : undefined,
+        isBazaar: isBazaar !== undefined ? !!isBazaar : undefined,
+        paymentRekening: body.paymentRekening !== undefined ? (body.paymentRekening || null) : undefined,
+        paymentBank: body.paymentBank !== undefined ? (body.paymentBank || null) : undefined,
+        paymentAtasNama: body.paymentAtasNama !== undefined ? (body.paymentAtasNama || null) : undefined,
+        paymentQrUrl: body.paymentQrUrl !== undefined ? (body.paymentQrUrl ? bentukSimpan(body.paymentQrUrl) : null) : undefined,
+        paymentNominal: body.paymentNominal !== undefined ? (body.paymentNominal ? parseInt(body.paymentNominal, 10) : null) : undefined,
         panduanUrl: body.panduanUrl !== undefined ? (bentukSimpan(body.panduanUrl) || null) : undefined,
         waGroupLink: body.waGroupLink !== undefined ? (body.waGroupLink || null) : undefined,
         formSchema: body.formSchema !== undefined ? body.formSchema : undefined,

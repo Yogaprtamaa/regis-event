@@ -112,6 +112,33 @@ function KtiTermsModal({ open, onClose, onAgree }) {
   );
 }
 
+function BazaarPaymentBox({ event }) {
+  if (!event?.isPaidEvent && !event?.isBazaar) return null;
+  const hasRek = !!event.paymentRekening;
+  const hasQr = !!event.paymentQrUrl;
+  if (!hasRek && !hasQr) return null;
+  return (
+    <div className="b-border rounded-2xl p-4 bg-white" style={{ boxShadow: "3px 3px 0 #1a1a1a" }}>
+      <p className="text-[11px] font-black uppercase tracking-widest text-slate-600 mb-2.5">💳 Info Pembayaran {event.isBazaar ? "— Bazaar Wajib Bayar" : ""}</p>
+      {event.paymentNominal ? <p className="text-sm font-black text-slate-900 mb-2">Nominal: Rp {Number(event.paymentNominal).toLocaleString("id-ID")}</p> : null}
+      {hasRek && (
+        <div className="rounded-xl bg-slate-50 b-border p-3 text-sm font-bold">
+          <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Transfer ke</p>
+          <p className="font-black text-slate-900 mt-0.5 break-all">{event.paymentRekening} {event.paymentBank ? `— ${event.paymentBank}` : ""}</p>
+          {event.paymentAtasNama && <p className="text-xs font-bold text-slate-600">a.n. {event.paymentAtasNama}</p>}
+        </div>
+      )}
+      {hasQr && (
+        <div className="mt-3">
+          <p className="text-[11px] font-black uppercase tracking-widest text-slate-500 mb-1.5">QRIS / QR Bayar</p>
+          <img src={event.paymentQrUrl} alt="QR Pembayaran" className="w-full max-w-[220px] mx-auto rounded-xl b-border object-contain bg-white" />
+        </div>
+      )}
+      <p className="text-[11px] font-bold text-slate-500 mt-2.5">Simpan bukti transfer — upload di bawah sebagai bukti pembayaran.</p>
+    </div>
+  );
+}
+
 // Buku panduan boleh dilihat siapa saja — calon peserta perlu baca sebelum
 // memutuskan ikut. Link grup WA sengaja TIDAK di sini: grupnya cuma buat
 // peserta terverifikasi, tombolnya ada di /submit-karya di balik gate
@@ -201,6 +228,7 @@ export default function ShowEvent({
   const [processing, setProcessing] = useState(false);
   const [showKtiTerms, setShowKtiTerms] = useState(false);
   const [loggedIn, setLoggedIn] = useState(false);
+  const [buktiPembayaran, setBuktiPembayaran] = useState(null);
 
   // Blok data peserta ngikut pengaturan admin per event
   const pesertaCfg = getPesertaConfig(event);
@@ -408,6 +436,10 @@ export default function ShowEvent({
     if (isKti && !formData.setujuSyaratKti)
       newErrors.setujuSyaratKti = "Wajib menyetujui persyaratan lomba KTI";
 
+    if ((event.isPaidEvent || event.isBazaar) && !buktiPembayaran) {
+      newErrors.bukti_pembayaran = "Bukti pembayaran wajib diupload";
+    }
+
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
       return;
@@ -428,6 +460,8 @@ export default function ShowEvent({
 
       form.append("password", formData.password);
       form.append("setujuSyaratKti", isKti && formData.setujuSyaratKti ? "true" : "false");
+
+      if (buktiPembayaran) form.append("bukti_pembayaran", buktiPembayaran);
 
       // Safari iOS sering gagal kirim File dari Photos apa adanya (error WebKit
       // "The string did not match the expected pattern"), apalagi foto iCloud yang
@@ -903,6 +937,20 @@ export default function ShowEvent({
                 </div>
               ))}
 
+              {/* Payment — bazaar wajib bayar, QR optional */}
+              {(event.isPaidEvent || event.isBazaar) && (
+                <div className="space-y-3">
+                  <BazaarPaymentBox event={event} />
+                  <div>
+                    <label className={labelCls}>Bukti Pembayaran <span className="text-red-500">*</span></label>
+                    <input type="file" accept="image/*,application/pdf" onChange={(e)=>{ setBuktiPembayaran(e.target.files?.[0]||null); if(errors.bukti_pembayaran) setErrors(prev=>({...prev,bukti_pembayaran:""})); }} className={inputBase} style={sh(errors.bukti_pembayaran)} />
+                    {buktiPembayaran && <p className="text-[11px] font-bold text-slate-600 mt-1">Terpilih: {buktiPembayaran.name}</p>}
+                    {errors.bukti_pembayaran && <p className="text-[11px] text-red-500 mt-1 font-black">{errors.bukti_pembayaran}</p>}
+                    <p className="text-[10px] font-bold text-slate-400 mt-1">Upload foto/scan bukti transfer. Bazaar harus bayar dulu baru diverifikasi admin.</p>
+                  </div>
+                </div>
+              )}
+
               {/* 13. Akun login peserta */}
               <div className="pt-1">
                 <div
@@ -1133,6 +1181,8 @@ export default function ShowEvent({
               {fillPct}% dari {event.kapasitas} kursi
             </p>
           </div>
+
+          {(event.isPaidEvent || event.isBazaar) && <BazaarPaymentBox event={event} />}
 
           {/* CTA */}
           {!isAdmin && canRegister && (
