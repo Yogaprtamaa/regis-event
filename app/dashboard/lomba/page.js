@@ -344,7 +344,7 @@ function RankingTab({ kategori }) {
     <div>
       <div className="adm-card p-4 mb-5 space-y-3">
         <p className="fb text-sm font-semibold" style={{ color: C.muted }}>
-          Ranking dihitung otomatis dari total nilai seluruh juri (3 juri × maks 100 = 300). Hasil baru tampil di landing &
+          Ranking dihitung otomatis dari rata-rata nilai seluruh juri (maks 100). Hasil baru tampil di landing &
           halaman peserta setelah tanggal pengumuman lewat. Tanggalnya satu untuk semua kategori;
           tombol publish tetap per kategori.
         </p>

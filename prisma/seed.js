@@ -210,7 +210,7 @@ async function main() {
   // ── Akun juri (Supabase auth + role di DB) ──────────────────────
   console.log("⚖️  Membuat akun juri...");
 
-  // 3 juri per kategori — skor akhir = jumlah nilai ketiganya (maks 300).
+  // 3 juri per kategori — skor akhir = rata-rata nilai ketiganya (maks 100).
   const juriPerKategori = [
     { label: "Hackathon", slug: "hackathon", kategori: "HACKATHON" },
     { label: "IoT", slug: "iot", kategori: "IOT" },

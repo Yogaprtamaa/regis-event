@@ -438,7 +438,7 @@ function SubmissionResult({ data, onRefresh }) {
             </p>
             {data.totalScore != null && (
               <p className="fb text-sm font-bold mt-1" style={{ color: C.navy }}>
-                Skor akhir: {data.totalScore.toFixed(1)} / 300
+                Skor akhir: {data.totalScore.toFixed(1)} / 100
               </p>
             )}
           </div>
@@ -449,7 +449,7 @@ function SubmissionResult({ data, onRefresh }) {
             </p>
             {data.totalScore != null && (
               <p className="fb text-xs font-semibold mt-1" style={{ color: C.muted }}>
-                Skor akhir: {data.totalScore.toFixed(1)} / 300
+                Skor akhir: {data.totalScore.toFixed(1)} / 100
               </p>
             )}
           </div>
