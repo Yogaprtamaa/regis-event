@@ -1388,22 +1388,35 @@ function Sponsor() {
 
           <div style={{ height: 1, background: "#E8E0C8", margin: "22px auto 26px", maxWidth: 560 }} />
 
-          {/* logo row — sel sejajar, tiap logo ketengah di selnya sendiri */}
-          <div style={{ display: "flex", gap: 20, justifyContent: "center", alignItems: "stretch", flexWrap: "wrap" }}>
-            {SPONSOR_LOGOS.map((s) => {
-              const size = s.name === "Axioo" ? { w: 200, h: 48 } : s.name === "Sari Roti" ? { w: 220, h: 104 } : { w: 110, h: 86 };
+          {/* logo — baris atas: Axioo + Pongo sejajar, baris bawah: Sari Roti center */}
+          <div style={{ display: "flex", gap: 20, justifyContent: "center", alignItems: "center", flexWrap: "wrap" }}>
+            {SPONSOR_LOGOS.filter((s) => s.name !== "Sari Roti").map((s) => {
+              const size = s.name === "Axioo" ? { w: 200, h: 48 } : { w: 110, h: 86 };
               return (
-                <div key={s.name} style={{ flex: "1 1 220px", maxWidth: 280, minHeight: 128, display: "flex", alignItems: "center", justifyContent: "center", padding: "10px 16px" }}>
+                <div key={s.name} style={{ flex: "1 1 220px", maxWidth: 280, minHeight: 110, display: "flex", alignItems: "center", justifyContent: "center", padding: "10px 16px" }}>
                   <Image
                     src={s.src}
                     alt={s.name}
                     width={280}
-                    height={128}
+                    height={110}
                     style={{ width: size.w, maxWidth: "100%", height: size.h, objectFit: "contain", filter: "grayscale(0)" }}
                   />
                 </div>
               );
             })}
+          </div>
+          <div style={{ display: "flex", justifyContent: "center", alignItems: "center", marginTop: 8 }}>
+            {SPONSOR_LOGOS.filter((s) => s.name === "Sari Roti").map((s) => (
+              <div key={s.name} style={{ minHeight: 110, display: "flex", alignItems: "center", justifyContent: "center", padding: "10px 16px" }}>
+                <Image
+                  src={s.src}
+                  alt={s.name}
+                  width={280}
+                  height={110}
+                  style={{ width: 220, maxWidth: "100%", height: 104, objectFit: "contain", filter: "grayscale(0)" }}
+                />
+              </div>
+            ))}
           </div>
         </div>
 
