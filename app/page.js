@@ -363,10 +363,18 @@ const TATA_CARA = [
   },
 ];
 
-// Sponsor real — cuma 2 foto baru, sisanya dummy text. Nanti tinggal tambah file ke public/sponsor/
+// Sponsor real — Axioo + Pongo (jangan diubah) + Sari Roti baru
 const SPONSOR_LOGOS = [
   { name: "Axioo", src: "/sponsor/axioo.png" },
   { name: "Pongo", src: "/sponsor/pongo.png" },
+  { name: "Sari Roti", src: "/sponsor/sari-roti.png" },
+];
+
+// Partnership real — Merkle Innovation + ICCOM (Indonesia Cloud Community) + Nirwana Cipta Global
+const PARTNERSHIP_LOGOS = [
+  { name: "Merkle Innovation", src: "/partnership/merkle-innovation.jpg" },
+  { name: "Indonesia Cloud Community", src: "/partnership/iccom.png" },
+  { name: "PT Nirwana Cipta Global", src: "/partnership/nirwana-cipta-global.png" },
 ];
 
 const TIMELINE = [
@@ -1380,24 +1388,22 @@ function Sponsor() {
 
           <div style={{ height: 1, background: "#E8E0C8", margin: "22px auto 26px", maxWidth: 560 }} />
 
-          {/* logo row — clean, rata tengah, breathing room (bukan marquee berulang) */}
-          <div style={{ display: "flex", gap: 28, justifyContent: "center", alignItems: "center", flexWrap: "wrap" }}>
-            {SPONSOR_LOGOS.map((s) => (
-              <div key={s.name} style={{ display: "flex", alignItems: "center", justifyContent: "center", padding: "6px 10px" }}>
-                <Image
-                  src={s.src}
-                  alt={s.name}
-                  width={220}
-                  height={72}
-                  style={{
-                    width: s.name === "Axioo" ? 200 : 92,
-                    height: 44,
-                    objectFit: "contain",
-                    filter: "grayscale(0)",
-                  }}
-                />
-              </div>
-            ))}
+          {/* logo row — sel sejajar, tiap logo ketengah di selnya sendiri */}
+          <div style={{ display: "flex", gap: 20, justifyContent: "center", alignItems: "stretch", flexWrap: "wrap" }}>
+            {SPONSOR_LOGOS.map((s) => {
+              const size = s.name === "Axioo" ? { w: 200, h: 48 } : s.name === "Sari Roti" ? { w: 220, h: 104 } : { w: 110, h: 86 };
+              return (
+                <div key={s.name} style={{ flex: "1 1 220px", maxWidth: 280, minHeight: 128, display: "flex", alignItems: "center", justifyContent: "center", padding: "10px 16px" }}>
+                  <Image
+                    src={s.src}
+                    alt={s.name}
+                    width={280}
+                    height={128}
+                    style={{ width: size.w, maxWidth: "100%", height: size.h, objectFit: "contain", filter: "grayscale(0)" }}
+                  />
+                </div>
+              );
+            })}
           </div>
         </div>
 
@@ -1419,29 +1425,34 @@ function Sponsor() {
               flexWrap: "wrap",
             }}
           >
-            {[1, 2, 3].map((i) => (
+            {PARTNERSHIP_LOGOS.map((p) => (
               <div
-                key={i}
+                key={p.name}
                 style={{
-                  flex: "1 1 180px",
-                  maxWidth: 220,
-                  height: 72,
+                  flex: "1 1 200px",
+                  maxWidth: 260,
+                  height: 76,
                   background: "#fff",
-                  border: "2px dashed rgba(0,0,0,.18)",
+                  border: "2px solid rgba(0,0,0,.12)",
                   borderRadius: 14,
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
+                  padding: "8px 14px",
                 }}
               >
-                <span className="fb" style={{ fontSize: 11.5, fontWeight: 700, color: "rgba(8,46,75,.35)", letterSpacing: ".06em", textTransform: "uppercase" }}>
-                  Segera hadir
-                </span>
+                <Image
+                  src={p.src}
+                  alt={p.name}
+                  width={220}
+                  height={56}
+                  style={{ width: "100%", maxWidth: 210, height: 52, objectFit: "contain" }}
+                />
               </div>
             ))}
           </div>
           <p className="fb" style={{ fontSize: 11, fontWeight: 600, color: "rgba(8,46,75,.42)", marginTop: 10 }}>
-            Logo partnership akan tampil di sini — hubungi panitia untuk kolaborasi
+            Tertarik jadi partner? Hubungi panitia untuk kolaborasi
           </p>
         </div>
       </div>
