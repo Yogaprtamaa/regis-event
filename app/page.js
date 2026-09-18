@@ -370,11 +370,12 @@ const SPONSOR_LOGOS = [
   { name: "Sari Roti", src: "/sponsor/sari-roti.png" },
 ];
 
-// Partnership real — Merkle Innovation + ICCOM (Indonesia Cloud Community) + Nirwana Cipta Global
+// Partnership real — Merkle Innovation + ICCOM (Indonesia Cloud Community) + Nirwana Cipta Global + Saiko Society
 const PARTNERSHIP_LOGOS = [
   { name: "Merkle Innovation", src: "/partnership/merkle-innovation.jpg" },
   { name: "Indonesia Cloud Community", src: "/partnership/iccom.png" },
   { name: "PT Nirwana Cipta Global", src: "/partnership/nirwana-cipta-global.png" },
+  { name: "Saiko Society", src: "/partnership/saiko-society-v2.png", large: true },
 ];
 
 const TIMELINE = [
@@ -1443,8 +1444,8 @@ function Sponsor() {
                 key={p.name}
                 style={{
                   flex: "1 1 200px",
-                  maxWidth: 260,
-                  height: 76,
+                  maxWidth: p.large ? 260 : 260,
+                  height: p.large ? 74 : 76,
                   background: "#fff",
                   border: "2px solid rgba(0,0,0,.12)",
                   borderRadius: 14,
@@ -1457,9 +1458,9 @@ function Sponsor() {
                 <Image
                   src={p.src}
                   alt={p.name}
-                  width={220}
-                  height={56}
-                  style={{ width: "100%", maxWidth: 210, height: 52, objectFit: "contain" }}
+                  width={p.large ? 210 : 220}
+                  height={p.large ? 52 : 56}
+                  style={{ width: "100%", maxWidth: p.large ? 200 : 210, height: p.large ? 50 : 52, objectFit: "contain" }}
                 />
               </div>
             ))}
